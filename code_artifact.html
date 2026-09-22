@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>旗山孔廟實境解謎</title>
+    <!-- 引入 Tailwind CSS 用於快速排版 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google 字體 (思源宋體) 以增加傳統文化氛圍 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Noto Serif TC', serif; 
+            background-color: #f4e8d3; /* 古典米黃背景 */
+            overscroll-behavior-y: none; 
+            overflow-x: hidden;
+        }
+        
+        /* 隱藏捲軸 */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        
+        /* 頁面切換淡入動畫 */
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* 左右裝飾品的漂浮動畫 */
+        .float-anim { animation: float 4s ease-in-out infinite; }
+        .float-anim-delayed { animation: float 5s ease-in-out infinite 1.5s; }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+</head>
+<body class="text-gray-900 antialiased min-h-screen relative flex items-center justify-center">
+
+    <!-- 左側漂浮裝飾：燈籠 (手機版半透明背景，電腦版放大移至側邊) -->
+    <div class="fixed left-2 top-1/4 text-7xl opacity-20 -z-10 md:opacity-100 md:text-[150px] md:left-12 float-anim pointer-events-none select-none">
+        🏮
+    </div>
+
+    <!-- 右側漂浮裝飾：祥雲 (手機版半透明背景，電腦版放大移至側邊) -->
+    <div class="fixed right-2 top-1/3 text-7xl opacity-20 -z-10 md:opacity-100 md:text-[150px] md:right-12 float-anim-delayed pointer-events-none select-none">
+        ☁️
+    </div>
+
+    <!-- 自訂提示訊息框 (取代 alert) -->
+    <div id="toast" class="fixed top-8 left-1/2 transform -translate-x-1/2 px-8 py-3 rounded-md shadow-xl text-white font-bold transition-all duration-300 opacity-0 -translate-y-10 z-50 pointer-events-none text-lg tracking-widest flex items-center gap-2">
+        <span id="toast-icon"></span>
+        <span id="toast-msg"></span>
+    </div>
+
+    <!-- 遊戲主容器 -->
+    <main class="w-full max-w-md bg-[#fff9f0] border-4 border-[#8b0000] rounded-lg shadow-2xl p-6 md:p-8 m-4 relative z-10 min-h-[500px] flex flex-col justify-center">
+        
+        <!-- 四角古典邊框裝飾 -->
+        <div class="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#8b0000]"></div>
+        <div class="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-[#8b0000]"></div>
+        <div class="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[#8b0000]"></div>
+        <div class="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[#8b0000]"></div>
+
+        <!-- ================= 首頁 ================= -->
+        <section id="screen-home" class="flex flex-col items-center justify-center text-center fade-in">
+            <div class="w-24 h-24 rounded-full border-4 border-[#8b0000] flex items-center justify-center mb-6 bg-[#f4e8d3]">
+                <span class="text-5xl font-black text-[#8b0000]">孔</span>
+            </div>
+            <h1 class="text-4xl font-black text-[#8b0000] mb-3 tracking-widest drop-shadow-sm">旗山孔廟</h1>
+            <h2 class="text-2xl font-bold text-gray-800 mb-10 tracking-[0.2em]">實境解謎</h2>
+            <button onclick="startGame()" class="w-full bg-[#8b0000] text-[#f4e8d3] py-4 rounded text-xl font-bold border-2 border-[#8b0000] hover:bg-[#fff9f0] hover:text-[#8b0000] transition-colors shadow-md active:scale-95">展開巡禮</button>
+        </section>
+
+        <!-- ================= 遊戲關卡 ================= -->
+        <section id="screen-game" class="hidden flex-col h-full fade-in">
+            <div class="flex justify-between items-end mb-4 border-b-2 border-[#8b0000] pb-3">
+                <h2 id="level-title" class="text-2xl font-black text-[#8b0000] tracking-wider"></h2>
+                <span id="level-indicator" class="text-sm font-bold text-gray-500 bg-gray-200 px-2 py-1 rounded"></span>
+            </div>
+            
+            <div class="flex-1 flex flex-col justify-center py-4">
+                <h3 class="text-gray-500 text-sm font-bold mb-1 tracking-widest">【 線索 】</h3>
+                <p id="level-desc" class="text-gray-800 mb-8 leading-relaxed text-lg"></p>
+                
+                <h3 class="text-[#8b0000] text-sm font-bold mb-1 tracking-widest">【 考驗 】</h3>
+                <p id="level-question" class="text-gray-900 font-bold text-xl leading-relaxed"></p>
+            </div>
+            
+            <div class="mt-6 border-t-2 border-dashed border-gray-300 pt-6">
+                <input type="text" id="answer-input" placeholder="請輸入解答..." autocomplete="off" class="w-full bg-white border-2 border-[#8b0000] p-4 text-xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-[#8b0000] focus:ring-opacity-50 mb-4 rounded shadow-inner text-[#8b0000] transition-shadow" onkeypress="handleEnter(event)">
+                <button onclick="checkAnswer()" class="w-full bg-[#8b0000] text-[#f4e8d3] py-4 text-xl font-bold hover:bg-[#600000] transition-colors rounded shadow-md active:scale-95 tracking-widest">確認解答</button>
+            </div>
+        </section>
+
+        <!-- ================= 結束頁面 ================= -->
+        <section id="screen-end" class="hidden flex-col items-center justify-center text-center fade-in py-10">
+            <div class="w-24 h-24 rounded-full bg-[#8b0000] flex items-center justify-center mb-6 text-[#f4e8d3] text-4xl shadow-lg border-4 border-white">
+                <span class="font-black">成</span>
+            </div>
+            <h1 class="text-4xl font-black text-[#8b0000] mb-4 tracking-widest drop-shadow-sm">功德圓滿</h1>
+            <p class="text-gray-700 mb-10 text-lg leading-loose font-bold">你已成功解開所有謎題，<br>完成這趟充滿智慧的文化巡禮！</p>
+            <button onclick="resetGame()" class="w-full border-2 border-[#8b0000] text-[#8b0000] bg-transparent py-4 rounded text-xl font-bold hover:bg-[#8b0000] hover:text-[#f4e8d3] transition-colors active:scale-95 tracking-widest">再次挑戰</button>
+        </section>
+    </main>
+
+    <script>
+        // 關卡資料庫 (依據需求配置的孔廟題目)
+        const levels = [
+            { 
+                title: "第一關：黌門", 
+                clue: "走進孔廟的第一道大門，象徵著古代的學校。", 
+                question: "請問門上的匾額寫著哪一個字代表儒家思想？", 
+                answer: "儒" 
+            },
+            { 
+                title: "第二關：櫺星門", 
+                clue: "這道門上有許多突起的門釘，古代只有宮殿或孔廟可以使用。", 
+                question: "請數數看，單扇門上有幾顆門釘？", 
+                answer: "108" 
+            },
+            { 
+                title: "第三關：大成殿", 
+                clue: "這裡是孔廟的主殿，供奉著孔子的神位。", 
+                question: "請問殿內中央上方的匾額寫著什麼稱號？", 
+                answer: "大成至聖先師" 
+            }
+        ];
+        
+        let currentLevelIndex = 0;
+        
+        // 取得介面元素
+        const screenHome = document.getElementById('screen-home');
+        const screenGame = document.getElementById('screen-game');
+        const screenEnd = document.getElementById('screen-end');
+        const uiTitle = document.getElementById('level-title');
+        const uiIndicator = document.getElementById('level-indicator');
+        const uiDesc = document.getElementById('level-desc');
+        const uiQuestion = document.getElementById('level-question');
+        const uiInput = document.getElementById('answer-input');
+        const toast = document.getElementById('toast');
+        const toastIcon = document.getElementById('toast-icon');
+        const toastMsg = document.getElementById('toast-msg');
+
+        // 開始遊戲
+        function startGame() { 
+            screenHome.classList.add('hidden'); 
+            screenGame.classList.remove('hidden');
+            screenGame.classList.add('flex');
+            currentLevelIndex = 0; 
+            loadLevel(currentLevelIndex); 
+        }
+
+        // 載入指定關卡
+        function loadLevel(index) {
+            const data = levels[index]; 
+            uiTitle.innerText = data.title; 
+            uiIndicator.innerText = `${index + 1} / ${levels.length}`;
+            uiDesc.innerText = data.clue; 
+            uiQuestion.innerText = data.question; 
+            uiInput.value = ''; 
+            uiInput.blur(); // 手機版自動收合鍵盤
+        }
+
+        // 檢查答案正確性
+        function checkAnswer() {
+            // 處理玩家輸入：去除所有空白字元，並轉為小寫(以防有英文解答的狀況)
+            const inputRaw = uiInput.value;
+            const inputNormalized = inputRaw.replace(/\s+/g, '').toLowerCase();
+            
+            // 處理標準答案：同樣去除空白與轉小寫
+            const answerNormalized = levels[currentLevelIndex].answer.replace(/\s+/g, '').toLowerCase();
+            
+            if (!inputNormalized) {
+                return showToast("請輸入解答！", "bg-red-600", "⚠️");
+            }
+            
+            // 驗證答案
+            if (inputNormalized === answerNormalized) {
+                showToast("解答正確！", "bg-green-600", "✅"); 
+                
+                // 延遲 1.2 秒後進入下一關或結束
+                setTimeout(() => { 
+                    currentLevelIndex++;
+                    if (currentLevelIndex < levels.length) {
+                        loadLevel(currentLevelIndex);
+                    } else {
+                        endGame();
+                    }
+                }, 1200);
+            } else { 
+                showToast("答案有誤，請再試一次。", "bg-red-600", "❌"); 
+                uiInput.value = ''; 
+                uiInput.focus(); 
+            }
+        }
+
+        // 允許按 Enter 鍵直接送出
+        function handleEnter(e) { 
+            if (e.key === "Enter") {
+                checkAnswer(); 
+            }
+        }
+
+        // 顯示結束畫面
+        function endGame() { 
+            screenGame.classList.remove('flex');
+            screenGame.classList.add('hidden'); 
+            screenEnd.classList.remove('hidden');
+            screenEnd.classList.add('flex'); 
+        }
+
+        // 重置遊戲
+        function resetGame() { 
+            screenEnd.classList.remove('flex');
+            screenEnd.classList.add('hidden'); 
+            screenHome.classList.remove('hidden'); 
+        }
+
+        // 顯示漂亮的回饋提示框 (Toast)
+        function showToast(msg, colorClass, icon) {
+            toastMsg.innerText = msg; 
+            toastIcon.innerText = icon;
+            
+            // 設定樣式與動畫
+            toast.className = `fixed top-8 left-1/2 transform -translate-x-1/2 px-6 py-4 rounded-md shadow-xl text-white font-bold transition-all duration-300 z-50 ${colorClass} opacity-100 translate-y-0 pointer-events-none text-lg tracking-widest flex items-center gap-2 min-w-max`;
+            
+            // 2秒後淡出收回
+            setTimeout(() => {
+                toast.classList.replace('opacity-100', 'opacity-0');
+                toast.classList.replace('translate-y-0', '-translate-y-10');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
