@@ -15,13 +15,18 @@
         .decoration-img-delayed { mix-blend-mode: multiply; animation: float 6s ease-in-out infinite; animation-delay: 3s; }
         @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
 
-        /* 提示框與轉場動畫 */
-        .toast-enter { transform: translateY(-100%); opacity: 0; transition: all 0.3s ease-out; }
-        .toast-show { transform: translateY(0); opacity: 1; }
+        /* 轉場與錯誤震動動畫 */
         .scroll-reveal { opacity: 0; transform: scale(0.95); transition: all 0.8s ease-out; }
         .scroll-reveal.active { opacity: 1; transform: scale(1); }
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .animate-shake { animation: shake 0.3s ease-in-out; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 relative">
@@ -33,9 +38,6 @@
     <div class="fixed right-0 top-2/3 -translate-y-1/2 opacity-15 md:opacity-100 md:right-10 pointer-events-none">
         <img src="temple.jpg" alt="古典裝飾" class="w-40 md:w-56 lg:w-72 decoration-img-delayed" onerror="this.style.display='none'">
     </div>
-
-    <!-- 頂部提示訊息 -->
-    <div id="toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-bold text-center w-11/12 max-w-sm toast-enter hidden"></div>
 
     <!-- 主遊戲容器 -->
     <div id="game-container" class="relative z-10 w-full max-w-md bg-[#FAF3E0] rounded-xl shadow-2xl overflow-hidden border-2 border-[#8B2500]">
@@ -52,13 +54,13 @@
             <!-- 引言 -->
             <div id="intro-section" class="mb-6 text-sm text-gray-700 leading-relaxed bg-[#F4EAD5] p-4 rounded border border-[#D7CCC8]">
                 <strong>【身分賦予】</strong><br>
-                老夫子幻影浮現：「年輕人，孔廟的智慧藏在團隊、自然與幾何之中。今日的試煉需要你們分工合作，準備好迎接挑戰了嗎？」
+                老夫子幻影浮現：「年輕人，孔廟的智慧藏在團隊、自然與幾何之中。今日的試煉融合了天地星辰與歷史印記，準備好迎接挑戰了嗎？」
             </div>
 
             <!-- 解謎區塊 (動態渲染內容) -->
             <div id="puzzle-section">
                 <div class="flex justify-between text-xs font-bold text-[#8B2500] mb-2 tracking-widest">
-                    <span id="level-indicator">卷一 / 共五卷</span>
+                    <span id="level-indicator">卷 1 / 共 11 卷</span>
                     <span id="mistake-counter">失誤：0</span>
                 </div>
                 
@@ -74,7 +76,7 @@
                     <h2 class="text-3xl font-black text-[#8B2500] mt-4 mb-2" id="final-rank">狀元及第</h2>
                     <p class="text-gray-500 font-bold mb-4" id="final-score">最終得分：100 分</p>
                     <div class="text-sm text-gray-700 leading-relaxed border-t border-dashed border-gray-300 pt-4 text-left">
-                        老夫子欣慰地微笑：「善哉！你們學會了分工合作、細心觀察，最後更以天眼看破了紅柱間的異國之謎 <span class="text-[#8B2500] font-bold">【MOON】</span>。你們已領悟儒門大道，這份智慧將伴隨你們一生！」
+                        老夫子欣慰地微笑：「善哉！你們學會了分工合作、細心觀察，最後更看破了紅柱間的異國之謎 <span class="text-[#8B2500] font-bold">【MOON】</span>。你們已領悟大中至正的儒門大道，這份智慧將伴隨你們一生！」
                     </div>
                 </div>
                 <button onclick="location.reload()" class="w-full mt-6 border-2 border-[#8B2500] text-[#8B2500] font-bold py-2 px-4 rounded tracking-widest">再玩一次</button>
@@ -90,27 +92,18 @@
             
             <!-- AR 紅柱密碼 (MOON) -->
             <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
-                
-                <!-- 恢復中央基準虛線框，並對準中央大門 -->
                 <rect x="447.5" y="440" width="105" height="113" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
                 <text x="500" y="420" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
-
-                <!-- MOON 輔助線 (顏色更紅、線條變細、高度減半、寬度縮小1/5) -->
                 <g stroke="#C62828" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
-                    <!-- 【M】的 V 型 -->
                     <path d="M 196 480 L 276 580 L 356 480" fill="none"/>
-                    
-                    <!-- 【O O】的上下橫條與中間直條 -->
                     <line x1="356" y1="480" x2="644" y2="480" />
                     <line x1="356" y1="580" x2="644" y2="580" />
                     <line x1="500" y1="480" x2="500" y2="580" />
-
-                    <!-- 【N】的對角線 -->
                     <line x1="644" y1="480" x2="804" y2="580" />
                 </g>
             </svg>
 
-            <!-- AR 人體陣法 (雙人框) -->
+            <!-- AR 人體陣法 -->
             <svg id="svg-human" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet">
                 <g transform="translate(150, 300)" stroke="#00E676" stroke-width="8" stroke-dasharray="10 10" fill="none">
                     <circle cx="150" cy="80" r="50" />
@@ -140,16 +133,67 @@
         <!-- 備用提示框 -->
         <div id="fallback-box" class="hidden absolute inset-4 bg-gray-900/95 text-white p-6 rounded-xl z-30 flex flex-col justify-center items-center text-center">
             <h3 class="text-lg font-bold text-yellow-400 mb-2">AR 輔助提示</h3>
-            <p class="text-sm text-gray-300 mb-4 leading-relaxed" id="fallback-text">
-                <!-- JS 動態插入提示文字 -->
-            </p>
+            <p class="text-sm text-gray-300 mb-4 leading-relaxed" id="fallback-text"></p>
             <button onclick="toggleFallbackHint()" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">關閉提示</button>
         </div>
     </div>
 
     <script>
-        // 五大關卡設定
+        // 依據企劃檔案順序排列的 11 道關卡
         const levels = [
+            {
+                type: 'standard',
+                title: "星象的指引",
+                desc: "孔廟的第一道門被稱為「櫺星門」。櫺星又稱文曲星，象徵孔子育才施教的崇高地位。日升月降之際，「櫺星」與星月相映。",
+                question: "新科弟子們發現天上星宿有幾處較閃耀的光，觀察地上的星圖，請問這組編號是幾號？",
+                answer: ["01043"]
+            },
+            {
+                type: 'standard',
+                title: "星辰的方位",
+                desc: "確認了閃耀星宿的編號後，必須找對方向才能前進。",
+                question: "承上題，請問櫺星門在該光源的哪個方位？",
+                answer: ["西北", "西北方"]
+            },
+            {
+                type: 'standard',
+                title: "靈魂之窗口",
+                desc: "走到門前，需要最後的通關密語才能進入。老夫子給了一張提示卡：「孔孟聖道貫古今」。",
+                question: "請問想要通過「櫺星門」的密碼是什麼？（請輸入3位數字）",
+                answer: ["324"]
+            },
+            {
+                type: 'ar_landscape',
+                title: "紅柱間的密碼",
+                desc: "來到莊嚴的大成門前，老夫子指著前方宏偉的四根紅柱說：『孔廟的建築不僅蘊含儒家思想，有時也藏著跨越語言的巧合。』",
+                question: "開啟透視鏡，將黃色框對準大成門中央。看看這半透明的紅線，與四根真實的紅柱組合起來，拼出了一個什麼英文單字？",
+                answer: ["moon", "moons"],
+                arHint: "請將畫面上的黃色虛線框對準大成門的「中央木門」，讓紅線與四根大紅柱交疊！",
+                fallback: "當紅線與四根柱子對齊時：<br>左側柱子與V型組成「M」<br>中央柱群與上下橫條組成兩個「O」<br>右側柱子與斜線組成「N」"
+            },
+            {
+                type: 'link',
+                title: "大成門的威儀",
+                desc: "大成門象徵通往大成殿的禮敬之門。孔廟屬聖廟，不畫一般廟宇的門神，改以沉穩深紅門扇與銅門釘裝飾，且不書對聯以示崇敬。",
+                linkUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b",
+                linkText: "🧩 點擊前往完成大成門拼圖",
+                question: "拼圖完成後，請數數看或是回想老夫子的教誨，大成門上共有幾顆銅門釘，代表著至高無上的威儀？",
+                answer: ["108", "一百零八"]
+            },
+            {
+                type: 'standard',
+                title: "歷史的重塑",
+                desc: "『高雄縣孔廟整修重建成工程落成紀念碑』記錄了現代旗山孔廟的重建，但至聖先師的儒學歷史源遠流長。",
+                question: "傳說中，清代有一位皇帝對尊孔政策極為重視，進行了極為精細的全面翻修。請問雍正是在西元哪一年進行整修的呢？",
+                answer: ["1729", "1729年"]
+            },
+            {
+                type: 'standard',
+                title: "窗櫺裡的真理",
+                desc: "迴廊上的花磚與窗櫺，光影交錯間透出了古人的思想。",
+                question: "觀察窗櫺的洞洞排列。孔子倡導的中庸之道，追求不偏不倚、無過不及，正是什麼精神核心？（請輸入四個字）",
+                answer: ["大中至正"]
+            },
             {
                 type: 'standard',
                 title: "黌門的起點",
@@ -184,15 +228,6 @@
                 answer: ["天地人"],
                 arHint: "請指揮隊友退後，完美塞進人形虛線框中！",
                 fallback: "這關需要隊友擺出特定的姿勢，答案就是通關密語：天地人。"
-            },
-            {
-                type: 'ar_landscape',
-                title: "紅柱間的密碼",
-                desc: "來到莊嚴的大成門前，老夫子指著前方宏偉的四根紅柱說：『孔廟的建築不僅蘊含儒家思想，有時也藏著跨越語言的巧合。』",
-                question: "開啟透視鏡，將黃色框對準大成門中央。看看這半透明的紅線，與四根真實的紅柱組合起來，拼出了一個什麼英文單字？",
-                answer: ["moon", "moons"],
-                arHint: "請將畫面上的黃色虛線框對準大成門的「中央木門」，讓紅線與四根大紅柱交疊！",
-                fallback: "當紅線與四根柱子對齊時：<br>左側柱子與V型組成「M」<br>中央柱群與上下橫條組成兩個「O」<br>右側柱子與斜線組成「N」"
             }
         ];
 
@@ -202,7 +237,7 @@
 
         function loadLevel() {
             const level = levels[currentLevel];
-            document.getElementById('level-indicator').textContent = `卷${["一", "二", "三", "四", "五"][currentLevel]} / 共五卷`;
+            document.getElementById('level-indicator').textContent = `卷 ${currentLevel + 1} / 共 ${levels.length} 卷`;
             const content = document.getElementById('level-content');
             let html = `<h2 class="text-xl font-bold mb-3 text-[#5D4037] border-b-2 border-[#8B2500] pb-2 inline-block">${level.title}</h2>
                         <p class="text-gray-700 mb-4 text-sm leading-relaxed">${level.desc}</p>`;
@@ -238,6 +273,14 @@
                     </button>
                     ${getInputHTML()}
                 `;
+            } else if (level.type === 'link') {
+                html += `
+                    <a href="${level.linkUrl}" target="_blank" class="block w-full bg-[#1B5E20] hover:bg-[#144718] text-white text-center py-4 rounded-lg shadow-md font-bold mb-4 transition-transform active:scale-95">
+                        ${level.linkText}
+                    </a>
+                    <p class="font-bold text-[#8B2500] mb-2">${level.question}</p>
+                    ${getInputHTML()}
+                `;
             } else {
                 html += `
                     <p class="font-bold text-[#8B2500] mb-4">${level.question}</p>
@@ -247,9 +290,15 @@
             content.innerHTML = html;
         }
 
+        // 修改的輸入框區塊，包含下方的 inline-feedback
         function getInputHTML() {
             return `
-                <input type="text" id="answer-input" placeholder="請輸入答案..." class="w-full px-4 py-3 rounded bg-gray-50 border border-gray-300 focus:ring-2 focus:ring-[#8B2500] text-center text-lg mb-4" autocomplete="off">
+                <div class="mb-1 relative">
+                    <input type="text" id="answer-input" placeholder="請輸入答案..." class="w-full px-4 py-3 rounded bg-gray-50 border-2 border-gray-300 focus:border-[#8B2500] focus:ring-0 text-center text-lg transition-all" autocomplete="off">
+                </div>
+                <div class="h-6 mb-3 flex items-center justify-center">
+                    <p id="inline-feedback" class="text-sm font-bold opacity-0 transition-opacity text-center w-full"></p>
+                </div>
                 <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-3 px-4 rounded shadow-md text-lg active:bg-[#6A1B00] transition-colors">呈交答案</button>
             `;
         }
@@ -291,7 +340,7 @@
                 cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 document.getElementById('ar-video').srcObject = cameraStream;
             } catch (err) {
-                showToast("無法取得相機權限！請點擊下方備用提示查看線索。", false);
+                showInlineFeedback("無法取得相機權限！請點擊備用提示查看線索。", false);
             }
         };
 
@@ -305,17 +354,36 @@
             box.classList.toggle('hidden');
         };
 
+        // 新增的行內提示邏輯
+        function showInlineFeedback(msg, isSuccess) {
+            const fb = document.getElementById('inline-feedback');
+            fb.textContent = msg;
+            fb.className = `text-sm font-bold transition-opacity text-center w-full opacity-100 ${isSuccess ? 'text-green-600' : 'text-red-600'}`;
+            
+            const inputEl = document.getElementById('answer-input');
+            if (!isSuccess) {
+                inputEl.classList.add('animate-shake', 'border-red-500');
+                setTimeout(() => inputEl.classList.remove('animate-shake', 'border-red-500'), 400);
+            } else {
+                inputEl.classList.add('border-green-500');
+            }
+
+            setTimeout(() => {
+                fb.classList.replace('opacity-100', 'opacity-0');
+            }, 2500);
+        }
+
         window.checkAnswer = function() {
             const inputEl = document.getElementById('answer-input');
             if (!inputEl) return;
             const userAnswer = inputEl.value.trim().toLowerCase().replace(/\s+/g, ''); 
-            if (!userAnswer) { showToast("請輸入答案！", false); return; }
+            if (!userAnswer) { showInlineFeedback("請輸入答案！", false); return; }
 
             const level = levels[currentLevel];
             let isCorrect = level.answer.some(ans => userAnswer === ans.toLowerCase());
 
             if (isCorrect) {
-                showToast("正確！準備進入下一卷...", true);
+                showInlineFeedback("正確！準備進入下一卷...", true);
                 currentLevel++;
                 setTimeout(() => {
                     if (currentLevel < levels.length) loadLevel();
@@ -324,18 +392,9 @@
             } else {
                 wrongAttempts++;
                 document.getElementById('mistake-counter').textContent = `失誤：${wrongAttempts}`;
-                showToast("答案不對喔，再仔細觀察看看！", false);
+                showInlineFeedback("答案不對喔，再仔細觀察看看！", false);
             }
         };
-
-        function showToast(msg, isSuccess) {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.className = `fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-bold text-center w-11/12 max-w-sm toast-enter ${isSuccess ? 'bg-green-600' : 'bg-red-600'}`;
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('toast-show'), 10);
-            setTimeout(() => { toast.classList.remove('toast-show'); setTimeout(() => toast.classList.add('hidden'), 300); }, 2500);
-        }
 
         function showEnding() {
             document.getElementById('puzzle-section').classList.add('hidden');
