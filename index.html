@@ -90,22 +90,23 @@
             
             <!-- AR 紅柱密碼 (MOON) -->
             <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
-                <!-- 遠景「大門四根紅柱」輔助定位寬框 -->
-                <rect x="100" y="320" width="800" height="400" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.6"/>
-                <text x="500" y="300" fill="#FFEB3B" font-size="24" text-anchor="middle" font-weight="bold">對準大成門的四根紅柱</text>
+                
+                <!-- 恢復中央基準虛線框，並對準中央大門 -->
+                <rect x="447.5" y="440" width="105" height="113" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
+                <text x="500" y="420" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
 
-                <!-- MOON 輔助線 (深紅柱子色，半透明疊加) -->
-                <g stroke="#8B2500" stroke-width="35" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
-                    <!-- 【M】的 V 型 (左側，連接柱1與柱2) -->
-                    <path d="M 120 450 L 220 650 L 320 450" fill="none"/>
+                <!-- MOON 輔助線 (顏色更紅、線條變細、高度減半、寬度縮小1/5) -->
+                <g stroke="#C62828" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
+                    <!-- 【M】的 V 型 -->
+                    <path d="M 196 480 L 276 580 L 356 480" fill="none"/>
                     
-                    <!-- 【O O】的上下橫條與中間直條 (中央，連接柱2與柱3，中間有一根門柱) -->
-                    <line x1="320" y1="450" x2="680" y2="450" />
-                    <line x1="320" y1="650" x2="680" y2="650" />
-                    <line x1="500" y1="450" x2="500" y2="650" />
+                    <!-- 【O O】的上下橫條與中間直條 -->
+                    <line x1="356" y1="480" x2="644" y2="480" />
+                    <line x1="356" y1="580" x2="644" y2="580" />
+                    <line x1="500" y1="480" x2="500" y2="580" />
 
-                    <!-- 【N】的對角線 (右側，連接柱3與柱4) -->
-                    <line x1="680" y1="450" x2="880" y2="650" />
+                    <!-- 【N】的對角線 -->
+                    <line x1="644" y1="480" x2="804" y2="580" />
                 </g>
             </svg>
 
@@ -188,9 +189,9 @@
                 type: 'ar_landscape',
                 title: "紅柱間的密碼",
                 desc: "來到莊嚴的大成門前，老夫子指著前方宏偉的四根紅柱說：『孔廟的建築不僅蘊含儒家思想，有時也藏著跨越語言的巧合。』",
-                question: "開啟透視鏡，將虛線框對準大成門。看看這半透明的深紅輔助線，與四根真實的紅柱組合起來，拼出了一個什麼英文單字？",
+                question: "開啟透視鏡，將黃色框對準大成門中央。看看這半透明的紅線，與四根真實的紅柱組合起來，拼出了一個什麼英文單字？",
                 answer: ["moon", "moons"],
-                arHint: "請將畫面上的黃色虛線框對準大成門，讓紅線與四根大紅柱交疊！",
+                arHint: "請將畫面上的黃色虛線框對準大成門的「中央木門」，讓紅線與四根大紅柱交疊！",
                 fallback: "當紅線與四根柱子對齊時：<br>左側柱子與V型組成「M」<br>中央柱群與上下橫條組成兩個「O」<br>右側柱子與斜線組成「N」"
             }
         ];
