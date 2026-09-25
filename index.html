@@ -74,7 +74,7 @@
                     <h2 class="text-3xl font-black text-[#8B2500] mt-4 mb-2" id="final-rank">狀元及第</h2>
                     <p class="text-gray-500 font-bold mb-4" id="final-score">最終得分：100 分</p>
                     <div class="text-sm text-gray-700 leading-relaxed border-t border-dashed border-gray-300 pt-4 text-left">
-                        老夫子欣慰地微笑：「善哉！你們學會了分工合作、細心觀察，並用天地人陣法看破了大地密碼。你們已領悟儒門大道，這份智慧將伴隨你們一生！」
+                        老夫子欣慰地微笑：「善哉！你們學會了分工合作、細心觀察，最後更以天眼看破了紅柱間的異國之謎 <span class="text-[#8B2500] font-bold">【MOON】</span>。你們已領悟儒門大道，這份智慧將伴隨你們一生！」
                     </div>
                 </div>
                 <button onclick="location.reload()" class="w-full mt-6 border-2 border-[#8B2500] text-[#8B2500] font-bold py-2 px-4 rounded tracking-widest">再玩一次</button>
@@ -88,19 +88,25 @@
         <div class="relative w-full flex-1 overflow-hidden">
             <video id="ar-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
             
-            <!-- AR 大地密碼 (781) -->
-            <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-                <!-- 遠景牌樓「中央拱門」輔助定位框 (直立長方形) -->
-                <rect x="430" y="300" width="140" height="170" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
-                <text x="500" y="280" fill="#FFEB3B" font-size="24" text-anchor="middle" font-weight="bold">對準中央拱門</text>
+            <!-- AR 紅柱密碼 (MOON) -->
+            <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
+                <!-- 遠景「大門四根紅柱」輔助定位寬框 -->
+                <rect x="100" y="320" width="800" height="400" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.6"/>
+                <text x="500" y="300" fill="#FFEB3B" font-size="24" text-anchor="middle" font-weight="bold">對準大成門的四根紅柱</text>
 
-                <!-- 【數字 7】左側輔助紅線 -->
-                <path d="M 230 470 L 380 495 L 290 680" fill="none" stroke="#FF1744" stroke-width="9"/>
-                <!-- 【數字 8】中央步道輔助橫線 -->
-                <line x1="380" y1="565" x2="605" y2="560" stroke="#FF1744" stroke-width="9"/>
-                <line x1="300" y1="675" x2="625" y2="655" stroke="#FF1744" stroke-width="9"/>
-                <!-- 【數字 1】右側斜線 -->
-                <path d="M 700 515 L 775 695" fill="none" stroke="#FF1744" stroke-width="9"/>
+                <!-- MOON 輔助線 (深紅柱子色，半透明疊加) -->
+                <g stroke="#8B2500" stroke-width="35" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
+                    <!-- 【M】的 V 型 (左側，連接柱1與柱2) -->
+                    <path d="M 120 450 L 220 650 L 320 450" fill="none"/>
+                    
+                    <!-- 【O O】的上下橫條與中間直條 (中央，連接柱2與柱3，中間有一根門柱) -->
+                    <line x1="320" y1="450" x2="680" y2="450" />
+                    <line x1="320" y1="650" x2="680" y2="650" />
+                    <line x1="500" y1="450" x2="500" y2="650" />
+
+                    <!-- 【N】的對角線 (右側，連接柱3與柱4) -->
+                    <line x1="680" y1="450" x2="880" y2="650" />
+                </g>
             </svg>
 
             <!-- AR 人體陣法 (雙人框) -->
@@ -125,8 +131,18 @@
                 </g>
             </svg>
         </div>
-        <div class="w-full bg-black/80 p-4 flex justify-center z-20">
-            <button onclick="closeARCamera()" class="bg-[#8B2500] text-white px-8 py-3 rounded-full font-bold shadow-lg">完成透視，返回作答</button>
+        <div class="w-full bg-black/80 p-4 flex justify-between items-center z-20">
+            <button onclick="toggleFallbackHint()" class="text-xs text-yellow-400 underline pl-2">鏡頭不支援？點此</button>
+            <button onclick="closeARCamera()" class="bg-[#8B2500] text-white px-6 py-3 rounded-full font-bold shadow-lg mr-2">返回作答</button>
+        </div>
+
+        <!-- 備用提示框 -->
+        <div id="fallback-box" class="hidden absolute inset-4 bg-gray-900/95 text-white p-6 rounded-xl z-30 flex flex-col justify-center items-center text-center">
+            <h3 class="text-lg font-bold text-yellow-400 mb-2">AR 輔助提示</h3>
+            <p class="text-sm text-gray-300 mb-4 leading-relaxed" id="fallback-text">
+                <!-- JS 動態插入提示文字 -->
+            </p>
+            <button onclick="toggleFallbackHint()" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">關閉提示</button>
         </div>
     </div>
 
@@ -138,7 +154,7 @@
                 title: "黌門的起點",
                 desc: "求學必須從正門而入。這座孔廟最外側有兩座宏偉的牌坊。",
                 question: "請找找看，這座代表古代學校大門的牌坊上刻著哪兩個字？（提示：音同紅門）",
-                answer: "黌門"
+                answer: ["黌門"]
             },
             {
                 type: 'coop',
@@ -149,7 +165,7 @@
                     west: "【西廡弟子】請前往西側廂房找牆上『尊道』匾額。<br>👉 將夥伴傳遞來的神獸名稱，加上匾額的第二個字，就是密碼！"
                 },
                 question: "請西廡弟子負責輸入兩人合作得出的兩字密碼：",
-                answer: "龍道"
+                answer: ["龍道"]
             },
             {
                 type: 'photo',
@@ -164,16 +180,18 @@
                 title: "人體三才陣",
                 desc: "天地人和方能成事。老夫子要考驗你們的團隊行動力。",
                 question: "隊長請點擊下方開啟陣法，指揮兩位隊友站進虛線框。完成後請隊友齊聲大喊『天地人』，並由隊長輸入這三個字！",
-                answer: "天地人",
-                arHint: "請指揮隊友退後，完美塞進人形虛線框中！"
+                answer: ["天地人"],
+                arHint: "請指揮隊友退後，完美塞進人形虛線框中！",
+                fallback: "這關需要隊友擺出特定的姿勢，答案就是通關密語：天地人。"
             },
             {
                 type: 'ar_landscape',
-                title: "大地的幾何密碼",
-                desc: "站在大成殿外的中軸線台階最高處，俯瞰庭院。孔廟的浩瀚蘊藏幾何規律。",
-                question: "開啟透視鏡，將紅線與前方的大門步道對齊，大地拼出了哪三位數字密碼？",
-                answer: "781",
-                arHint: "請將畫面中央的虛線框，精準套在遠方牌坊的「正中央拱門」上！"
+                title: "紅柱間的密碼",
+                desc: "來到莊嚴的大成門前，老夫子指著前方宏偉的四根紅柱說：『孔廟的建築不僅蘊含儒家思想，有時也藏著跨越語言的巧合。』",
+                question: "開啟透視鏡，將虛線框對準大成門。看看這半透明的深紅輔助線，與四根真實的紅柱組合起來，拼出了一個什麼英文單字？",
+                answer: ["moon", "moons"],
+                arHint: "請將畫面上的黃色虛線框對準大成門，讓紅線與四根大紅柱交疊！",
+                fallback: "當紅線與四根柱子對齊時：<br>左側柱子與V型組成「M」<br>中央柱群與上下橫條組成兩個「O」<br>右側柱子與斜線組成「N」"
             }
         ];
 
@@ -191,8 +209,8 @@
             if (level.type === 'coop') {
                 html += `
                     <div class="flex gap-2 mb-4">
-                        <button onclick="selectRole('east')" class="flex-1 border-2 border-[#8B2500] text-[#8B2500] font-bold py-2 rounded">我是東廡弟子</button>
-                        <button onclick="selectRole('west')" class="flex-1 bg-[#8B2500] text-white font-bold py-2 rounded">我是西廡弟子</button>
+                        <button onclick="selectRole('east')" class="flex-1 border-2 border-[#8B2500] text-[#8B2500] font-bold py-2 rounded transition-colors active:bg-orange-100">我是東廡弟子</button>
+                        <button onclick="selectRole('west')" class="flex-1 bg-[#8B2500] text-white font-bold py-2 rounded transition-colors active:bg-[#6A1B00]">我是西廡弟子</button>
                     </div>
                     <div id="role-info" class="hidden mb-4 p-3 bg-orange-50 border border-orange-200 rounded text-sm font-bold text-[#8B2500]"></div>
                     <div id="input-area" class="hidden fade-in">
@@ -202,7 +220,7 @@
             } else if (level.type === 'photo') {
                 html += `
                     <p class="font-bold text-[#8B2500] mb-4">${level.question}</p>
-                    <label class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg cursor-pointer shadow-md font-bold mb-4">
+                    <label class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg cursor-pointer shadow-md font-bold mb-4 active:scale-95 transition-transform">
                         📷 點此開啟相機拍照
                         <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoUpload(event)">
                     </label>
@@ -214,7 +232,7 @@
             } else if (level.type.startsWith('ar_')) {
                 html += `
                     <p class="font-bold text-[#8B2500] mb-4">${level.question}</p>
-                    <button onclick="openARCamera('${level.type}', '${level.arHint}')" class="w-full bg-[#1B5E20] text-white font-bold py-3 px-4 rounded-lg shadow-md mb-4 flex items-center justify-center gap-2">
+                    <button onclick="openARCamera('${level.type}')" class="w-full bg-[#1B5E20] text-white font-bold py-3 px-4 rounded-lg shadow-md mb-4 flex items-center justify-center gap-2 active:scale-95 transition-transform">
                         <span class="text-xl">📱</span> 開啟透視鏡陣法
                     </button>
                     ${getInputHTML()}
@@ -231,7 +249,7 @@
         function getInputHTML() {
             return `
                 <input type="text" id="answer-input" placeholder="請輸入答案..." class="w-full px-4 py-3 rounded bg-gray-50 border border-gray-300 focus:ring-2 focus:ring-[#8B2500] text-center text-lg mb-4" autocomplete="off">
-                <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-3 px-4 rounded shadow-md text-lg">呈交答案</button>
+                <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-3 px-4 rounded shadow-md text-lg active:bg-[#6A1B00] transition-colors">呈交答案</button>
             `;
         }
 
@@ -257,9 +275,11 @@
             }
         };
 
-        window.openARCamera = async function(type, hintText) {
+        window.openARCamera = async function(type) {
+            const level = levels[currentLevel];
             document.getElementById('ar-modal').classList.remove('hidden');
-            document.getElementById('ar-hint').textContent = "💡 提示：" + hintText;
+            document.getElementById('ar-hint').textContent = "💡 提示：" + level.arHint;
+            document.getElementById('fallback-text').innerHTML = level.fallback;
             
             document.getElementById('svg-landscape').classList.add('hidden');
             document.getElementById('svg-human').classList.add('hidden');
@@ -270,13 +290,18 @@
                 cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 document.getElementById('ar-video').srcObject = cameraStream;
             } catch (err) {
-                showToast("無法取得相機權限！請直接靠智慧猜出答案吧！", false);
+                showToast("無法取得相機權限！請點擊下方備用提示查看線索。", false);
             }
         };
 
         window.closeARCamera = function() {
             document.getElementById('ar-modal').classList.add('hidden');
             if (cameraStream) { cameraStream.getTracks().forEach(track => track.stop()); cameraStream = null; }
+        };
+
+        window.toggleFallbackHint = function() {
+            const box = document.getElementById('fallback-box');
+            box.classList.toggle('hidden');
         };
 
         window.checkAnswer = function() {
@@ -286,13 +311,7 @@
             if (!userAnswer) { showToast("請輸入答案！", false); return; }
 
             const level = levels[currentLevel];
-            let isCorrect = false;
-            
-            if (Array.isArray(level.answer)) {
-                isCorrect = level.answer.some(ans => userAnswer.includes(ans.toLowerCase()));
-            } else {
-                isCorrect = (userAnswer === level.answer.toLowerCase());
-            }
+            let isCorrect = level.answer.some(ans => userAnswer === ans.toLowerCase());
 
             if (isCorrect) {
                 showToast("正確！準備進入下一卷...", true);
@@ -331,6 +350,15 @@
             ending.classList.remove('hidden');
             setTimeout(() => ending.classList.add('active'), 50);
         }
+
+        // 全域按鍵監聽 Enter 送出答案
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !document.getElementById('puzzle-section').classList.contains('hidden')) {
+                if (document.activeElement.id === 'answer-input') {
+                    checkAnswer();
+                }
+            }
+        });
 
         loadLevel();
     </script>
