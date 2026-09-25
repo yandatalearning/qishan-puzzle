@@ -10,12 +10,11 @@
         
         body {
             font-family: 'Noto Serif TC', serif;
-            background-color: #F4EAD5; /* 古典米黃底色 */
+            background-color: #F4EAD5;
             color: #3E2723;
             overflow-x: hidden;
         }
 
-        /* 裝飾圖浮動與混合效果 */
         .decoration-img {
             mix-blend-mode: multiply;
             animation: float 6s ease-in-out infinite;
@@ -33,7 +32,6 @@
             100% { transform: translateY(0px); }
         }
 
-        /* 提示框滑動動畫 */
         .toast-enter {
             transform: translateY(-100%);
             opacity: 0;
@@ -44,7 +42,6 @@
             opacity: 1;
         }
 
-        /* 結局卷軸動畫 */
         .scroll-reveal {
             opacity: 0;
             transform: scale(0.95);
@@ -76,7 +73,6 @@
     <!-- 主遊戲容器 -->
     <div id="game-container" class="relative z-10 w-full max-w-md bg-[#FAF3E0] rounded-xl shadow-2xl overflow-hidden border-2 border-[#8B2500]">
         
-        <!-- 頂部裝飾條 -->
         <div class="h-3 w-full bg-[#8B2500]"></div>
 
         <div class="p-6 md:p-8">
@@ -92,13 +88,13 @@
             <!-- 開場引言區 (通關後隱藏) -->
             <div id="intro-section" class="mb-6 text-sm text-gray-700 leading-relaxed bg-[#F4EAD5] p-4 rounded border border-[#D7CCC8]">
                 <strong>【身分賦予】</strong><br>
-                一陣微風吹過，一位半透明的古代老夫子幻影出現在你面前：「年輕人，若想讀懂這座孔廟的千年智慧，你必須以『新科弟子』的身分，替我找回遺失的三個關鍵字。去吧，完成你的試煉！」
+                一陣微風吹過，一位半透明的古代老夫子幻影出現在你面前：「年輕人，若想讀懂這座孔廟的千年智慧，你必須以『新科弟子』的身分，替我解開隱藏在建築與大地中的密碼。去吧，完成你的試煉！」
             </div>
 
             <!-- 解謎區塊 -->
             <div id="puzzle-section">
                 <div class="flex justify-between text-xs font-bold text-[#8B2500] mb-2 tracking-widest">
-                    <span id="level-indicator">卷一 / 共三卷</span>
+                    <span id="level-indicator">卷一 / 共四卷</span>
                     <span id="mistake-counter">失誤：0</span>
                 </div>
                 
@@ -108,8 +104,17 @@
                         弟子啊，求學之路必須從正門而入。這座孔廟最外側有兩座宏偉的紅色牌坊，其中一座代表著古代學校的大門。
                     </p>
                     <p id="level-question" class="font-bold text-[#8B2500] mb-4">
-                        請找找看，這座牌坊上寫著哪兩個字？（提示：第一個字讀音同「紅」答案:黌門）
+                        請找找看，這座牌坊上寫著哪兩個字？（提示：第一個字讀音同「紅」）
                     </p>
+
+                    <!-- 相機 AR 觸發按鈕（僅在有 AR 的關卡顯示） -->
+                    <div id="ar-btn-container" class="hidden mb-4">
+                        <button onclick="openARCamera()" class="w-full bg-[#1B5E20] hover:bg-[#144718] text-white font-bold py-3 px-4 rounded-lg shadow-md flex items-center justify-center gap-2 transition-transform active:scale-95">
+                            <span class="text-xl">📷</span>
+                            <span>開啟「尋寶透視鏡」對齊大地</span>
+                        </button>
+                        <p class="text-xs text-gray-500 text-center mt-2">※ 需允許相機權限，站在階梯正中央面向大門對齊</p>
+                    </div>
                     
                     <input type="text" id="answer-input" placeholder="請輸入你的答案..." 
                         class="w-full px-4 py-3 rounded bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#8B2500] focus:border-transparent text-center text-lg shadow-inner mb-4 transition-all"
@@ -134,8 +139,9 @@
                     </div>
 
                     <div class="text-sm text-gray-700 leading-relaxed border-t border-dashed border-gray-300 pt-4" id="final-story">
-                        隨著古老的文字浮現，老夫子的幻影對你點了點頭：「你從 <span class="text-[#8B2500] font-bold">【黌門】</span> 踏上了正確的求學之道，學會了如 <span class="text-[#8B2500] font-bold">【編磬】</span> 般清脆而不張揚的和諧之音，最後在殿內見證了 <span class="text-[#8B2500] font-bold">【大成至聖】</span> 的無私與偉大。」<br><br>
-                        竹簡化作一道金光融入你的手機中。雖然你變回了現代遊客，但這座孔廟的智慧，已經成為你旅途中最珍貴的寶物。
+                        老夫子欣慰地捋著鬍鬚對你微笑：<br><br>
+                        「善哉！你從 <span class="text-[#8B2500] font-bold">【黌門】</span> 啟程，體會了如 <span class="text-[#8B2500] font-bold">【編磬】</span> 般清雅的古禮之音；更站在高處以天眼看破了大地幾何之謎 <span class="text-[#8B2500] font-bold">【781】</span>，最後在大殿向 <span class="text-[#8B2500] font-bold">【大成至聖】</span> 躬身致敬。<br><br>
+                        你已領悟天、地、人合一的儒門大道。這枚求道者的印記，將永遠銘刻在你的行囊中！」
                     </div>
                 </div>
                 <button onclick="location.reload()" class="w-full mt-6 bg-transparent border-2 border-[#8B2500] text-[#8B2500] hover:bg-[#8B2500] hover:text-white font-bold py-2 px-4 rounded transition-colors tracking-widest">
@@ -146,33 +152,96 @@
         </div>
     </div>
 
+    <!-- Web AR 相機透視視窗 -->
+    <div id="ar-modal" class="fixed inset-0 z-50 bg-black hidden flex flex-col items-center justify-between">
+        <!-- 頂部引導提示條 -->
+        <div class="w-full bg-black/70 text-white text-center py-3 px-4 z-20 text-sm">
+            <span class="font-bold text-[#FFD54F]">💡 提示：</span> 請站在大成殿前中軸線階梯，將遠處牌樓與中軸道納入畫面中央！
+        </div>
+
+        <!-- 視訊與輔助線疊加容器 -->
+        <div class="relative w-full flex-1 overflow-hidden flex items-center justify-center">
+            <!-- 攝影機即時影像串流 -->
+            <video id="ar-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
+
+            <!-- 疊加的 AR 幾何紅色輔助線 (對齊景觀後拼出 781) -->
+            <svg class="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                <!-- 遠景牌樓輔助定位框 (黃色虛線，幫助玩家對齊) -->
+                <rect x="420" y="380" width="160" height="90" fill="none" stroke="#FFEB3B" stroke-width="3" stroke-dasharray="8 8" opacity="0.8"/>
+                <text x="500" y="370" fill="#FFEB3B" font-size="24" text-anchor="middle" font-weight="bold">對準遠處牌坊</text>
+
+                <!-- 【數字 7】左側輔助紅線 (橫折，沿著左側草坪斜邊向下滑落) -->
+                <path d="M 230 470 L 380 495 L 290 680" fill="none" stroke="#FF1744" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+
+                <!-- 【數字 8】中央步道輔助橫線 (兩道橫槓與步道兩側邊緣圍成 8) -->
+                <line x1="380" y1="565" x2="605" y2="560" stroke="#FF1744" stroke-width="9" stroke-linecap="round"/>
+                <line x1="300" y1="675" x2="625" y2="655" stroke="#FF1744" stroke-width="9" stroke-linecap="round"/>
+
+                <!-- 【數字 1】右側斜線 (順著右側石護欄與階梯延伸) -->
+                <path d="M 700 515 L 775 695" fill="none" stroke="#FF1744" stroke-width="9" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <!-- 底部控制按鈕區 -->
+        <div class="w-full bg-black/80 p-4 flex justify-around items-center z-20">
+            <button onclick="toggleFallbackHint()" class="text-xs text-yellow-400 underline">
+                鏡頭開不了？看備用圖
+            </button>
+            <button onclick="closeARCamera()" class="bg-[#8B2500] text-white px-8 py-3 rounded-full font-bold shadow-lg tracking-wider text-base">
+                我看到密碼了，返回作答！
+            </button>
+        </div>
+
+        <!-- 備用圖片彈窗 (若設備不支援鏡頭或不想開鏡頭時使用) -->
+        <div id="fallback-box" class="hidden absolute inset-4 bg-gray-900/95 text-white p-6 rounded-xl z-30 flex flex-col justify-center items-center text-center">
+            <h3 class="text-lg font-bold text-yellow-400 mb-2">大地幾何密碼透視</h3>
+            <p class="text-sm text-gray-300 mb-4">
+                當你站在階梯將紅線與景物對齊時：<br>
+                左側草坪邊界勾出「7」<br>
+                中軸步道兩條橫線與邊框圍出「8」<br>
+                右側護欄延伸線刻劃出「1」
+            </p>
+            <button onclick="toggleFallbackHint()" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">關閉提示</button>
+        </div>
+    </div>
+
     <script>
-        // 關卡與劇本設定
+        // 完整的四個關卡設定
         const levels = [
             {
                 title: "尋找真正的校門",
                 desc: "弟子啊，求學之路必須從正門而入。這座孔廟最外側有兩座宏偉的紅色牌坊，其中一座代表著古代學校的大門。",
-                question: "請找找看，這座牌坊上寫著哪兩個字？（提示：第一個字讀音同「紅」）答案:黌門",
-                answer: "黌門"
+                question: "請找找看，這座牌坊上刻著哪兩個字？（提示：第一個字讀音同「紅」）",
+                answer: "黌門",
+                isAR: false
             },
             {
                 title: "喚醒沉睡的古音",
-                desc: "順利入學後，老夫子派你去大成殿準備祭孔的「八音」大典。但你發現有一樣樂器失去了聲音。",
-                question: "在殿內尋找一種懸掛在木架上、由 L 型玉石或青石板組成，敲擊時聲音清脆的古樂器。找回它的名字，才能讓大典順利進行。答案:編磬",
-                answer: "編磬"
+                desc: "順利入學後，老夫子派你去大成殿準備祭孔的「八音」大典。但你發現有一樣古樂器失去了聲音。",
+                question: "在殿內尋找一種懸掛在木架上、由 L 型玉石或青石板組成，敲擊時聲音清脆的古樂器。找回它的名字，才能讓大典順利進行。",
+                answer: "編磬",
+                isAR: false
+            },
+            {
+                title: "大地的幾何密碼",
+                desc: "老夫子帶你步出大成殿，站在正前方的最高石階上俯瞰整個庭院：『孔廟之浩瀚，蘊藏天地規律。為師在此布下了一道大地之陣。』",
+                question: "請站在中軸線階梯正中央，點擊「開啟尋寶透視鏡」，將紅線與遠方的大門步道對齊，這片大地拼出了哪三位數字密碼？",
+                answer: "781",
+                isAR: true
             },
             {
                 title: "覲見最終的導師",
-                desc: "鐘磬齊鳴，入學儀式來到了尾聲。身為新科弟子，你必須進入大成殿正中央，向沒有實體神像、僅以神主牌位受人景仰的萬世師表行禮。",
-                question: "抬頭觀察正中央的主位牌位，這位偉大的先師被尊稱為什麼？（請輸入牌位上的前四個字）答案:大成至聖",
-                answer: "大成至聖"
+                desc: "鐘磬齊鳴，大地破曉。身為合格的新科弟子，最後一步必須返回大成殿正中央，向無實體神像、僅以神主牌位受人景仰的萬世師表行禮。",
+                question: "抬頭觀察正中央的主位牌位，這位偉大的先師被尊稱為什麼？（請輸入牌位上的前四個字）",
+                answer: "大成至聖",
+                isAR: false
             }
         ];
 
         let currentLevel = 0;
         let wrongAttempts = 0;
+        let cameraStream = null;
 
-        // 綁定 Enter 鍵送出
         document.getElementById('answer-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 checkAnswer();
@@ -199,7 +268,6 @@
 
         function checkAnswer() {
             const inputEl = document.getElementById('answer-input');
-            // 將輸入值與標準答案都去除頭尾空白、轉小寫，提升容錯率
             const userAnswer = inputEl.value.trim().toLowerCase();
             const correctAnswer = levels[currentLevel].answer.trim().toLowerCase();
 
@@ -210,7 +278,7 @@
 
             if (userAnswer === correctAnswer) {
                 showToast("正確！前往下一卷...", true);
-                inputEl.value = ""; // 清空輸入框
+                inputEl.value = "";
                 currentLevel++;
                 
                 setTimeout(() => {
@@ -230,20 +298,67 @@
 
         function loadLevel() {
             const level = levels[currentLevel];
-            document.getElementById('level-indicator').textContent = `卷${["一", "二", "三"][currentLevel]} / 共三卷`;
+            const numerals = ["一", "二", "三", "四"];
+            document.getElementById('level-indicator').textContent = `卷${numerals[currentLevel]} / 共四卷`;
             document.getElementById('level-title').textContent = level.title;
             document.getElementById('level-desc').textContent = level.desc;
             document.getElementById('level-question').textContent = level.question;
+
+            // 判斷是否顯示相機按鈕
+            const arBtnContainer = document.getElementById('ar-btn-container');
+            if (level.isAR) {
+                arBtnContainer.classList.remove('hidden');
+            } else {
+                arBtnContainer.classList.add('hidden');
+            }
+        }
+
+        // 開啟相機 AR 視窗
+        async function openARCamera() {
+            const modal = document.getElementById('ar-modal');
+            modal.classList.remove('hidden');
+
+            try {
+                // 優先調用手機的後置廣角鏡頭 (environment)
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: { ideal: "environment" },
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    },
+                    audio: false
+                });
+                const videoEl = document.getElementById('ar-video');
+                videoEl.srcObject = cameraStream;
+            } catch (err) {
+                console.warn("無法取得相機串流：", err);
+                showToast("相機權限未開啟或設備不支援，可點下方備用提示！", false);
+            }
+        }
+
+        // 關閉相機並釋放硬體資源
+        function closeARCamera() {
+            const modal = document.getElementById('ar-modal');
+            modal.classList.add('hidden');
+
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            document.getElementById('answer-input').focus();
+        }
+
+        function toggleFallbackHint() {
+            const box = document.getElementById('fallback-box');
+            box.classList.toggle('hidden');
         }
 
         function showEnding() {
-            // 隱藏遊戲區塊與引言
             document.getElementById('puzzle-section').classList.add('hidden');
             document.getElementById('intro-section').classList.add('hidden');
             
-            // 計算分數與頭銜
             let score = 100 - (wrongAttempts * 10);
-            if (score < 60) score = 60; // 保底 60 分
+            if (score < 60) score = 60;
             
             let rank = "";
             if (wrongAttempts === 0) {
@@ -257,7 +372,6 @@
             document.getElementById('final-rank').textContent = rank;
             document.getElementById('final-score').textContent = `最終得分：${score} 分`;
 
-            // 顯示結局區塊並觸發動畫
             const endingSection = document.getElementById('ending-section');
             endingSection.classList.remove('hidden');
             setTimeout(() => {
