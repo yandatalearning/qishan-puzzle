@@ -90,31 +90,35 @@
             
             <!-- AR 大地密碼 (781) -->
             <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-                <rect x="420" y="380" width="160" height="90" fill="none" stroke="#FFEB3B" stroke-width="3" stroke-dasharray="8 8"/>
+                <!-- 遠景牌樓「中央拱門」輔助定位框 (直立長方形) -->
+                <rect x="430" y="300" width="140" height="170" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
+                <text x="500" y="280" fill="#FFEB3B" font-size="24" text-anchor="middle" font-weight="bold">對準中央拱門</text>
+
+                <!-- 【數字 7】左側輔助紅線 -->
                 <path d="M 230 470 L 380 495 L 290 680" fill="none" stroke="#FF1744" stroke-width="9"/>
+                <!-- 【數字 8】中央步道輔助橫線 -->
                 <line x1="380" y1="565" x2="605" y2="560" stroke="#FF1744" stroke-width="9"/>
                 <line x1="300" y1="675" x2="625" y2="655" stroke="#FF1744" stroke-width="9"/>
+                <!-- 【數字 1】右側斜線 -->
                 <path d="M 700 515 L 775 695" fill="none" stroke="#FF1744" stroke-width="9"/>
             </svg>
 
             <!-- AR 人體陣法 (雙人框) -->
             <svg id="svg-human" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet">
-                <!-- 左邊小人 -->
                 <g transform="translate(150, 300)" stroke="#00E676" stroke-width="8" stroke-dasharray="10 10" fill="none">
                     <circle cx="150" cy="80" r="50" />
                     <line x1="150" y1="130" x2="150" y2="400" />
-                    <line x1="150" y1="180" x2="0" y2="80" /> <!-- 舉左手 -->
+                    <line x1="150" y1="180" x2="0" y2="80" /> 
                     <line x1="150" y1="180" x2="250" y2="300" />
                     <line x1="150" y1="400" x2="50" y2="600" />
                     <line x1="150" y1="400" x2="250" y2="600" />
                     <text x="150" y="700" fill="#00E676" font-size="40" stroke="none" text-anchor="middle">隊友一入陣</text>
                 </g>
-                <!-- 右邊小人 -->
                 <g transform="translate(550, 300)" stroke="#29B6F6" stroke-width="8" stroke-dasharray="10 10" fill="none">
                     <circle cx="150" cy="80" r="50" />
                     <line x1="150" y1="130" x2="150" y2="400" />
                     <line x1="150" y1="180" x2="50" y2="300" />
-                    <line x1="150" y1="180" x2="300" y2="80" /> <!-- 舉右手 -->
+                    <line x1="150" y1="180" x2="300" y2="80" /> 
                     <line x1="150" y1="400" x2="50" y2="600" />
                     <line x1="150" y1="400" x2="250" y2="600" />
                     <text x="150" y="700" fill="#29B6F6" font-size="40" stroke="none" text-anchor="middle">隊友二入陣</text>
@@ -169,7 +173,7 @@
                 desc: "站在大成殿外的中軸線台階最高處，俯瞰庭院。孔廟的浩瀚蘊藏幾何規律。",
                 question: "開啟透視鏡，將紅線與前方的大門步道對齊，大地拼出了哪三位數字密碼？",
                 answer: "781",
-                arHint: "對準遠處牌坊，尋找大地與紅線交織出的數字！"
+                arHint: "請將畫面中央的虛線框，精準套在遠方牌坊的「正中央拱門」上！"
             }
         ];
 
@@ -184,7 +188,6 @@
             let html = `<h2 class="text-xl font-bold mb-3 text-[#5D4037] border-b-2 border-[#8B2500] pb-2 inline-block">${level.title}</h2>
                         <p class="text-gray-700 mb-4 text-sm leading-relaxed">${level.desc}</p>`;
 
-            // 依據關卡類型渲染不同的 UI
             if (level.type === 'coop') {
                 html += `
                     <div class="flex gap-2 mb-4">
@@ -225,7 +228,6 @@
             content.innerHTML = html;
         }
 
-        // 共用的輸入框與按鈕 HTML
         function getInputHTML() {
             return `
                 <input type="text" id="answer-input" placeholder="請輸入答案..." class="w-full px-4 py-3 rounded bg-gray-50 border border-gray-300 focus:ring-2 focus:ring-[#8B2500] text-center text-lg mb-4" autocomplete="off">
@@ -233,23 +235,16 @@
             `;
         }
 
-        // 合作題選擇角色
         window.selectRole = function(role) {
             const level = levels[currentLevel];
             const infoBox = document.getElementById('role-info');
             const inputArea = document.getElementById('input-area');
-            
             infoBox.innerHTML = level.roles[role];
             infoBox.classList.remove('hidden');
-            
-            if (role === 'west') {
-                inputArea.classList.remove('hidden');
-            } else {
-                inputArea.classList.add('hidden');
-            }
+            if (role === 'west') inputArea.classList.remove('hidden');
+            else inputArea.classList.add('hidden');
         };
 
-        // 拍照題處理預覽
         window.handlePhotoUpload = function(event) {
             const file = event.target.files[0];
             if (file) {
@@ -262,12 +257,10 @@
             }
         };
 
-        // AR 相機處理
         window.openARCamera = async function(type, hintText) {
             document.getElementById('ar-modal').classList.remove('hidden');
             document.getElementById('ar-hint').textContent = "💡 提示：" + hintText;
             
-            // 隱藏所有 SVG，只開啟對應的
             document.getElementById('svg-landscape').classList.add('hidden');
             document.getElementById('svg-human').classList.add('hidden');
             if (type === 'ar_landscape') document.getElementById('svg-landscape').classList.remove('hidden');
@@ -286,11 +279,10 @@
             if (cameraStream) { cameraStream.getTracks().forEach(track => track.stop()); cameraStream = null; }
         };
 
-        // 檢查答案機制
         window.checkAnswer = function() {
             const inputEl = document.getElementById('answer-input');
             if (!inputEl) return;
-            const userAnswer = inputEl.value.trim().toLowerCase().replace(/\s+/g, ''); // 移除所有空白
+            const userAnswer = inputEl.value.trim().toLowerCase().replace(/\s+/g, ''); 
             if (!userAnswer) { showToast("請輸入答案！", false); return; }
 
             const level = levels[currentLevel];
@@ -340,7 +332,6 @@
             setTimeout(() => ending.classList.add('active'), 50);
         }
 
-        // 啟動遊戲
         loadLevel();
     </script>
 </body>
