@@ -57,12 +57,12 @@
                 <p class="text-xs font-bold text-gray-600 tracking-widest mt-1">新科弟子試煉</p>
             </div>
 
-            <!-- 開場引言區與小隊報到 (保留上一版) -->
+            <!-- 開場引言區與小隊報到 -->
             <div id="intro-section" class="mb-2 text-gray-700 leading-relaxed bg-[#F4EAD5] p-5 rounded-lg border-2 border-[#D7CCC8] shadow-sm text-center fade-in">
                 <h3 class="text-xl font-bold text-[#8B2500] mb-3">【新科弟子報到】</h3>
                 <p class="text-sm text-left mb-4 font-bold text-gray-600">老夫子：「年輕人，試煉前請先留下你們的小隊名號與合照，這將是你們最後結算成績的印記。」</p>
                 
-                <input type="text" id="team-name-input" placeholder="請輸入小隊名稱 (例: 聰明隊)" class="w-full px-4 py-3 rounded bg-white border border-gray-300 focus:border-[#8B2500] focus:ring-0 text-center text-base font-bold mb-3" autocomplete="off">
+                <input type="text" id="team-name-input" placeholder="請輸入小隊名稱 (例: 聰明隊)" class="w-full px-4 py-3 rounded bg-white border border-gray-300 focus:outline-none focus:border-[#8B2500] focus:ring-0 text-center text-base font-bold mb-3" autocomplete="off">
                 
                 <label class="block w-full bg-[#D7CCC8] hover:bg-[#BCAAA4] text-[#3E2723] text-center py-3 rounded cursor-pointer shadow-sm font-bold mb-4 transition-colors">
                     📷 拍下小隊合照
@@ -91,7 +91,7 @@
                 </div>
             </div>
 
-            <!-- 結局區塊 (保留 Canvas 成就卡) -->
+            <!-- 結局區塊 (Canvas 成就卡) -->
             <div id="ending-section" class="hidden">
                 <div class="text-center mb-4 fade-in">
                     <h2 class="text-2xl font-black text-[#8B2500]">試煉完成</h2>
@@ -115,7 +115,7 @@
         </div>
     </div>
 
-    <!-- Web AR 相機視窗 (保留上一版) -->
+    <!-- Web AR 相機視窗 -->
     <div id="ar-modal" class="fixed inset-0 z-50 bg-black hidden flex flex-col">
         <div id="ar-hint" class="w-full bg-black/70 text-white text-center py-3 px-4 z-20 text-sm font-bold text-yellow-400"></div>
         <div class="relative w-full flex-1 overflow-hidden">
@@ -172,9 +172,9 @@
         let cameraStream = null;
         let teamName = "無名";
         let teamPhotoImg = null; 
-        let hintsLeft = 5; // 全遊戲 5 次錦囊提示
+        let hintsLeft = 5; // 全遊戲 5 次錦囊
 
-        // 11 道關卡設定 (加入 hint)
+        // 11 道關卡設定 (已補回提示文字)
         const levels = [
             {
                 type: 'standard',
@@ -279,7 +279,6 @@
             }
         ];
 
-        // 處理首頁的合照預載
         function handleTeamPhotoPreload(event) {
             const file = event.target.files[0];
             if (file) {
@@ -308,7 +307,7 @@
             document.getElementById('level-indicator').textContent = `卷 ${currentLevel + 1} / 共 ${levels.length} 卷`;
             const content = document.getElementById('level-content');
             
-            // 融合 RPG 對話泡泡與上一版的排版
+            // 老夫子 RPG 對話泡泡
             let html = `
                 <h2 class="text-2xl font-bold mb-3 text-[#5D4037] border-b-2 border-[#8B2500] pb-2 inline-block">${level.title}</h2>
                 <div class="flex items-start gap-3 mb-5">
@@ -371,25 +370,25 @@
             content.innerHTML = html;
         }
 
-        // 行內回饋設計 (字體放大，融合錦囊顏色)
+        // 行內回饋設計
         function getInputHTML() {
             return `
                 <div class="mb-1 relative">
-                    <input type="text" id="answer-input" placeholder="請點此輸入答案..." class="w-full px-4 py-4 rounded bg-gray-50 border-2 border-gray-300 focus:border-[#8B2500] focus:ring-0 text-center text-xl font-bold transition-all" autocomplete="off">
+                    <input type="text" id="answer-input" placeholder="請點此輸入答案..." class="w-full px-4 py-4 rounded bg-gray-50 border-2 border-gray-300 focus:outline-none focus:border-[#8B2500] focus:ring-0 text-center text-xl font-bold transition-all" autocomplete="off">
                 </div>
                 <div class="h-8 mb-2 flex items-center justify-center">
-                    <p id="inline-feedback" class="text-base font-bold opacity-0 transition-opacity text-center w-full"></p>
+                    <p id="inline-feedback" class="text-base font-bold text-center w-full" style="opacity: 0; transition: opacity 0.3s ease;"></p>
                 </div>
                 <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] transition-colors tracking-widest">呈交答案</button>
             `;
         }
 
-        // 提示系統邏輯
+        // 錦囊系統
         window.useHint = function() {
             if (hintsLeft > 0) {
                 hintsLeft--;
                 document.getElementById('hint-count-display').textContent = hintsLeft;
-                showInlineFeedback("💡 " + levels[currentLevel].hint, true, 6000); // 提示顯示 6 秒
+                showInlineFeedback("💡 " + levels[currentLevel].hint, true, 6000); 
             } else {
                 showInlineFeedback("錦囊已經用完囉！請靠小隊的智慧吧！", false, 3000);
             }
@@ -446,31 +445,37 @@
             box.classList.toggle('hidden');
         };
 
-        // 更新的行內提示，支援黃色錦囊字體
+        // JS 強制控制顏色，確保 100% 顯示
         function showInlineFeedback(msg, isSuccess, duration = 2500) {
             const fb = document.getElementById('inline-feedback');
             if (!fb) return;
-            fb.textContent = msg;
-            
-            let textColor = 'text-green-600';
-            if (msg.startsWith("💡")) textColor = 'text-yellow-600';
-            else if (!isSuccess) textColor = 'text-red-600';
 
-            fb.className = `text-base font-bold transition-opacity text-center w-full opacity-100 ${textColor}`;
+            fb.textContent = msg;
+            fb.style.opacity = '1';
+            
+            if (msg.startsWith("💡")) {
+                fb.style.color = '#D97706'; // 黃色
+            } else if (isSuccess) {
+                fb.style.color = '#16A34A'; // 綠色
+            } else {
+                fb.style.color = '#DC2626'; // 紅色
+            }
             
             const inputEl = document.getElementById('answer-input');
-            if (inputEl) {
-                if (!isSuccess && !msg.startsWith("💡")) {
-                    inputEl.classList.add('animate-shake', 'border-red-500');
-                    setTimeout(() => inputEl.classList.remove('animate-shake', 'border-red-500'), 400);
-                } else if (isSuccess && !msg.startsWith("💡")) {
-                    inputEl.classList.add('border-green-500');
-                }
+            if (!isSuccess && !msg.startsWith("💡")) {
+                inputEl.classList.add('animate-shake');
+                inputEl.style.borderColor = '#DC2626';
+                setTimeout(() => {
+                    inputEl.classList.remove('animate-shake');
+                    inputEl.style.borderColor = '#D1D5DB';
+                }, 400);
+            } else if (isSuccess && !msg.startsWith("💡")) {
+                inputEl.style.borderColor = '#16A34A';
             }
 
             if (window.feedbackTimeout) clearTimeout(window.feedbackTimeout);
             window.feedbackTimeout = setTimeout(() => {
-                fb.classList.replace('opacity-100', 'opacity-0');
+                fb.style.opacity = '0';
             }, duration);
         }
 
@@ -484,7 +489,7 @@
             let isCorrect = level.answer.some(ans => userAnswer === ans.toLowerCase());
 
             if (isCorrect) {
-                showInlineFeedback("正確！準備進入下一卷...", true);
+                showInlineFeedback("正確！老夫子：「跟我前往下一關！」", true, 2000);
                 currentLevel++;
                 setTimeout(() => {
                     if (currentLevel < levels.length) loadLevel();
@@ -492,13 +497,11 @@
                 }, 1500);
             } else {
                 wrongAttempts++;
-                const counterEl = document.getElementById('mistake-counter');
-                if (counterEl) counterEl.textContent = `失誤：${wrongAttempts}`;
-                showInlineFeedback("答案不對喔，再仔細觀察看看！", false);
+                document.getElementById('mistake-counter').textContent = `失誤：${wrongAttempts}`;
+                showInlineFeedback("答案不對喔，老夫子：「再仔細觀察看看！」", false);
             }
         };
 
-        // 結束並繪製 Canvas 成就卡
         function showEnding() {
             document.getElementById('puzzle-section').classList.add('hidden');
             document.getElementById('intro-section').classList.add('hidden');
@@ -509,21 +512,16 @@
             let rank = wrongAttempts === 0 ? "狀元及第" : wrongAttempts <= 3 ? "榜眼之才" : "探花之秀";
             
             document.getElementById('ending-section').classList.remove('hidden');
-            
-            // 開始繪製成就卡
             drawAchievementCard(score, rank);
         }
 
-        // 使用 Canvas 繪製成就圖
         function drawAchievementCard(score, rank) {
             const canvas = document.getElementById('achievement-canvas');
             const ctx = canvas.getContext('2d');
             
-            // 繪製底色
             ctx.fillStyle = '#F4EAD5';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 繪製古風邊框
             ctx.strokeStyle = '#8B2500';
             ctx.lineWidth = 15;
             ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
@@ -531,7 +529,6 @@
             ctx.lineWidth = 4;
             ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
 
-            // 標題與燈籠
             ctx.fillStyle = '#8B2500';
             ctx.textAlign = 'center';
             ctx.font = 'bold 50px sans-serif';
@@ -540,22 +537,15 @@
             ctx.fillStyle = '#5D4037';
             ctx.fillText('新科弟子・結業紀念', canvas.width / 2, 170);
 
-            // 照片繪製區
-            const photoX = 100;
-            const photoY = 220;
-            const photoW = 600;
-            const photoH = 450;
+            const photoX = 100, photoY = 220, photoW = 600, photoH = 450;
             
-            // 畫照片底框
             ctx.fillStyle = '#FFFFFF';
             ctx.fillRect(photoX - 10, photoY - 10, photoW + 20, photoH + 20);
             ctx.strokeStyle = '#8B2500';
             ctx.lineWidth = 4;
             ctx.strokeRect(photoX - 10, photoY - 10, photoW + 20, photoH + 20);
 
-            // 畫上傳的合照 (如果有)
             if (teamPhotoImg) {
-                // 計算等比例裁切 (Cover)
                 const imgRatio = teamPhotoImg.width / teamPhotoImg.height;
                 const boxRatio = photoW / photoH;
                 let srcX = 0, srcY = 0, srcW = teamPhotoImg.width, srcH = teamPhotoImg.height;
@@ -576,11 +566,9 @@
                 ctx.fillText('此處應有小隊英姿', canvas.width / 2, photoY + photoH / 2);
             }
 
-            // 疊加狀元帽 Emoji (蓋在照片上方)
             ctx.font = '120px sans-serif';
             ctx.fillText('🎓', canvas.width / 2, photoY + 40);
 
-            // 小隊名稱與稱號
             ctx.fillStyle = '#8B2500';
             ctx.font = 'bold 55px sans-serif';
             ctx.fillText(`【${rank}】`, canvas.width / 2, 770);
@@ -589,15 +577,13 @@
             ctx.fillStyle = '#3E2723';
             ctx.fillText(`第 ${teamName} 隊`, canvas.width / 2, 840);
             
-            // 繪製分數
             ctx.font = 'bold 36px sans-serif';
             ctx.fillStyle = '#D32F2F';
             ctx.fillText(`最終試煉得分：${score} 分`, canvas.width / 2, 900);
 
-            // 繪製右下角的假印章
             ctx.save();
             ctx.translate(650, 850);
-            ctx.rotate(-0.15); // 微傾斜
+            ctx.rotate(-0.15); 
             ctx.strokeStyle = '#D32F2F';
             ctx.lineWidth = 8;
             ctx.strokeRect(-60, -60, 120, 120);
@@ -608,7 +594,6 @@
             ctx.restore();
         }
 
-        // 下載 Canvas 成圖片
         window.downloadCard = function() {
             const canvas = document.getElementById('achievement-canvas');
             const dataURL = canvas.toDataURL('image/jpeg', 0.9);
