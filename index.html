@@ -32,6 +32,10 @@
 
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 尋寶圖片專屬樣式 */
+        .hunt-item-uploaded { border-color: #16A34A !important; }
+        .hunt-btn-uploaded { background-color: #16A34A !important; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 relative">
@@ -89,7 +93,7 @@
                         <button onclick="toggleMap()" class="bg-[#8B2500] hover:bg-[#6A1B00] text-white text-xs font-bold py-1.5 px-3 rounded shadow-sm active:scale-95 transition-transform flex items-center gap-1 tracking-widest">
                             🗺️ 開啟闖關地圖
                         </button>
-                        <div class="text-right text-xs font-bold text-gray-500" id="mistake-counter">失誤：0</div>
+                        <!-- 移除了失誤計數器 -->
                     </div>
                     <div id="level-nav" class="flex overflow-x-auto scrollbar-hide gap-2 pb-2">
                         <!-- JS 動態生成關卡泡泡 -->
@@ -154,12 +158,33 @@
         </div>
     </div>
 
+    <!-- 尋寶紀錄下載視窗 -->
+    <div id="hunt-modal" class="fixed inset-0 z-50 bg-black/85 hidden flex-col items-center justify-center p-4 fade-in">
+        <div class="relative w-full max-w-md bg-[#FAF3E0] rounded-xl p-3 border-4 border-[#8B2500] flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-2 px-2">
+                <h3 class="font-bold text-[#8B2500] text-xl tracking-widest">📸 尋寶全紀錄</h3>
+                <button onclick="toggleHuntModal()" class="text-[#8B2500] hover:text-red-600 font-black text-3xl leading-none px-2">&times;</button>
+            </div>
+            <div class="overflow-auto flex-1 rounded relative flex items-center justify-center pb-2">
+                <p class="text-sm font-bold text-red-600 absolute top-2 w-full text-center animate-pulse z-10 bg-white/80 py-1">👇 請長按下方圖片儲存至手機 👇</p>
+                <canvas id="hunt-canvas" width="800" height="1000" class="hidden"></canvas>
+                <img id="hunt-img" class="w-full h-auto rounded-lg border-2 border-[#8B2500] shadow-sm mt-8">
+            </div>
+            <div class="flex gap-2 mt-2">
+                <button onclick="drawHuntImage('grid')" class="flex-1 bg-yellow-600 text-white font-bold py-2 rounded shadow-md active:scale-95">原圖合輯</button>
+                <button onclick="drawHuntImage('frame')" class="flex-1 bg-orange-600 text-white font-bold py-2 rounded shadow-md active:scale-95">相框合輯</button>
+            </div>
+            <button onclick="toggleHuntModal()" class="mt-3 w-full bg-[#1B5E20] text-white font-bold py-3 rounded-lg shadow-md active:scale-95 transition-transform tracking-widest text-lg">
+                返回解謎
+            </button>
+        </div>
+    </div>
+
     <!-- Web AR 相機視窗 -->
     <div id="ar-modal" class="fixed inset-0 z-50 bg-black hidden flex flex-col">
         <div id="ar-hint" class="w-full bg-black/70 text-white text-center py-3 px-4 z-20 text-sm font-bold text-yellow-400"></div>
         <div class="relative w-full flex-1 overflow-hidden">
             <video id="ar-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
-            <!-- 修復了 svg 隱藏的 Bug，現在依賴 classList 切換顯示 -->
             <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
                 <rect x="456" y="360" width="88" height="100" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
                 <text x="500" y="340" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
@@ -173,11 +198,10 @@
             </svg>
         </div>
         <div class="w-full bg-black/80 p-4 flex justify-between items-center z-20">
-            <!-- 恢復了備用提示按鈕 -->
             <button onclick="toggleFallbackHint()" class="text-xs text-yellow-400 underline pl-2">鏡頭不支援？點此</button>
             <button onclick="closeARCamera()" class="bg-[#8B2500] text-white px-6 py-3 rounded-full font-bold shadow-lg mr-2">返回作答</button>
         </div>
-        <!-- 恢復了備用提示對話框 -->
+        <!-- 備用提示框 -->
         <div id="fallback-box" class="hidden absolute inset-4 bg-gray-900/95 text-white p-6 rounded-xl z-30 flex flex-col justify-center items-center text-center">
             <h3 class="text-lg font-bold text-yellow-400 mb-2">AR 輔助提示</h3>
             <p class="text-sm text-gray-300 mb-4 leading-relaxed" id="fallback-text"></p>
@@ -189,7 +213,6 @@
         let currentMode = 'teen'; 
         let activeLevels = [];
         let currentLevel = 0;
-        let wrongAttempts = 0;
         let cameraStream = null;
         let teamName = "無名隊";
         let teamPhotoImg = null; 
@@ -197,7 +220,9 @@
         
         let completedLevels = new Set();
         let revealedHints = new Set();
-        let huntPhotoUploaded = false; 
+        
+        // 尋寶題專用陣列
+        let huntPhotos = [null, null, null, null, null]; 
 
         let currentCardStyle = 0;
         const cardTitles = ["1/4 古風御賜卡", "2/4 Q版貼紙卡", "3/4 拍立得旅行卡", "4/4 孔門弟子卡"];
@@ -300,7 +325,7 @@
                 question: "請找關主拿著色紙，完成並回答畫中隱藏的數字是多少？",
                 answer: ["0928"],
                 hint: "數字是孔子的生日喔！",
-                hintImage: "anser.png" // 更新為 png
+                hintImage: "anser.png" 
             },
             {
                 type: 'plaque_fill',
@@ -323,6 +348,15 @@
         // 【題庫二】童蒙探索版
         // ==========================================
         const levels_child = [
+            {
+                type: 'standard', // 童蒙版加入星象題，並使用 stars2.jpg
+                title: "星象的指引",
+                desc: "你們現在所在位置為孔廟的第一道門，稱為「櫺星門」。櫺星又稱文曲星，文曲星則被古人視為主管教育、文學與得士的星宿。以此象徵孔子育才施教的崇高地位。正巧！你們來到孔廟的時間，正值中秋節日升月降之際，此時在「櫺星門」觀星賞月時，可以看到文曲星閃閃發光喔！",
+                image: "stars2.jpg",
+                question: "已知文曲星總是佇立在角落與編號01074平行排列，且與編號01073的星星相離最遠。仔細觀察星圖的位置，請問文曲星的編號是幾號？",
+                answer: ["01044"],
+                hint: "想一想「櫺星門」這裡在晚上看不到路時，可以照亮的物品是什麼呢？"
+            },
             {
                 type: 'ar_landscape',
                 title: "主門的密碼",
@@ -357,11 +391,11 @@
                 hint: "清脆石頭聲是「編磬」；搖動發出咚咚聲的是「鼗」；風聲般低沉是「塤」；多管吹奏是「笙」！"
             },
             {
-                type: 'photo_hunt', 
+                type: 'photo_hunt', // 五宮格尋寶
                 title: "孔廟尋寶記",
-                desc: "老夫子在孔廟裡藏了幾個特別的寶物，請根據下方的照片，在孔廟內找出它們的真面目！",
+                desc: "老夫子在孔廟裡藏了 5 個特別的寶物，請根據下方的照片，在孔廟內找出它們的真面目！",
                 images: ["bell.jpg", "duck.jpg", "fan.jpg", "painting.jpg", "calligraphy.jpg"],
-                question: "請小隊全員與其中「任意一個」寶物合照，並上傳照片證明！",
+                question: "請小隊全員尋找這 5 個寶物，並與每個寶物「合照上傳」！",
                 hint: "可以在大成門、東廡、西廡或大成殿周圍，仔細找找這些物品的蹤影喔！"
             },
             {
@@ -369,7 +403,7 @@
                 title: "君子之爭",
                 desc: "老夫子擺下了投壺挑戰：「君子無所爭，必也射乎！請找關主完成『投壺 9 進 4』挑戰，才能獲得通關密碼。」",
                 question: "請輸入關主給予的通關密碼：",
-                answer: ["123"], // 可更改通關密碼
+                answer: ["123"], 
                 hint: "這關需要動動身體！趕快去找關主進行投壺挑戰吧！"
             },
             {
@@ -379,7 +413,7 @@
                 question: "請找關主拿著色紙，完成並回答畫中隱藏的數字是多少？",
                 answer: ["0928"],
                 hint: "數字是孔子的生日喔！",
-                hintImage: "anser.png" // 更新為 png
+                hintImage: "anser.png"
             }
         ];
 
@@ -459,11 +493,19 @@
             }
 
             if (completedLevels.has(currentLevel)) {
+                // 已過關的畫面：針對尋寶題給予不同的按鈕
                 html += `
                     <div class="bg-green-100 border-2 border-green-500 text-green-800 p-6 rounded-lg text-center font-bold text-lg mb-4">
                         ✅ 此卷試煉已完成！<br><span class="text-sm mt-2 block">請點擊上方泡泡切換至其他未完成關卡</span>
                     </div>
                 `;
+                if (level.type === 'photo_hunt') {
+                    html += `
+                        <button onclick="toggleHuntModal()" class="w-full bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg shadow-md text-lg active:scale-95 transition-transform tracking-widest mt-2 flex items-center justify-center gap-2">
+                            📸 下載尋寶全紀錄
+                        </button>
+                    `;
+                }
             } else {
                 if (level.type === 'logic_seat') {
                     html += `
@@ -505,24 +547,36 @@
                         </div>
                     `;
                 } else if (level.type === 'photo_hunt') {
-                    huntPhotoUploaded = false; 
-                    html += `<div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">`;
-                    level.images.forEach(img => {
-                        html += `<img src="${img}" class="w-full h-24 object-cover rounded border-2 border-[#8B2500] shadow-sm" onerror="this.style.display='none'">`;
-                    });
-                    html += `</div>
-                        <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
-                        <label class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg cursor-pointer shadow-md font-bold mb-4 active:scale-95 transition-transform text-lg">
-                            📷 拍下合照並上傳
-                            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleHuntPhoto(event)">
-                        </label>
-                        <div id="hunt-photo-preview-box" class="hidden fade-in mb-4">
-                            <img id="hunt-photo-preview" class="w-full h-48 object-cover rounded border-2 border-gray-300 mb-3 shadow-sm">
-                            <div class="h-8 mb-2 flex items-center justify-center">
-                                <p id="inline-feedback" class="text-base font-bold text-center w-full" style="opacity: 0; transition: opacity 0.3s ease;"></p>
+                    // 五宮格尋寶介面
+                    html += `<p class="font-bold text-[#8B2500] text-lg mb-4 text-center border-b-2 border-[#8B2500] pb-2">${level.question}</p>`;
+                    html += `<div class="grid grid-cols-2 gap-3 mb-6">`;
+                    
+                    level.images.forEach((img, idx) => {
+                        let isFullWidth = (idx === 4) ? 'col-span-2' : '';
+                        let uploadedImg = huntPhotos[idx] ? `<img src="${huntPhotos[idx].src}" class="absolute inset-0 w-full h-full object-cover rounded-lg">` : '';
+                        let frameClass = huntPhotos[idx] ? 'hunt-item-uploaded' : 'border-gray-300';
+                        let btnClass = huntPhotos[idx] ? 'hunt-btn-uploaded' : 'bg-gray-700 hover:bg-gray-800';
+                        let btnText = huntPhotos[idx] ? '✅ 已上傳' : '📷 拍照';
+                        
+                        html += `
+                            <div class="relative ${isFullWidth} flex flex-col items-center bg-white p-2 rounded-xl shadow-sm border-2 ${frameClass} transition-colors">
+                                <div class="w-full aspect-square relative rounded-lg overflow-hidden bg-gray-100 mb-2 border border-gray-200">
+                                    <img src="${img}" class="absolute inset-0 w-full h-full object-contain opacity-40 p-2" onerror="this.style.display='none'">
+                                    ${uploadedImg}
+                                </div>
+                                <label class="w-full text-white text-center py-2 rounded cursor-pointer font-bold text-sm ${btnClass} transition-colors shadow-sm">
+                                    ${btnText}
+                                    <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleHuntPhotoGrid(event, ${idx})">
+                                </label>
                             </div>
-                            <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] transition-colors tracking-widest">✅ 確認上傳，完成尋寶</button>
+                        `;
+                    });
+                    html += `</div>`;
+                    html += `
+                        <div class="h-8 mb-2 flex items-center justify-center">
+                            <p id="inline-feedback" class="text-base font-bold text-center w-full" style="opacity: 0; transition: opacity 0.3s ease;"></p>
                         </div>
+                        <button id="hunt-submit-btn" onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] transition-colors tracking-widest opacity-50" disabled>✅ 確認上傳，完成尋寶</button>
                     `;
                 } else if (level.type === 'plaque_fill') {
                     html += `<p class="font-bold text-[#8B2500] text-lg mb-4 text-center">請尋找對應的匾額並填寫成語：</p>`;
@@ -616,6 +670,11 @@
             `;
 
             document.getElementById('level-content').innerHTML = html;
+            
+            // 重新載入時檢查尋寶按鈕狀態
+            if(level.type === 'photo_hunt' && !completedLevels.has(currentLevel)){
+                checkHuntProgress();
+            }
         }
 
         window.checkTouhuPassword = function() {
@@ -633,18 +692,38 @@
             }
         };
 
-        window.handleHuntPhoto = function(event) {
+        // 處理五宮格尋寶照片上傳
+        window.handleHuntPhotoGrid = function(event, idx) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById('hunt-photo-preview').src = e.target.result;
-                    document.getElementById('hunt-photo-preview-box').classList.remove('hidden');
-                    huntPhotoUploaded = true;
+                    let img = new Image();
+                    img.onload = function() {
+                        huntPhotos[idx] = img;
+                        loadLevel(); // 重新渲染畫面更新照片與按鈕狀態
+                    }
+                    img.src = e.target.result;
                 }
                 reader.readAsDataURL(file);
             }
         };
+
+        function checkHuntProgress() {
+            let uploadedCount = huntPhotos.filter(img => img !== null).length;
+            const btn = document.getElementById('hunt-submit-btn');
+            if(btn) {
+                if (uploadedCount === 5) {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50');
+                    btn.textContent = "✅ 確認上傳，完成尋寶";
+                } else {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50');
+                    btn.textContent = `等待上傳 (${uploadedCount}/5)`;
+                }
+            }
+        }
 
         function getInputHTML(isAudio = false) {
             let inputField = isAudio ? '' : `
@@ -704,13 +783,108 @@
             modal.classList.toggle('flex');
         };
 
+        // 尋寶紀錄模態框
+        window.toggleHuntModal = function() {
+            const modal = document.getElementById('hunt-modal');
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
+            if (!modal.classList.contains('hidden')) {
+                drawHuntImage('grid'); // 預設畫第一種風格
+            }
+        };
+
+        // 繪製尋寶全紀錄 Canvas
+        window.drawHuntImage = function(style) {
+            const canvas = document.getElementById('hunt-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 輔助畫圖函數
+            function drawHuntThumb(img, px, py, pw, ph) {
+                if(!img) return;
+                const imgRatio = img.width / img.height;
+                const boxRatio = pw / ph;
+                let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
+                if (imgRatio > boxRatio) {
+                    srcW = img.height * boxRatio;
+                    srcX = (img.width - srcW) / 2;
+                } else {
+                    srcH = img.width / boxRatio;
+                    srcY = (img.height - srcH) / 2;
+                }
+                ctx.drawImage(img, srcX, srcY, srcW, srcH, px, py, pw, ph);
+            }
+
+            ctx.fillStyle = '#FAF3E0';
+            ctx.fillRect(0, 0, 800, 1000);
+
+            if (style === 'grid') {
+                // 風格1：原圖合輯 (寶立得拼圖風)
+                ctx.fillStyle = '#8B2500';
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 50px sans-serif';
+                ctx.fillText('📸 孔廟尋寶全紀錄', 400, 100);
+                ctx.font = 'bold 30px sans-serif';
+                ctx.fillStyle = '#5D4037';
+                ctx.fillText(`Team: ${teamName}`, 400, 160);
+
+                // 上排3張
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(40, 220, 220, 260); drawHuntThumb(huntPhotos[0], 50, 230, 200, 200);
+                ctx.fillRect(290, 220, 220, 260); drawHuntThumb(huntPhotos[1], 300, 230, 200, 200);
+                ctx.fillRect(540, 220, 220, 260); drawHuntThumb(huntPhotos[2], 550, 230, 200, 200);
+                
+                // 下排2張
+                ctx.fillRect(165, 520, 220, 260); drawHuntThumb(huntPhotos[3], 175, 530, 200, 200);
+                ctx.fillRect(415, 520, 220, 260); drawHuntThumb(huntPhotos[4], 425, 530, 200, 200);
+
+                ctx.strokeStyle = '#D7CCC8'; ctx.lineWidth = 4;
+                ctx.strokeRect(20, 20, 760, 960);
+                ctx.fillStyle = '#8B2500';
+                ctx.font = 'bold 36px sans-serif';
+                ctx.fillText('MISSION COMPLETE', 400, 880);
+
+            } else if (style === 'frame') {
+                // 風格2：相框合輯 (一大四小)
+                ctx.fillStyle = '#3E2723';
+                ctx.fillRect(0, 0, 800, 1000);
+                ctx.strokeStyle = '#D4AF37'; ctx.lineWidth = 8; ctx.strokeRect(30, 30, 740, 940);
+                
+                ctx.fillStyle = '#D4AF37';
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 50px sans-serif';
+                ctx.fillText('尋 寶 結 業 誌', 400, 110);
+                
+                ctx.fillStyle = '#FFFFFF';
+                // 主圖 (選最後一張或隨機)
+                ctx.fillRect(80, 150, 640, 480);
+                drawHuntThumb(huntPhotos[4], 90, 160, 620, 460);
+
+                // 下方四小圖
+                let startX = 80;
+                for(let i=0; i<4; i++){
+                    ctx.fillRect(startX, 660, 140, 140);
+                    drawHuntThumb(huntPhotos[i], startX+5, 665, 130, 130);
+                    startX += 166;
+                }
+
+                ctx.fillStyle = '#D4AF37';
+                ctx.font = 'bold 36px sans-serif';
+                ctx.fillText(`【 ${teamName} 】`, 400, 880);
+            }
+
+            setTimeout(() => {
+                const imgEl = document.getElementById('hunt-img');
+                imgEl.src = canvas.toDataURL('image/jpeg', 0.9);
+            }, 50);
+        }
+
         window.openARCamera = async function(type) {
             const level = activeLevels[currentLevel];
             document.getElementById('ar-modal').classList.remove('hidden');
             document.getElementById('ar-hint').textContent = "💡 提示：" + level.arHint;
             document.getElementById('fallback-text').innerHTML = level.fallback;
             
-            // 透過 classList 確保輔助線顯示
             const svgEl = document.getElementById('svg-landscape');
             if (level.type === 'ar_landscape') {
                 svgEl.classList.remove('hidden');
@@ -843,8 +1017,9 @@
                     isCorrect = false;
                 }
             } else if (level.type === 'photo_hunt') {
-                if (!huntPhotoUploaded) {
-                    showInlineFeedback("請先拍下與寶物的合照並上傳喔！", false);
+                let uploadedCount = huntPhotos.filter(img => img !== null).length;
+                if (uploadedCount < 5) {
+                    showInlineFeedback("必須拍滿 5 個寶物的合照才能過關喔！", false);
                     return;
                 }
                 isCorrect = true;
@@ -881,9 +1056,6 @@
                     }
                 }, 1500);
             } else {
-                wrongAttempts++;
-                const counterEl = document.getElementById('mistake-counter');
-                if (counterEl) counterEl.textContent = `失誤：${wrongAttempts}`;
                 showInlineFeedback("答案不對喔，再仔細觀察看看！", false);
             }
         };
@@ -894,29 +1066,25 @@
             if (currentCardStyle < 0) currentCardStyle = 3;
             document.getElementById('card-title-indicator').textContent = cardTitles[currentCardStyle];
             
-            let score = 100 - (wrongAttempts * 2);
-            if (score < 60) score = 60;
-            let rank = wrongAttempts === 0 ? "狀元及第" : wrongAttempts <= 3 ? "榜眼之才" : "探花之秀";
-            
-            drawAchievementCard(score, rank, currentCardStyle);
+            let rank = "狀元及第"; // 移除扣分，統一給最高榮譽
+            drawAchievementCard(rank, currentCardStyle);
         }
 
         function showEnding() {
             document.getElementById('puzzle-section').classList.add('hidden');
             document.getElementById('intro-section').classList.add('hidden');
             
-            let score = 100 - (wrongAttempts * 2);
-            if (score < 60) score = 60;
-            let rank = wrongAttempts === 0 ? "狀元及第" : wrongAttempts <= 3 ? "榜眼之才" : "探花之秀";
+            let rank = "狀元及第"; // 移除扣分，統一給最高榮譽
             
             document.getElementById('ending-section').classList.remove('hidden');
             
             currentCardStyle = 0;
             document.getElementById('card-title-indicator').textContent = cardTitles[0];
-            drawAchievementCard(score, rank, 0);
+            drawAchievementCard(rank, 0);
         }
 
-        function drawAchievementCard(score, rank, styleIndex) {
+        // 結算卡片重新排版（移除分數，放大隊名與稱號）
+        function drawAchievementCard(rank, styleIndex) {
             const canvas = document.getElementById('achievement-canvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -965,20 +1133,19 @@
 
                 ctx.fillStyle = '#F59E0B';
                 ctx.textAlign = 'center';
-                ctx.font = 'bold 45px sans-serif';
+                ctx.font = 'bold 50px sans-serif';
                 ctx.fillText('奉天承運・孔廟詔曰', 400, 120);
 
                 ctx.strokeStyle = '#8B2500'; ctx.lineWidth = 4;
-                drawPhoto(150, 200, 500, 375);
+                drawPhoto(150, 180, 500, 400);
 
                 ctx.fillStyle = '#FCD34D';
-                ctx.font = 'bold 50px sans-serif';
-                ctx.fillText(`【${rank}】`, 400, 700);
+                ctx.font = 'bold 60px sans-serif';
+                ctx.fillText(`【${rank}】`, 400, 720);
 
                 ctx.fillStyle = '#F4EAD5';
-                ctx.font = 'bold 40px sans-serif';
-                ctx.fillText(`新科弟子：${teamName}`, 400, 780);
-                ctx.fillText(`最終得分：${score} 分`, 400, 850);
+                ctx.font = 'bold 50px sans-serif';
+                ctx.fillText(`新科弟子：${teamName}`, 400, 820);
 
                 ctx.save();
                 ctx.translate(620, 820);
@@ -1001,26 +1168,23 @@
 
                 ctx.fillStyle = '#EA580C';
                 ctx.textAlign = 'center';
-                ctx.font = 'bold 50px sans-serif';
+                ctx.font = 'bold 55px sans-serif';
                 ctx.fillText('🌟 孔廟冒險完成 🌟', 400, 140);
 
                 ctx.strokeStyle = '#FDBA74'; ctx.lineWidth = 6;
-                drawPhoto(150, 250, 500, 375, 3); 
+                drawPhoto(120, 220, 560, 420, 2); 
 
                 ctx.fillStyle = '#EA580C';
                 ctx.beginPath();
-                ctx.roundRect(200, 700, 400, 80, 40);
+                ctx.roundRect(150, 720, 500, 90, 45);
                 ctx.fill();
                 ctx.fillStyle = '#FFFFFF';
-                ctx.font = 'bold 40px sans-serif';
-                ctx.fillText(`🏆 ${teamName}`, 400, 755);
+                ctx.font = 'bold 50px sans-serif';
+                ctx.fillText(`🏆 ${teamName}`, 400, 785);
 
                 ctx.fillStyle = '#4B5563';
-                ctx.font = 'bold 36px sans-serif';
-                ctx.fillText(`冒險得分：${score} 分`, 400, 840);
-                ctx.fillStyle = '#9CA3AF';
-                ctx.font = 'bold 28px sans-serif';
-                ctx.fillText(`獲得稱號：${rank}`, 400, 890);
+                ctx.font = 'bold 45px sans-serif';
+                ctx.fillText(`獲得稱號：${rank}`, 400, 880);
 
             } else if (styleIndex === 2) {
                 ctx.fillStyle = '#E5E7EB';
@@ -1036,10 +1200,10 @@
                 ctx.shadowOffsetX = 10;
                 ctx.shadowOffsetY = 10;
                 ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(100, 150, 600, 750);
+                ctx.fillRect(80, 120, 640, 780);
                 ctx.shadowColor = 'transparent';
 
-                const px = 140, py = 190, pw = 520, ph = 520;
+                const px = 120, py = 160, pw = 560, ph = 560;
                 ctx.fillStyle = '#000000';
                 ctx.fillRect(px, py, pw, ph);
                 if (teamPhotoImg && teamPhotoImg.src) {
@@ -1065,19 +1229,16 @@
 
                 ctx.fillStyle = '#374151';
                 ctx.textAlign = 'center';
-                ctx.font = 'bold 45px sans-serif';
-                ctx.fillText('旗山孔廟之旅 📷', 400, 780);
-                ctx.font = 'bold 30px sans-serif';
-                ctx.fillText(`Team: ${teamName} | Score: ${score}`, 400, 840);
-                ctx.fillStyle = '#EF4444';
-                ctx.font = 'bold 30px sans-serif';
-                ctx.fillText(`[ ${rank} ]`, 400, 885);
+                ctx.font = 'bold 50px sans-serif';
+                ctx.fillText('旗山孔廟之旅 📷', 400, 790);
+                ctx.font = 'bold 36px sans-serif';
+                ctx.fillText(`Team: ${teamName}`, 400, 850);
 
                 ctx.restore();
 
                 ctx.fillStyle = 'rgba(253, 246, 227, 0.8)';
                 ctx.save();
-                ctx.translate(400, 130);
+                ctx.translate(400, 100);
                 ctx.rotate(-5 * Math.PI / 180);
                 ctx.fillRect(-100, -20, 200, 40);
                 ctx.restore();
@@ -1091,13 +1252,13 @@
 
                 ctx.fillStyle = '#D4AF37';
                 ctx.textAlign = 'center';
-                ctx.font = 'bold 55px sans-serif';
-                ctx.fillText('孔 廟 書 院', 400, 130);
+                ctx.font = 'bold 60px sans-serif';
+                ctx.fillText('孔 廟 書 院', 400, 140);
                 ctx.font = 'bold 30px sans-serif';
-                ctx.fillText('DISCIPLE IDENTITY CARD', 400, 180);
+                ctx.fillText('DISCIPLE IDENTITY CARD', 400, 190);
 
                 ctx.beginPath();
-                ctx.moveTo(100, 210); ctx.lineTo(700, 210);
+                ctx.moveTo(100, 220); ctx.lineTo(700, 220);
                 ctx.lineWidth = 2; ctx.stroke();
 
                 const px = 100, py = 280, pw = 280, ph = 380;
@@ -1122,25 +1283,18 @@
 
                 ctx.textAlign = 'left';
                 ctx.fillStyle = '#D4AF37';
-                ctx.font = 'bold 28px sans-serif';
-                ctx.fillText('小隊名稱 NAME', 420, 330);
+                ctx.font = 'bold 30px sans-serif';
+                ctx.fillText('小隊名稱 NAME', 420, 350);
                 ctx.fillStyle = '#FFFFFF';
-                ctx.font = 'bold 45px sans-serif';
-                ctx.fillText(teamName, 420, 385);
+                ctx.font = 'bold 50px sans-serif';
+                ctx.fillText(teamName, 420, 410);
 
                 ctx.fillStyle = '#D4AF37';
-                ctx.font = 'bold 28px sans-serif';
-                ctx.fillText('最終考核 SCORE', 420, 470);
+                ctx.font = 'bold 30px sans-serif';
+                ctx.fillText('核定階級 RANK', 420, 520);
                 ctx.fillStyle = '#FFFFFF';
-                ctx.font = 'bold 45px sans-serif';
-                ctx.fillText(`${score} 分`, 420, 525);
-
-                ctx.fillStyle = '#D4AF37';
-                ctx.font = 'bold 28px sans-serif';
-                ctx.fillText('核定階級 RANK', 420, 610);
-                ctx.fillStyle = '#FFFFFF';
-                ctx.font = 'bold 45px sans-serif';
-                ctx.fillText(rank, 420, 665);
+                ctx.font = 'bold 50px sans-serif';
+                ctx.fillText(rank, 420, 580);
 
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#D4AF37';
