@@ -54,7 +54,7 @@
                 <p class="text-xs font-bold text-gray-600 tracking-widest mt-1">新科弟子試煉</p>
             </div>
 
-            <!-- 開場引言區與小隊報到 -->
+            <!-- 開場引言區與小隊報到 (包含難度選擇) -->
             <div id="intro-section" class="mb-2 text-gray-700 leading-relaxed bg-[#F4EAD5] p-5 rounded-lg border-2 border-[#D7CCC8] shadow-sm text-center fade-in">
                 <h3 class="text-xl font-bold text-[#8B2500] mb-3">【新科弟子報到】</h3>
                 <p class="text-sm text-left mb-4 font-bold text-gray-600">老夫子：「年輕人，試煉前請先留下你們的小隊名號與合照，這將是你們最後結算成績的印記。」</p>
@@ -65,11 +65,19 @@
                     📷 拍下小隊合照
                     <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleTeamPhotoPreload(event)">
                 </label>
-                <img id="team-photo-preview-intro" class="hidden w-full h-32 object-cover rounded border-2 border-[#8B2500] mb-4">
+                <img id="team-photo-preview-intro" class="hidden w-full h-32 object-cover rounded border-2 border-[#8B2500] mb-5">
 
-                <button onclick="startGame()" class="w-full bg-[#8B2500] text-white font-bold py-3 px-4 rounded-lg shadow-md text-lg active:bg-[#6A1B00] transition-colors tracking-widest">
-                    接受試煉
-                </button>
+                <div class="border-t-2 border-[#D7CCC8] pt-4 mt-2">
+                    <p class="text-sm font-black text-[#8B2500] mb-3 tracking-widest">👇 請選擇挑戰難度 👇</p>
+                    <div class="flex flex-col gap-3">
+                        <button onclick="startGame('child')" class="w-full bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-lg active:bg-green-800 transition-colors tracking-widest flex items-center justify-center gap-2">
+                            🟢 童蒙探索版 <span class="text-xs font-normal bg-white/20 px-2 py-1 rounded">國小以下/親子</span>
+                        </button>
+                        <button onclick="startGame('teen')" class="w-full bg-[#8B2500] text-white font-bold py-3 px-4 rounded-lg shadow-md text-lg active:bg-[#6A1B00] transition-colors tracking-widest flex items-center justify-center gap-2">
+                            🔴 新科弟子版 <span class="text-xs font-normal bg-white/20 px-2 py-1 rounded">國中以上/解謎</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- 解謎區塊 -->
@@ -89,7 +97,7 @@
                 </div>
 
                 <div class="flex justify-between items-center text-sm font-bold text-[#8B2500] mb-2 tracking-widest">
-                    <span id="level-indicator">卷 1 / 共 11 卷</span>
+                    <span id="level-indicator">卷 1</span>
                     <button onclick="useHint()" id="hint-btn" class="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 text-xs font-bold py-1 px-3 rounded-full shadow-sm active:scale-95 transition-transform">
                         💡 錦囊 (<span id="hint-count-display">5</span>)
                     </button>
@@ -116,17 +124,13 @@
 
                 <div class="relative w-full rounded-xl mb-4 card-reveal text-center">
                     <p class="text-sm font-bold text-red-600 mb-2 animate-pulse">👇 請長按下方圖片儲存至手機 👇</p>
-                    
-                    <!-- 隱藏的 Canvas 用來畫四種風格 -->
                     <canvas id="achievement-canvas" width="800" height="1000" class="hidden"></canvas>
-                    
-                    <!-- 真正顯示出來給玩家長按的圖片 -->
                     <img id="achievement-img" class="w-full h-auto rounded-lg border-4 border-[#8B2500] shadow-xl">
                 </div>
 
                 <div class="flex gap-2">
                     <button onclick="location.reload()" class="w-full border-2 border-[#8B2500] bg-[#FAF3E0] text-[#8B2500] font-bold py-3 px-4 rounded-lg tracking-widest text-base active:bg-orange-100">
-                        再玩一次
+                        回到首頁
                     </button>
                 </div>
             </div>
@@ -141,7 +145,6 @@
                 <button onclick="toggleMap()" class="text-[#8B2500] hover:text-red-600 font-black text-3xl leading-none px-2">&times;</button>
             </div>
             <div class="overflow-auto flex-1 border-2 border-[#D7CCC8] rounded relative bg-white flex items-center justify-center">
-                <!-- 讀取您提供的地圖圖片 -->
                 <img src="闖關地圖.png" alt="孔廟全景平面圖" class="w-full h-auto object-contain" onerror="this.alt='無法載入地圖，請確認 闖關地圖.png 檔案是否存在'">
             </div>
             <button onclick="toggleMap()" class="mt-3 w-full bg-[#1B5E20] text-white font-bold py-3 rounded-lg shadow-md active:scale-95 transition-transform tracking-widest text-lg">
@@ -179,6 +182,8 @@
     </div>
 
     <script>
+        let currentMode = 'teen'; 
+        let activeLevels = [];
         let currentLevel = 0;
         let wrongAttempts = 0;
         let cameraStream = null;
@@ -188,20 +193,23 @@
         
         let completedLevels = new Set();
         let revealedHints = new Set();
+        let huntPhotoUploaded = false; // 專用於尋寶題的判定
 
         let currentCardStyle = 0;
         const cardTitles = ["1/4 古風御賜卡", "2/4 Q版貼紙卡", "3/4 拍立得旅行卡", "4/4 孔門弟子卡"];
-
         const instrumentOptions = ["編鐘", "編磬", "笛", "蕭", "笙", "鳳簫", "拍板", "塤", "甄", "琴", "瑟", "鼗", "敔", "搏拊"];
 
-        const levels = [
+        // ==========================================
+        // 【題庫一】新科弟子版 (11 卷，原汁原味)
+        // ==========================================
+        const levels_teen = [
             {
                 type: 'standard',
                 title: "星象的指引",
                 desc: "孔廟的第一道門被稱為「櫺星門」。櫺星又稱文曲星，象徵孔子育才施教的崇高地位。日升月降之際，「櫺星」與星月相映。",
                 image: "stars.png",
                 question: "新科弟子們發現天上星宿有幾處較閃耀的光，觀察地上的星圖，請問這組編號是幾號？",
-                answer: ["01044"],
+                answer: ["01043"],
                 hint: "把畫面上特別亮、有發出光芒的星星連起來看，是不是像一組數字呢？"
             },
             {
@@ -306,6 +314,70 @@
             }
         ];
 
+        // ==========================================
+        // 【題庫二】童蒙探索版 (6 卷，專為親子設計)
+        // ==========================================
+        const levels_child = [
+            {
+                type: 'ar_landscape',
+                title: "紅柱間的密碼",
+                desc: "來到莊嚴的大成門前，老夫子指著前方宏偉的四根紅柱說：『孔廟的建築不僅蘊含儒家思想，有時也藏著跨越語言的巧合。』",
+                question: "開啟透視鏡，將黃色框對準大成門中央。看看這半透明的紅線，與四根真實的紅柱組合起來，拼出了一個什麼英文單字？",
+                answer: ["moon", "moons"],
+                arHint: "請將畫面上的黃色虛線框對準大成門的「中央木門」，讓紅線與四根大紅柱交疊！",
+                fallback: "當紅線與四根柱子對齊時：<br>左側柱子與V型組成「M」<br>中央柱群與上下橫條組成兩個「O」<br>右側柱子與斜線組成「N」",
+                hint: "拼出來的英文字母是四個字，代表晚上的『月亮』喔！"
+            },
+            {
+                type: 'iframe_puzzle',
+                title: "大成門的威儀",
+                desc: "大成門象徵通往大成殿的禮敬之門。孔廟屬聖廟，不畫一般廟宇的門神，改以沉穩深紅門扇與銅門釘裝飾，且不書對聯以示崇敬。",
+                iframeUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b&view=iframe",
+                question: "拼圖完成後，請觀察現場介紹或回想老夫子的教誨，大成門的另外一個名稱是什麼？",
+                answer: ["儀門"],
+                hint: "大成門又象徵著「禮儀」之門，答案是兩個字喔！"
+            },
+            {
+                type: 'audio_match',
+                title: "孔廟的失落之聲",
+                desc: "祭孔大典即將開始，但古老樂章失去了幾個聲音。新科弟子必須聽聲辨器，找回散落在孔廟中的樂器。",
+                questions: [
+                    { id: '0', src: 'audio_1.mp3', label: '神秘聲音一' },
+                    { id: '1', src: 'audio_2.mp3', label: '神秘聲音二' },
+                    { id: '2', src: 'audio_3.mp3', label: '神秘聲音三' },
+                    { id: '3', src: 'audio_4.mp3', label: '神秘聲音四' }
+                ],
+                options: ["編鐘", "編磬", "塤", "笙", "琴"], // 童蒙版專屬 5 個選項
+                answers: ["編鐘", "編磬", "塤", "笙"],
+                hint: "清脆石頭聲是「編磬」；金屬敲擊是「編鐘」；風聲般低沉是「塤」；多管吹奏是「笙」！"
+            },
+            {
+                type: 'photo_hunt', // 新增的尋寶拍照題
+                title: "孔廟尋寶記",
+                desc: "老夫子在孔廟裡藏了幾個特別的寶物，請根據下方的照片，在孔廟內找出它們的真面目！",
+                images: ["bell.jpg", "duck.jpg", "fan.jpg", "painting.jpg", "calligraphy.jpg"],
+                question: "請小隊全員與其中「任意一個」寶物合照，並上傳照片證明！",
+                hint: "可以在大成門、東廡、西廡或大成殿周圍，仔細找找這些物品的蹤影喔！"
+            },
+            {
+                type: 'touhu_simple', // 新增的純投壺密碼題
+                title: "君子之爭",
+                desc: "老夫子擺下了投壺挑戰：「君子無所爭，必也射乎！請找關主完成『投壺 9 進 4』挑戰，才能獲得通關密碼。」",
+                question: "請輸入關主給予的通關密碼：",
+                answer: ["123"], // 可更改通關密碼
+                hint: "這關需要動動身體！趕快去找關主進行投壺挑戰吧！"
+            },
+            {
+                type: 'standard',
+                title: "畫中玄機",
+                desc: "老夫子留下了一張未完成的孔子畫像，請利用發給你們的畫紙完成著色任務。",
+                question: "著色完成後，圖中隱藏了一組代表老夫子生日的四碼數字，請輸入：",
+                answer: ["0928"],
+                hint: "這四個數字也是現在的『教師節』日期喔！"
+            }
+        ];
+
+
         function handleTeamPhotoPreload(event) {
             const file = event.target.files[0];
             if (file) {
@@ -320,9 +392,13 @@
             }
         }
 
-        function startGame() {
+        // 分流啟動遊戲
+        function startGame(mode) {
             const nameInput = document.getElementById('team-name-input').value.trim();
             if (nameInput) teamName = nameInput;
+            
+            currentMode = mode;
+            activeLevels = (currentMode === 'child') ? levels_child : levels_teen;
             
             document.getElementById('intro-section').classList.add('hidden');
             document.getElementById('puzzle-section').classList.remove('hidden');
@@ -332,7 +408,7 @@
         function renderLevelNav() {
             const navContainer = document.getElementById('level-nav');
             let html = '';
-            for (let i = 0; i < levels.length; i++) {
+            for (let i = 0; i < activeLevels.length; i++) {
                 let isCompleted = completedLevels.has(i);
                 let isCurrent = (i === currentLevel);
                 
@@ -351,9 +427,8 @@
 
         function loadLevel() {
             renderLevelNav();
-            const level = levels[currentLevel];
-            document.getElementById('level-indicator').textContent = `卷 ${currentLevel + 1} / 共 ${levels.length} 卷`;
-            const content = document.getElementById('level-content');
+            const level = activeLevels[currentLevel];
+            document.getElementById('level-indicator').textContent = `卷 ${currentLevel + 1} / 共 ${activeLevels.length} 卷`;
             
             const hintBtn = document.getElementById('hint-btn');
             if (completedLevels.has(currentLevel)) {
@@ -411,6 +486,41 @@
                             ${getInputHTML()}
                         </div>
                     `;
+                } else if (level.type === 'touhu_simple') {
+                    // 童蒙版的簡單投壺
+                    html += `
+                        <div class="bg-orange-50 p-5 rounded-xl border border-orange-200 shadow-sm text-center mb-4">
+                            <p class="text-lg font-bold text-[#8B2500] mb-4">${level.question}</p>
+                            <input type="text" id="answer-input" placeholder="請輸入通關密碼" class="w-full px-3 py-3 rounded bg-white border border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-2xl font-black mb-3 text-[#3E2723]" autocomplete="off">
+                            <div class="h-8 mb-2 flex items-center justify-center">
+                                <p id="inline-feedback" class="text-base font-bold text-center w-full" style="opacity: 0; transition: opacity 0.3s ease;"></p>
+                            </div>
+                            <button onclick="checkAnswer()" class="w-full bg-[#1B5E20] text-white font-bold py-3 px-4 rounded-lg shadow-md text-xl active:scale-95 transition-transform tracking-widest">
+                                呈交密碼
+                            </button>
+                        </div>
+                    `;
+                } else if (level.type === 'photo_hunt') {
+                    // 童蒙版的合照尋寶
+                    huntPhotoUploaded = false; // 初始化狀態
+                    html += `<div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">`;
+                    level.images.forEach(img => {
+                        html += `<img src="${img}" class="w-full h-24 object-cover rounded border-2 border-[#8B2500] shadow-sm" onerror="this.style.display='none'">`;
+                    });
+                    html += `</div>
+                        <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
+                        <label class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg cursor-pointer shadow-md font-bold mb-4 active:scale-95 transition-transform text-lg">
+                            📷 拍下合照並上傳
+                            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleHuntPhoto(event)">
+                        </label>
+                        <div id="hunt-photo-preview-box" class="hidden fade-in mb-4">
+                            <img id="hunt-photo-preview" class="w-full h-48 object-cover rounded border-2 border-gray-300 mb-3 shadow-sm">
+                            <div class="h-8 mb-2 flex items-center justify-center">
+                                <p id="inline-feedback" class="text-base font-bold text-center w-full" style="opacity: 0; transition: opacity 0.3s ease;"></p>
+                            </div>
+                            <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] transition-colors tracking-widest">✅ 確認上傳，完成尋寶</button>
+                        </div>
+                    `;
                 } else if (level.type === 'plaque_fill') {
                     html += `<p class="font-bold text-[#8B2500] text-lg mb-4 text-center">請尋找對應的匾額並填寫成語：</p>`;
                     html += `<div class="flex flex-col gap-4 mb-4">`;
@@ -445,6 +555,7 @@
                     `;
                 } else if (level.type === 'audio_match') {
                     html += `<p class="font-bold text-[#8B2500] text-lg mb-3">請聆聽聲音，並在孔廟現場尋找對應的樂器：</p>`;
+                    const optionsList = level.options || instrumentOptions; // 動態選擇選項清單
                     level.questions.forEach((q, idx) => {
                         html += `
                         <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 mb-3 shadow-sm">
@@ -454,7 +565,7 @@
                             </audio>
                             <select id="audio-ans-${idx}" class="w-full px-3 py-3 rounded-lg bg-white border-2 border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-lg font-bold text-[#3E2723]">
                                 <option value="">-- 選擇樂器 --</option>`;
-                        instrumentOptions.forEach(opt => {
+                        optionsList.forEach(opt => {
                             html += `<option value="${opt}">${opt}</option>`;
                         });
                         html += `
@@ -500,7 +611,7 @@
         window.checkTouhuPassword = function() {
             const inputEl = document.getElementById('touhu-password');
             const feedback = document.getElementById('password-feedback');
-            const password = levels[currentLevel].password;
+            const password = activeLevels[currentLevel].password;
 
             if (inputEl.value.trim() === password) {
                 document.getElementById('touhu-password-area').classList.add('hidden');
@@ -509,6 +620,19 @@
                 feedback.textContent = "密碼錯誤！請確認是否已向關主詢問正確密碼。";
                 feedback.style.opacity = '1';
                 setTimeout(() => { feedback.style.opacity = '0'; }, 3000);
+            }
+        };
+
+        window.handleHuntPhoto = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('hunt-photo-preview').src = e.target.result;
+                    document.getElementById('hunt-photo-preview-box').classList.remove('hidden');
+                    huntPhotoUploaded = true;
+                }
+                reader.readAsDataURL(file);
             }
         };
 
@@ -543,7 +667,7 @@
                 revealedHints.add(currentLevel);
                 
                 if (hintBox) {
-                    hintBox.textContent = `💡 錦囊：${levels[currentLevel].hint}`;
+                    hintBox.textContent = `💡 錦囊：${activeLevels[currentLevel].hint}`;
                     hintBox.classList.remove('hidden', 'bg-orange-50', 'text-orange-800', 'border-orange-500');
                     hintBox.classList.add('block', 'bg-yellow-50', 'text-yellow-800', 'border-yellow-500');
                     setTimeout(() => { hintBox.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
@@ -566,7 +690,7 @@
         };
 
         window.openARCamera = async function(type) {
-            const level = levels[currentLevel];
+            const level = activeLevels[currentLevel];
             document.getElementById('ar-modal').classList.remove('hidden');
             document.getElementById('ar-hint').textContent = "💡 提示：" + level.arHint;
             document.getElementById('fallback-text').innerHTML = level.fallback;
@@ -628,7 +752,7 @@
         }
 
         window.checkAnswer = function() {
-            const level = levels[currentLevel];
+            const level = activeLevels[currentLevel];
             let isCorrect = false;
 
             if (level.type === 'audio_match') {
@@ -699,6 +823,12 @@
                     }
                     isCorrect = false;
                 }
+            } else if (level.type === 'photo_hunt') {
+                if (!huntPhotoUploaded) {
+                    showInlineFeedback("請先拍下與寶物的合照並上傳喔！", false);
+                    return;
+                }
+                isCorrect = true;
             } else {
                 const inputEl = document.getElementById('answer-input');
                 if (!inputEl) return;
@@ -714,12 +844,12 @@
                 showInlineFeedback("🌟 正確！老夫子：「做得好！」", true, 2000);
                 
                 setTimeout(() => {
-                    if (completedLevels.size === levels.length) {
+                    if (completedLevels.size === activeLevels.length) {
                         showEnding();
                     } else {
                         let nextUncompleted = -1;
-                        for (let i = 1; i <= levels.length; i++) {
-                            let checkIdx = (currentLevel + i) % levels.length;
+                        for (let i = 1; i <= activeLevels.length; i++) {
+                            let checkIdx = (currentLevel + i) % activeLevels.length;
                             if (!completedLevels.has(checkIdx)) {
                                 nextUncompleted = checkIdx;
                                 break;
@@ -1014,7 +1144,7 @@
 
         document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !document.getElementById('puzzle-section').classList.contains('hidden')) {
-                const level = levels[currentLevel];
+                const level = activeLevels[currentLevel];
                 if (document.activeElement.id === 'touhu-password') {
                     checkTouhuPassword();
                 } else if (level.type === 'audio_match' || level.type === 'plaque_fill' || level.type === 'two_inputs' || document.activeElement.id === 'answer-input') {
