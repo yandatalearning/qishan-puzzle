@@ -129,7 +129,7 @@
 
                 <div id="ending-hunt-btn-area" class="hidden mb-3">
                     <button onclick="toggleHuntModal()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-base active:scale-95 transition-transform tracking-widest flex items-center justify-center gap-2">
-                        📸 查看 / 保存尋寶全紀錄
+                        📸 查看 / 長按保存尋寶全紀錄
                     </button>
                 </div>
 
@@ -169,9 +169,9 @@
                 <!-- 原圖合輯大圖 -->
                 <p class="text-sm font-bold text-red-600 w-full text-center animate-pulse z-10 bg-white/80 py-1 sticky top-0">👇 請長按下方圖片儲存至手機 👇</p>
                 <canvas id="hunt-canvas" width="800" height="1000" class="hidden"></canvas>
-                <img id="hunt-img" class="w-full h-auto rounded-lg border-2 border-[#8B2500] shadow-sm mb-4">
+                <img id="hunt-img" class="w-full h-auto rounded-lg border-2 border-[#8B2500] shadow-sm mb-4 mt-2">
                 
-                <h4 class="font-bold text-[#8B2500] text-lg mt-2 mb-2 w-full border-t border-[#D7CCC8] pt-2">【各別原圖保存區】</h4>
+                <h4 class="font-bold text-[#8B2500] text-lg mt-2 mb-2 w-full border-t border-[#D7CCC8] pt-2 text-center">【各別原圖保存區】</h4>
                 <!-- 動態生成的原圖列表 -->
                 <div id="hunt-original-images" class="w-full flex flex-col gap-3">
                 </div>
@@ -253,7 +253,7 @@
             {
                 type: 'standard',
                 title: "靈魂之窗口",
-                desc: "走到「櫺星門」前，其造型猶如古代雕花的「窗櫺」(格子窗)，象徵著國家求得賢士的窗口。在古代，這道大門平時不輕易開啟，唯有皇帝謁廟或新科狀元及第時方能從正中通過。它不僅以窗櫺般的結構迎光納才，更是凡人通往聖賢智慧的<b>(靈魂之窗口)</b>。想要穿越這道象徵求知明理的大門，必須回答出最終的通關密語！(請參考提示卡)",
+                desc: "走到「櫺星門」前，其造型猶如古代雕花的「窗櫺」(格子窗)，象徵著國家求得賢士的窗口。在古代，這道大門平時不輕易開啟，唯有皇帝謁廟或新科狀元及第時方能從正中通過。它不僅以窗櫺般的結構迎光納才，更是凡人通往聖賢智慧的<b class='text-red-600'>(靈魂之窗口)</b>。想要穿越這道象徵求知明理的大門，必須回答出最終的通關密語！(請參考提示卡)",
                 image: "hint_card.png",
                 question: "請問想要通過「櫺星門」的密碼是什麼？（請輸入3位數字）",
                 answer: ["324"],
@@ -402,7 +402,7 @@
                 hint: "清脆石頭聲是「編磬」；搖動發出咚咚聲的是「鼗」；風聲般低沉是「塤」；多管吹奏是「笙」！"
             },
             {
-                type: 'photo_hunt', 
+                type: 'photo_hunt',
                 title: "孔廟尋寶記",
                 desc: "老夫子在孔廟裡藏了 5 個特別的寶物，請根據下方的照片，在孔廟內找出它們的真面目！",
                 images: ["bell.jpg", "duck.jpg", "fan.jpg", "painting.jpg", "calligraphy.jpg"],
@@ -451,14 +451,22 @@
             }
         }
 
+        // 強制檢查有沒有填寫名稱與上傳照片
         function startGame(mode) {
             const nameInput = document.getElementById('team-name-input').value.trim();
-            if (nameInput) teamName = nameInput;
+            if (!nameInput) {
+                alert("進入試煉前，請先輸入小隊名稱！");
+                return;
+            }
+            if (!teamPhotoImg) {
+                alert("進入試煉前，請先拍下小隊合照！");
+                return;
+            }
             
+            teamName = nameInput;
             currentMode = mode;
             activeLevels = (currentMode === 'child') ? levels_child : levels_teen;
             
-            // 設定地圖圖片，根據難度選擇
             const mapImg = document.getElementById('dynamic-map-img');
             if (currentMode === 'child') {
                 mapImg.src = "map.png";
@@ -555,7 +563,7 @@
                     html += `</ul>`;
                     
                     if (level.seatImage) {
-                        html += `<div class="flex justify-center mb-4"><img src="${level.seatImage}" class="max-w-[50%] h-auto rounded shadow-sm border border-gray-300" onerror="this.style.display='none'"></div>`;
+                        html += `<div class="flex justify-center mb-4"><img src="${level.seatImage}" class="max-w-[60%] md:max-w-[40%] h-auto rounded shadow-sm border border-gray-300" onerror="this.style.display='none'"></div>`;
                     }
 
                     html += `
@@ -564,22 +572,24 @@
                         </div>
                     `;
                 } else if (level.type === 'photo_hunt') {
+                    // 修改：不擋住原圖的排列方式
                     html += `<p class="font-bold text-[#8B2500] text-lg mb-4 text-center border-b-2 border-[#8B2500] pb-2">${level.question}</p>`;
                     html += `<div class="grid grid-cols-2 gap-3 mb-6">`;
                     
                     level.images.forEach((img, idx) => {
                         let isFullWidth = (idx === 4) ? 'col-span-2' : '';
-                        let uploadedImg = huntPhotos[idx] ? `<img src="${huntPhotos[idx].src}" class="absolute inset-0 w-full h-full object-cover rounded-lg">` : '';
                         let frameClass = huntPhotos[idx] ? 'hunt-item-uploaded' : 'border-gray-300';
                         let btnClass = huntPhotos[idx] ? 'hunt-btn-uploaded' : 'bg-gray-700 hover:bg-gray-800';
-                        let btnText = huntPhotos[idx] ? '✅ 已上傳' : '📷 拍照';
+                        let btnText = huntPhotos[idx] ? '✅ 重新上傳' : '📷 拍照';
+                        
+                        let uploadedImgHtml = huntPhotos[idx] ? `<img src="${huntPhotos[idx].src}" class="w-full h-24 object-cover rounded-lg border-2 border-green-500 mb-2 shadow-sm">` : '';
                         
                         html += `
                             <div class="relative ${isFullWidth} flex flex-col items-center bg-white p-2 rounded-xl shadow-sm border-2 ${frameClass} transition-colors">
-                                <div class="w-full aspect-square relative rounded-lg overflow-hidden bg-gray-100 mb-2 border border-gray-200">
-                                    <img src="${img}" class="absolute inset-0 w-full h-full object-contain opacity-40 p-2" onerror="this.style.display='none'">
-                                    ${uploadedImg}
+                                <div class="w-full h-20 bg-gray-50 rounded border border-gray-200 p-1 mb-2 flex items-center justify-center">
+                                    <img src="${img}" class="max-w-full max-h-full object-contain" onerror="this.style.display='none'">
                                 </div>
+                                ${uploadedImgHtml}
                                 <label class="w-full text-white text-center py-2 rounded cursor-pointer font-bold text-sm ${btnClass} transition-colors shadow-sm">
                                     ${btnText}
                                     <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleHuntPhotoGrid(event, ${idx})">
@@ -827,7 +837,6 @@
             }
         };
 
-        // 修改尋寶全紀錄：只繪製原圖大合輯，下方提供 5 張原圖供長按
         window.drawHuntImage = function() {
             const canvas = document.getElementById('hunt-canvas');
             const ctx = canvas.getContext('2d');
@@ -880,7 +889,6 @@
                 const imgEl = document.getElementById('hunt-img');
                 imgEl.src = canvas.toDataURL('image/jpeg', 0.9);
 
-                // 在畫面下方動態生成各別原圖讓玩家長按儲存
                 huntPhotos.forEach((img, idx) => {
                     if(img && img.src) {
                         const div = document.createElement('div');
