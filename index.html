@@ -10,12 +10,13 @@
         
         body { font-family: 'Noto Serif TC', serif; background-color: #F4EAD5; color: #3E2723; overflow-x: hidden; }
         
+        /* 裝飾動畫 */
         .decoration-img { mix-blend-mode: multiply; animation: float 6s ease-in-out infinite; }
         .decoration-img-delayed { mix-blend-mode: multiply; animation: float 6s ease-in-out infinite; animation-delay: 3s; }
         @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
 
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fade-in { animation: fadeIn 0.4s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
@@ -25,27 +26,14 @@
         .animate-shake { animation: shake 0.3s ease-in-out; }
 
         /* 結算卡片金光與彈出動畫 */
-        .card-reveal {
-            animation: popGlow 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
+        .card-reveal { animation: popGlow 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes popGlow {
             0% { transform: scale(0.8); opacity: 0; box-shadow: 0 0 0 rgba(255, 213, 79, 0); }
             50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 30px rgba(255, 213, 79, 0.8); }
             100% { transform: scale(1); opacity: 1; box-shadow: 0 0 15px rgba(255, 213, 79, 0.5); }
         }
-
-        /* 模擬印章蓋下的動畫特效 */
-        .stamp-reveal {
-            opacity: 0;
-            transform: scale(3) rotate(-20deg);
-            animation: stampPress 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-            animation-delay: 1s; /* 等卡片出現後再蓋章 */
-        }
-        @keyframes stampPress {
-            0% { opacity: 0; transform: scale(3) rotate(-20deg); }
-            50% { opacity: 1; transform: scale(0.9) rotate(-5deg); }
-            100% { opacity: 1; transform: scale(1) rotate(-10deg); }
-        }
+        .stamp-reveal { opacity: 0; transform: scale(3) rotate(-20deg); animation: stampPress 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; animation-delay: 1s; }
+        @keyframes stampPress { 0% { opacity: 0; transform: scale(3) rotate(-20deg); } 50% { opacity: 1; transform: scale(0.9) rotate(-5deg); } 100% { opacity: 1; transform: scale(1) rotate(-10deg); } }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 relative">
@@ -60,41 +48,52 @@
     <!-- 主遊戲容器 -->
     <div id="game-container" class="relative z-10 w-full max-w-md bg-[#FAF3E0] rounded-xl shadow-2xl overflow-hidden border-2 border-[#8B2500]">
         <div class="h-3 w-full bg-[#8B2500]"></div>
-        <div class="p-6 md:p-8">
+        <div class="p-5 md:p-8">
             
             <div class="text-center mb-6">
                 <div class="w-16 h-16 mx-auto mb-2 border-2 border-[#8B2500] rounded-full flex items-center justify-center text-3xl text-[#8B2500] font-black shadow-inner">孔</div>
                 <h1 class="text-2xl font-black text-[#8B2500] tracking-widest">旗山孔廟</h1>
-                <p class="text-xs font-bold text-gray-600 tracking-widest mt-1">新科弟子試煉</p>
+                <p class="text-sm font-bold text-gray-600 tracking-widest mt-1">新科弟子試煉</p>
             </div>
 
             <!-- 開場引言區與小隊報到 -->
-            <div id="intro-section" class="mb-2 text-gray-700 leading-relaxed bg-[#F4EAD5] p-5 rounded-lg border-2 border-[#D7CCC8] shadow-sm text-center fade-in">
-                <h3 class="text-xl font-bold text-[#8B2500] mb-3">【新科弟子報到】</h3>
-                <p class="text-sm text-left mb-4 font-bold text-gray-600">老夫子：「年輕人，試煉前請先留下你們的小隊名號與合照，這將是你們最後結算成績的印記。」</p>
+            <div id="intro-section" class="mb-2 fade-in">
+                <!-- NPC 對話框 -->
+                <div class="flex items-start gap-3 mb-5">
+                    <div class="w-12 h-12 rounded-full bg-[#8B2500] text-white flex items-center justify-center text-2xl font-bold shrink-0 border-2 border-yellow-500 shadow-md">夫</div>
+                    <div class="bg-white border-2 border-[#E7DCC8] p-4 rounded-2xl rounded-tl-none shadow-sm relative w-full">
+                        <p class="text-gray-800 text-base font-bold leading-relaxed">
+                            「年輕人，歡迎來到旗山孔廟！<br>孔廟的智慧藏在團隊、自然與幾何之中。<br>我是指引你的『老夫子』，完成試煉，就能成為真正的狀元！在出發前，請先留下你們的小隊名號與合照吧！」
+                        </p>
+                    </div>
+                </div>
                 
-                <input type="text" id="team-name-input" placeholder="請輸入小隊名稱 (例: 聰明隊)" class="w-full px-4 py-3 rounded bg-white border border-gray-300 focus:border-[#8B2500] focus:ring-0 text-center text-base font-bold mb-3" autocomplete="off">
-                
-                <label class="block w-full bg-[#D7CCC8] hover:bg-[#BCAAA4] text-[#3E2723] text-center py-3 rounded cursor-pointer shadow-sm font-bold mb-4 transition-colors">
-                    📷 拍下小隊合照
-                    <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleTeamPhotoPreload(event)">
-                </label>
-                <!-- 預覽合照 -->
-                <img id="team-photo-preview-intro" class="hidden w-full h-32 object-cover rounded border-2 border-[#8B2500] mb-4">
+                <div class="bg-[#F4EAD5] p-4 rounded-lg border-2 border-[#D7CCC8]">
+                    <input type="text" id="team-name-input" placeholder="輸入小隊名稱 (例: 聰明隊)" class="w-full px-4 py-3 rounded bg-white border-2 border-gray-300 focus:border-[#8B2500] focus:ring-0 text-center text-lg font-bold mb-3" autocomplete="off">
+                    
+                    <label class="block w-full bg-[#D7CCC8] hover:bg-[#BCAAA4] text-[#3E2723] text-center py-3 rounded-lg cursor-pointer shadow-sm font-bold mb-4 transition-colors text-lg">
+                        📷 拍下小隊合照
+                        <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleTeamPhotoPreload(event)">
+                    </label>
+                    <img id="team-photo-preview-intro" class="hidden w-full h-36 object-cover rounded-lg border-2 border-[#8B2500] mb-4">
 
-                <button onclick="startGame()" class="w-full bg-[#8B2500] text-white font-bold py-3 px-4 rounded-lg shadow-md text-lg active:bg-[#6A1B00] transition-colors tracking-widest">
-                    接受試煉
-                </button>
+                    <button onclick="startGame()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] transition-colors tracking-widest">
+                        開始試煉
+                    </button>
+                </div>
             </div>
 
             <!-- 解謎區塊 -->
             <div id="puzzle-section" class="hidden fade-in">
-                <div class="flex justify-between text-sm font-bold text-[#8B2500] mb-3 tracking-widest">
+                <div class="flex justify-between items-center text-sm font-bold text-[#8B2500] mb-4 tracking-widest bg-orange-100 py-2 px-3 rounded-lg border border-orange-200">
                     <span id="level-indicator">卷 1 / 共 11 卷</span>
-                    <span id="mistake-counter">失誤：0</span>
+                    <!-- 錦囊按鈕 -->
+                    <button onclick="useHint()" class="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 text-xs font-bold py-1 px-3 rounded-full shadow-sm active:scale-95 transition-transform">
+                        💡 錦囊 (<span id="hint-count-display">5</span>)
+                    </button>
                 </div>
                 
-                <div class="bg-white rounded-lg p-5 shadow-sm border border-[#E7DCC8] mb-4" id="level-content">
+                <div id="level-content" class="fade-in">
                     <!-- 關卡內容注入區 -->
                 </div>
             </div>
@@ -102,38 +101,33 @@
             <!-- 結局區塊 (成就卡) -->
             <div id="ending-section" class="hidden">
                 <div class="text-center mb-4 fade-in">
-                    <h2 class="text-2xl font-black text-[#8B2500]">試煉完成</h2>
-                    <p class="text-sm text-gray-700 mt-2">老夫子已為你們頒發新科弟子專屬成就卡！</p>
+                    <h2 class="text-3xl font-black text-[#8B2500]">試煉完成！</h2>
+                    <p class="text-base text-gray-700 mt-2 font-bold">老夫子為你們頒發了專屬成就卡！</p>
                 </div>
                 
-                <!-- 成就卡畫布容器 -->
                 <div class="relative w-full rounded-xl overflow-hidden mb-6 card-reveal bg-white p-2 border-2 border-[#8B2500]">
-                    <!-- Canvas 用於繪製可下載的圖片 -->
                     <canvas id="achievement-canvas" width="800" height="1000" class="w-full h-auto rounded-lg"></canvas>
-                    <!-- HTML 蓋章特效 (純視覺，實際圖片已畫在 Canvas 裡) -->
-                    <div id="stamp-overlay" class="absolute bottom-10 right-8 w-24 h-24 border-4 border-red-600 text-red-600 font-black text-xl flex items-center justify-center rounded-lg stamp-reveal mix-blend-multiply bg-white/10 p-1 text-center leading-tight">
-                        孔廟<br>認證
-                    </div>
+                    <div id="stamp-overlay" class="absolute bottom-10 right-8 w-24 h-24 border-4 border-red-600 text-red-600 font-black text-xl flex items-center justify-center rounded-lg stamp-reveal mix-blend-multiply bg-white/10 p-1 text-center leading-tight">孔廟<br>認證</div>
                 </div>
 
-                <div class="flex gap-2">
-                    <button onclick="downloadCard()" class="flex-1 bg-[#1B5E20] text-white font-bold py-3 px-4 rounded-lg tracking-widest text-base shadow-md active:scale-95 transition-transform">
+                <div class="flex flex-col gap-3">
+                    <button onclick="downloadCard()" class="w-full bg-[#1B5E20] text-white font-bold py-4 px-4 rounded-lg tracking-widest text-lg shadow-md active:scale-95 transition-transform">
                         📥 保存成就卡
                     </button>
-                    <button onclick="location.reload()" class="flex-1 border-2 border-[#8B2500] text-[#8B2500] font-bold py-3 px-4 rounded-lg tracking-widest text-base">
-                        再玩一次
+                    <button onclick="location.reload()" class="w-full border-2 border-[#8B2500] text-[#8B2500] font-bold py-3 px-4 rounded-lg tracking-widest text-base">
+                        重新挑戰
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Web AR 相機視窗 (保留先前的 AR 功能) -->
+    <!-- Web AR 相機視窗 -->
     <div id="ar-modal" class="fixed inset-0 z-50 bg-black hidden flex flex-col">
         <div id="ar-hint" class="w-full bg-black/70 text-white text-center py-3 px-4 z-20 text-sm font-bold text-yellow-400"></div>
         <div class="relative w-full flex-1 overflow-hidden">
             <video id="ar-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
-            <!-- AR 紅柱密碼 (MOON) -->
+            
             <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
                 <rect x="456" y="360" width="88" height="100" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
                 <text x="500" y="340" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
@@ -145,7 +139,7 @@
                     <line x1="644" y1="480" x2="804" y2="580" />
                 </g>
             </svg>
-            <!-- AR 人體陣法 -->
+
             <svg id="svg-human" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet">
                 <g transform="translate(150, 300)" stroke="#00E676" stroke-width="8" stroke-dasharray="10 10" fill="none">
                     <circle cx="150" cy="80" r="50" />
@@ -172,7 +166,7 @@
             <button onclick="closeARCamera()" class="bg-[#8B2500] text-white px-6 py-3 rounded-full font-bold shadow-lg mr-2">返回作答</button>
         </div>
         <div id="fallback-box" class="hidden absolute inset-4 bg-gray-900/95 text-white p-6 rounded-xl z-30 flex flex-col justify-center items-center text-center">
-            <h3 class="text-lg font-bold text-yellow-400 mb-2">AR 輔助提示</h3>
+            <h3 class="text-lg font-bold text-yellow-400 mb-2">硬體備用提示</h3>
             <p class="text-sm text-gray-300 mb-4 leading-relaxed" id="fallback-text"></p>
             <button onclick="toggleFallbackHint()" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">關閉提示</button>
         </div>
@@ -184,103 +178,113 @@
         let wrongAttempts = 0;
         let cameraStream = null;
         let teamName = "無名";
-        let teamPhotoImg = null; // 儲存 Image 物件供 Canvas 使用
+        let teamPhotoImg = null; 
+        let hintsLeft = 5; // 全域 5 次錦囊
 
-        // 11 道關卡設定
         const levels = [
             {
                 type: 'standard',
                 title: "星象的指引",
                 desc: "孔廟的第一道門被稱為「櫺星門」。櫺星又稱文曲星，象徵孔子育才施教的崇高地位。日升月降之際，「櫺星」與星月相映。",
                 image: "stars.png",
-                question: "新科弟子們發現天上星宿有幾處較閃耀的光，觀察地上的星圖，請問這組編號是幾號？",
-                answer: ["01043"]
+                question: "發現天上星宿有幾處較閃耀的光，觀察地上的星圖，請問這組編號是幾號？",
+                answer: ["01043"],
+                hint: "把畫面上特別亮、有發出光芒的星星連起來看，是不是像一組數字呢？"
             },
             {
                 type: 'standard',
                 title: "星辰的方位",
                 desc: "確認了閃耀星宿的編號後，必須找對方向才能前進。",
                 question: "承上題，請問櫺星門在該光源的哪個方位？",
-                answer: ["西北", "西北方"]
+                answer: ["西北", "西北方"],
+                hint: "回想一下自然課學過的，太陽跟星星升起落下的方位。答案是兩個字喔！"
             },
             {
                 type: 'standard',
                 title: "靈魂之窗口",
-                desc: "走到門前，需要最後的通關密語才能進入。老夫子給了一張提示卡：",
+                desc: "走到門前，需要最後的通關密語才能進入。這是一張從古書上找到的提示卡：",
                 image: "hint_card.png",
                 question: "請問想要通過「櫺星門」的密碼是什麼？（請輸入3位數字）",
-                answer: ["324"]
+                answer: ["324"],
+                hint: "對照一下提示卡上的字和數字位置，找出『櫺星門』三個字對應的密碼！"
             },
             {
                 type: 'ar_landscape',
                 title: "紅柱間的密碼",
-                desc: "來到莊嚴的大成門前，老夫子指著前方宏偉的四根紅柱說：『孔廟的建築不僅蘊含儒家思想，有時也藏著跨越語言的巧合。』",
-                question: "開啟透視鏡，將黃色框對準大成門中央。看看這半透明的紅線，與四根真實的紅柱組合起來，拼出了一個什麼英文單字？",
+                desc: "來到莊嚴的大成門前，前方有宏偉的四根紅柱。孔廟的建築不僅蘊含儒家思想，有時也藏著跨越語言的巧合。",
+                question: "開啟透視鏡，看看紅線與四根紅柱組合起來，拼出了一個什麼英文單字？",
                 answer: ["moon", "moons"],
                 arHint: "請將畫面上的黃色虛線框對準大成門的「中央木門」，讓紅線與四根大紅柱交疊！",
-                fallback: "當紅線與四根柱子對齊時：<br>左側柱子與V型組成「M」<br>中央柱群與上下橫條組成兩個「O」<br>右側柱子與斜線組成「N」"
+                fallback: "左邊像 M，中間像兩個 O，右邊像 N，組合起來是什麼英文單字呢？",
+                hint: "拼出來的英文字母是四個字，代表晚上的『月亮』喔！"
             },
             {
                 type: 'link',
                 title: "大成門的威儀",
-                desc: "大成門象徵通往大成殿的禮敬之門。孔廟屬聖廟，不畫一般廟宇的門神，改以沉穩深紅門扇與銅門釘裝飾，且不書對聯以示崇敬。",
+                desc: "大成門象徵通往大成殿的禮敬之門。孔廟屬聖廟，不畫門神，改以深紅門扇與銅門釘裝飾。",
                 linkUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b",
                 linkText: "🧩 點擊前往完成大成門拼圖",
-                question: "拼圖完成後，請數數看或是回想老夫子的教誨，大成門上共有幾顆銅門釘，代表著至高無上的威儀？",
-                answer: ["108", "一百零八"]
+                question: "拼圖完成後，數數看大成門上共有幾顆銅門釘？（代表至高無上的威儀）",
+                answer: ["108", "一百零八"],
+                hint: "陽數最大是9，這個數字是9的倍數，也是我們常說『煩惱』的數量喔（一百零...）。"
             },
             {
                 type: 'standard',
                 title: "歷史的重塑",
-                desc: "『高雄縣孔廟整修重建成工程落成紀念碑』記錄了現代旗山孔廟的重建，但至聖先師的儒學歷史源遠流長。",
-                question: "傳說中，清代有一位皇帝對尊孔政策極為重視，進行了極為精細的全面翻修。請問雍正是在西元哪一年進行整修的呢？",
-                answer: ["1729", "1729年"]
+                desc: "廣場旁的石碑上記錄著重建的故事。傳說中，清代有一位皇帝對尊孔政策極為重視，進行了極為精細的全面翻修。",
+                question: "請問雍正皇帝是在西元哪一年進行整修的呢？",
+                answer: ["1729", "1729年"],
+                hint: "石碑上的數字通常會用中文寫成（例如：一七二九），仔細找找石碑上的文字！"
             },
             {
                 type: 'standard',
                 title: "窗櫺裡的真理",
-                desc: "迴廊上的花磚與窗櫺，光影交錯間透出了古人的思想。",
-                question: "觀察窗櫺的洞洞排列。孔子倡導的中庸之道，追求不偏不倚、無過不及，正是什麼精神核心？（請輸入四個字）",
-                answer: ["大中至正"]
+                desc: "迴廊上的花磚與窗櫺，光影交錯間透出了古人的思想。孔子倡導的中庸之道，追求不偏不倚。",
+                question: "觀察窗櫺的洞洞排列。這正是什麼精神核心？（請輸入四個字）",
+                answer: ["大中至正"],
+                hint: "這四個字通常用來形容非常公平公正。第一個字是『大』，最後一個字是『正』。"
             },
             {
                 type: 'standard',
                 title: "黌門的起點",
                 desc: "求學必須從正門而入。這座孔廟最外側有兩座宏偉的牌坊。",
                 question: "請找找看，這座代表古代學校大門的牌坊上刻著哪兩個字？（提示：音同紅門）",
-                answer: ["黌門"]
+                answer: ["黌門"],
+                hint: "抬頭看看紅色的牌樓上面，第一個字有很多筆畫，裡面藏著一個『黃』字喔！"
             },
             {
                 type: 'coop',
                 title: "分頭行動的默契",
-                desc: "孔子曰：三人行必有我師。請小組分工合作！",
+                desc: "孔子曰：三人行必有我師。請小組分工合作前往兩側廂房！",
                 roles: {
-                    east: "【東廡弟子】請前往東側廂房找『先賢左子丘明神位』。<br>👉 請大聲告訴夥伴：牌位最下方木雕是什麼神獸？",
-                    west: "【西廡弟子】請前往西側廂房找牆上『尊道』匾額。<br>👉 將夥伴傳遞來的神獸名稱，加上匾額的第二個字，就是密碼！"
+                    east: "【東廡弟子任務】<br>前往東側廂房找『先賢左子丘明神位』。<br>👉 大聲告訴夥伴：牌位最下方的木雕是<span class='text-red-600'>什麼神獸</span>？",
+                    west: "【西廡弟子任務】<br>前往西側廂房找牆上『尊道』匾額。<br>👉 將夥伴傳遞來的神獸名稱，加上匾額的<span class='text-red-600'>第二個字</span>！"
                 },
-                question: "請西廡弟子負責輸入兩人合作得出的兩字密碼：",
-                answer: ["龍道"]
+                question: "請西廡弟子負責輸入兩人合作得出的「兩字」密碼：",
+                answer: ["龍道"],
+                hint: "東廡的神獸會飛天（龍），西廡的字是『尊道』的第二個字，合起來就是密碼！"
             },
             {
                 type: 'photo',
                 title: "四靈的賜福",
                 desc: "萬物皆有靈。老夫子需要你記錄下神獸的色彩。",
-                question: "請在廂房內尋找任何一面刻有『龍』的先賢/先儒牌位，並拍下它的照片。",
-                questionAfter: "做得好！觀察你拍下的照片，牌位中間寫著古人名字的底色，是什麼顏色？",
-                answer: ["紅", "紅色"]
+                question: "請在廂房內尋找任何一面刻有『龍』的牌位，拍下它的照片。",
+                questionAfter: "做得好！觀察你拍下的照片，牌位中間寫著古人名字的底色是什麼顏色？",
+                answer: ["紅", "紅色"],
+                hint: "很喜氣的顏色，像蘋果一樣的顏色喔！"
             },
             {
                 type: 'ar_human',
                 title: "人體三才陣",
-                desc: "天地人和方能成事。老夫子要考驗你們的團隊行動力。",
-                question: "隊長請點擊下方開啟陣法，指揮兩位隊友站進虛線框。完成後請隊友齊聲大喊『天地人』，並由隊長輸入這三個字！",
+                desc: "天地人和方能成事。最後，老夫子要考驗你們的團隊行動力。",
+                question: "隊長請點擊開啟陣法，指揮兩位隊友站進虛線框。完成後請隊友齊聲大喊，並由隊長輸入這三個字的通關密語！",
                 answer: ["天地人"],
                 arHint: "請指揮隊友退後，完美塞進人形虛線框中！",
-                fallback: "這關需要隊友擺出特定的姿勢，答案就是通關密語：天地人。"
+                fallback: "這關需要隊友擺出特定的姿勢，答案就是剛剛提到的三才陣密語：天地人。",
+                hint: "這三個字包含了天空、大地跟人類，就是『天_ _』。"
             }
         ];
 
-        // 處理首頁的合照預載
         function handleTeamPhotoPreload(event) {
             const file = event.target.files[0];
             if (file) {
@@ -288,7 +292,6 @@
                 reader.onload = function(e) {
                     document.getElementById('team-photo-preview-intro').src = e.target.result;
                     document.getElementById('team-photo-preview-intro').classList.remove('hidden');
-                    // 建立 Image 物件供畫布使用
                     teamPhotoImg = new Image();
                     teamPhotoImg.src = e.target.result;
                 }
@@ -308,74 +311,88 @@
         function loadLevel() {
             const level = levels[currentLevel];
             document.getElementById('level-indicator').textContent = `卷 ${currentLevel + 1} / 共 ${levels.length} 卷`;
-            const content = document.getElementById('level-content');
             
-            let html = `<h2 class="text-2xl font-bold mb-3 text-[#5D4037] border-b-2 border-[#8B2500] pb-2 inline-block">${level.title}</h2>
-                        <p class="text-gray-800 mb-4 text-base leading-relaxed">${level.desc}</p>`;
+            let html = `
+                <!-- 老夫子對話框 -->
+                <div class="flex items-start gap-3 mb-5">
+                    <div class="w-12 h-12 rounded-full bg-[#8B2500] text-white flex items-center justify-center text-2xl font-bold shrink-0 border-2 border-yellow-500 shadow-md">夫</div>
+                    <div class="bg-white border-2 border-[#E7DCC8] p-3 rounded-2xl rounded-tl-none shadow-sm relative w-full">
+                        <p class="text-gray-800 text-base font-bold leading-relaxed">${level.title}：<br>${level.desc}</p>
+                    </div>
+                </div>
+            `;
 
             if (level.image) {
                 html += `<img src="${level.image}" alt="關卡提示" class="w-full rounded-lg mb-4 shadow-sm border border-[#E7DCC8]" onerror="this.style.display='none'">`;
             }
 
+            // 任務標題
+            html += `<p class="font-bold text-[#8B2500] text-lg mb-3">🎯 任務：<br><span class="text-gray-800 text-base">${level.question}</span></p>`;
+
             if (level.type === 'coop') {
                 html += `
                     <div class="flex gap-2 mb-4">
-                        <button onclick="selectRole('east')" class="flex-1 border-2 border-[#8B2500] text-[#8B2500] font-bold py-2 rounded active:bg-orange-100">我是東廡弟子</button>
-                        <button onclick="selectRole('west')" class="flex-1 bg-[#8B2500] text-white font-bold py-2 rounded active:bg-[#6A1B00]">我是西廡弟子</button>
+                        <button onclick="selectRole('east')" class="flex-1 border-2 border-[#8B2500] text-[#8B2500] font-bold py-2 rounded active:bg-orange-100">東廡弟子</button>
+                        <button onclick="selectRole('west')" class="flex-1 bg-[#8B2500] text-white font-bold py-2 rounded active:bg-[#6A1B00]">西廡弟子</button>
                     </div>
                     <div id="role-info" class="hidden mb-4 p-3 bg-orange-50 border border-orange-200 rounded text-base font-bold text-[#8B2500]"></div>
                     <div id="input-area" class="hidden fade-in">
-                        <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
                         ${getInputHTML()}
                     </div>`;
             } else if (level.type === 'photo') {
                 html += `
-                    <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
-                    <label class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg cursor-pointer shadow-md font-bold mb-4 text-lg">
-                        📷 點此開啟相機拍照
+                    <label class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg cursor-pointer shadow-md font-bold mb-4 text-lg active:scale-95 transition-transform">
+                        📷 開啟相機拍照
                         <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoUpload(event)">
                     </label>
                     <div id="photo-preview-box" class="hidden fade-in">
                         <img id="photo-preview" class="w-full h-48 object-cover rounded border-2 border-gray-300 mb-4">
-                        <p class="font-bold text-[#8B2500] text-lg mb-3">${level.questionAfter}</p>
+                        <p class="font-bold text-[#8B2500] text-base mb-3">${level.questionAfter}</p>
                         ${getInputHTML()}
                     </div>`;
             } else if (level.type.startsWith('ar_')) {
                 html += `
-                    <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
-                    <button onclick="openARCamera('${level.type}')" class="w-full bg-[#1B5E20] text-white font-bold py-4 px-4 rounded-lg shadow-md mb-4 flex items-center justify-center gap-2 text-lg">
-                        <span class="text-2xl">📱</span> 開啟透視鏡陣法
+                    <button onclick="openARCamera('${level.type}')" class="w-full bg-[#1B5E20] text-white font-bold py-4 px-4 rounded-lg shadow-md mb-4 flex items-center justify-center gap-2 text-lg active:scale-95 transition-transform">
+                        <span class="text-2xl">📱</span> 開啟透視鏡
                     </button>
                     ${getInputHTML()}
                 `;
             } else if (level.type === 'link') {
                 html += `
-                    <a href="${level.linkUrl}" target="_blank" class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg shadow-md font-bold mb-4 text-lg">
+                    <a href="${level.linkUrl}" target="_blank" class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg shadow-md font-bold mb-4 text-lg active:scale-95 transition-transform">
                         ${level.linkText}
                     </a>
-                    <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
                     ${getInputHTML()}
                 `;
             } else {
-                html += `
-                    <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
-                    ${getInputHTML()}
-                `;
+                html += getInputHTML();
             }
-            content.innerHTML = html;
+            
+            document.getElementById('level-content').innerHTML = html;
         }
 
         function getInputHTML() {
             return `
-                <div class="mb-1 relative">
-                    <input type="text" id="answer-input" placeholder="請點此輸入答案..." class="w-full px-4 py-4 rounded bg-gray-50 border-2 border-gray-300 focus:border-[#8B2500] focus:ring-0 text-center text-xl font-bold transition-all" autocomplete="off">
+                <div class="mb-1 relative mt-2">
+                    <input type="text" id="answer-input" placeholder="請輸入答案..." class="w-full px-4 py-4 rounded bg-gray-50 border-2 border-gray-300 focus:border-[#8B2500] focus:ring-0 text-center text-xl font-bold transition-all" autocomplete="off">
                 </div>
                 <div class="h-8 mb-2 flex items-center justify-center">
                     <p id="inline-feedback" class="text-base font-bold opacity-0 transition-opacity text-center w-full"></p>
                 </div>
-                <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] tracking-widest">呈交答案</button>
+                <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] tracking-widest transition-colors">呈交答案</button>
             `;
         }
+
+        // 提示系統
+        window.useHint = function() {
+            if (hintsLeft > 0) {
+                hintsLeft--;
+                document.getElementById('hint-count-display').textContent = hintsLeft;
+                showInlineFeedback("💡 " + levels[currentLevel].hint, true, 6000); // 顯示 6 秒
+            } else {
+                showInlineFeedback("錦囊已經用完囉！請靠小隊的智慧吧！", false, 3000);
+            }
+        };
 
         window.selectRole = function(role) {
             const level = levels[currentLevel];
@@ -414,7 +431,7 @@
                 cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
                 document.getElementById('ar-video').srcObject = cameraStream;
             } catch (err) {
-                showInlineFeedback("無法取得相機權限！請點擊備用提示查看線索。", false);
+                showInlineFeedback("無法開啟相機！請點擊左下角看備用提示。", false, 4000);
             }
         };
 
@@ -428,18 +445,30 @@
             box.classList.toggle('hidden');
         };
 
-        function showInlineFeedback(msg, isSuccess) {
+        function showInlineFeedback(msg, isSuccess, duration = 2500) {
             const fb = document.getElementById('inline-feedback');
             fb.textContent = msg;
-            fb.className = `text-base font-bold transition-opacity text-center w-full opacity-100 ${isSuccess ? 'text-green-600' : 'text-red-600'}`;
+            
+            // 使用黃色文字代表提示，綠色代表正確，紅色代表錯誤
+            let textColor = 'text-green-600';
+            if (msg.startsWith("💡")) textColor = 'text-yellow-600';
+            else if (!isSuccess) textColor = 'text-red-600';
+
+            fb.className = `text-base font-bold transition-opacity text-center w-full opacity-100 ${textColor}`;
+            
             const inputEl = document.getElementById('answer-input');
-            if (!isSuccess) {
+            if (!isSuccess && !msg.startsWith("💡")) {
                 inputEl.classList.add('animate-shake', 'border-red-500');
                 setTimeout(() => inputEl.classList.remove('animate-shake', 'border-red-500'), 400);
-            } else {
+            } else if (isSuccess && !msg.startsWith("💡")) {
                 inputEl.classList.add('border-green-500');
             }
-            setTimeout(() => { fb.classList.replace('opacity-100', 'opacity-0'); }, 2500);
+
+            // 清除之前的 timeout，避免文字提早消失
+            if (window.feedbackTimeout) clearTimeout(window.feedbackTimeout);
+            window.feedbackTimeout = setTimeout(() => {
+                fb.classList.replace('opacity-100', 'opacity-0');
+            }, duration);
         }
 
         window.checkAnswer = function() {
@@ -452,20 +481,19 @@
             let isCorrect = level.answer.some(ans => userAnswer === ans.toLowerCase());
 
             if (isCorrect) {
-                showInlineFeedback("正確！準備進入下一卷...", true);
+                showInlineFeedback("🌟 正確！老夫子：「太聰明了，跟我前往下一關！」", true, 2000);
                 currentLevel++;
                 setTimeout(() => {
                     if (currentLevel < levels.length) loadLevel();
                     else showEnding();
-                }, 1500);
+                }, 2000); // 延長一點轉場時間讓玩家看清楚回饋
             } else {
                 wrongAttempts++;
                 document.getElementById('mistake-counter').textContent = `失誤：${wrongAttempts}`;
-                showInlineFeedback("答案不對喔，再仔細觀察看看！", false);
+                showInlineFeedback("答案不對喔，老夫子：「別灰心，再仔細觀察看看！」", false);
             }
         };
 
-        // 結束並繪製 Canvas 成就卡
         function showEnding() {
             document.getElementById('puzzle-section').classList.add('hidden');
             document.getElementById('intro-section').classList.add('hidden');
@@ -476,21 +504,16 @@
             let rank = wrongAttempts === 0 ? "狀元及第" : wrongAttempts <= 3 ? "榜眼之才" : "探花之秀";
             
             document.getElementById('ending-section').classList.remove('hidden');
-            
-            // 開始繪製成就卡
             drawAchievementCard(score, rank);
         }
 
-        // 使用 Canvas 繪製成就圖
         function drawAchievementCard(score, rank) {
             const canvas = document.getElementById('achievement-canvas');
             const ctx = canvas.getContext('2d');
             
-            // 繪製底色
             ctx.fillStyle = '#F4EAD5';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 繪製古風邊框
             ctx.strokeStyle = '#8B2500';
             ctx.lineWidth = 15;
             ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
@@ -498,7 +521,6 @@
             ctx.lineWidth = 4;
             ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
 
-            // 標題與燈籠
             ctx.fillStyle = '#8B2500';
             ctx.textAlign = 'center';
             ctx.font = 'bold 50px sans-serif';
@@ -507,22 +529,15 @@
             ctx.fillStyle = '#5D4037';
             ctx.fillText('新科弟子・結業紀念', canvas.width / 2, 170);
 
-            // 照片繪製區
-            const photoX = 100;
-            const photoY = 220;
-            const photoW = 600;
-            const photoH = 450;
+            const photoX = 100, photoY = 220, photoW = 600, photoH = 450;
             
-            // 畫照片底框
             ctx.fillStyle = '#FFFFFF';
             ctx.fillRect(photoX - 10, photoY - 10, photoW + 20, photoH + 20);
             ctx.strokeStyle = '#8B2500';
             ctx.lineWidth = 4;
             ctx.strokeRect(photoX - 10, photoY - 10, photoW + 20, photoH + 20);
 
-            // 畫上傳的合照 (如果有)
             if (teamPhotoImg) {
-                // 計算等比例裁切 (Cover)
                 const imgRatio = teamPhotoImg.width / teamPhotoImg.height;
                 const boxRatio = photoW / photoH;
                 let srcX = 0, srcY = 0, srcW = teamPhotoImg.width, srcH = teamPhotoImg.height;
@@ -543,11 +558,9 @@
                 ctx.fillText('此處應有小隊英姿', canvas.width / 2, photoY + photoH / 2);
             }
 
-            // 疊加狀元帽 Emoji (蓋在照片上方)
             ctx.font = '120px sans-serif';
             ctx.fillText('🎓', canvas.width / 2, photoY + 40);
 
-            // 小隊名稱與稱號
             ctx.fillStyle = '#8B2500';
             ctx.font = 'bold 55px sans-serif';
             ctx.fillText(`【${rank}】`, canvas.width / 2, 770);
@@ -556,15 +569,13 @@
             ctx.fillStyle = '#3E2723';
             ctx.fillText(`第 ${teamName} 隊`, canvas.width / 2, 840);
             
-            // 繪製分數
             ctx.font = 'bold 36px sans-serif';
             ctx.fillStyle = '#D32F2F';
-            ctx.fillText(`最終試煉得分：${score} 分`, canvas.width / 2, 900);
+            ctx.fillText(`最終得分：${score} 分`, canvas.width / 2, 900);
 
-            // 繪製右下角的假印章 (寫在 Canvas 裡讓下載圖片包含印章)
             ctx.save();
             ctx.translate(650, 850);
-            ctx.rotate(-0.15); // 微傾斜
+            ctx.rotate(-0.15);
             ctx.strokeStyle = '#D32F2F';
             ctx.lineWidth = 8;
             ctx.strokeRect(-60, -60, 120, 120);
@@ -575,7 +586,6 @@
             ctx.restore();
         }
 
-        // 下載 Canvas 成圖片
         window.downloadCard = function() {
             const canvas = document.getElementById('achievement-canvas');
             const dataURL = canvas.toDataURL('image/jpeg', 0.9);
@@ -591,6 +601,7 @@
             }
         });
 
+        // 初始化時不呼叫 loadLevel，等待玩家點擊「開始試煉」
     </script>
 </body>
 </html>
