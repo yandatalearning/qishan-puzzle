@@ -14,7 +14,7 @@
         .decoration-img-delayed { mix-blend-mode: multiply; animation: float 6s ease-in-out infinite; animation-delay: 3s; }
         @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
 
-        .fade-in { animation: fadeIn 0.5s ease-in; }
+        .fade-in { animation: fadeIn 0.4s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
         @keyframes shake {
@@ -31,8 +31,9 @@
             100% { transform: scale(1); opacity: 1; box-shadow: 0 0 15px rgba(255, 213, 79, 0.5); }
         }
 
-        .stamp-reveal { opacity: 0; transform: scale(3) rotate(-20deg); animation: stampPress 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; animation-delay: 1s; }
-        @keyframes stampPress { 0% { opacity: 0; transform: scale(3) rotate(-20deg); } 50% { opacity: 1; transform: scale(0.9) rotate(-5deg); } 100% { opacity: 1; transform: scale(1) rotate(-10deg); } }
+        /* 隱藏卷軸但可滑動 */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 relative">
@@ -75,36 +76,47 @@
 
             <!-- 解謎區塊 -->
             <div id="puzzle-section" class="hidden fade-in">
-                <div class="flex justify-between items-center text-sm font-bold text-[#8B2500] mb-1 tracking-widest">
+                
+                <!-- 關卡導航列 (跳關功能) -->
+                <div class="mb-3 flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-[#8B2500] tracking-widest">任務地圖：</span>
+                        <div class="text-right text-xs font-bold text-gray-500" id="mistake-counter">失誤：0</div>
+                    </div>
+                    <div id="level-nav" class="flex overflow-x-auto scrollbar-hide gap-2 pb-2">
+                        <!-- JS 動態生成關卡泡泡 -->
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center text-sm font-bold text-[#8B2500] mb-2 tracking-widest">
                     <span id="level-indicator">卷 1 / 共 8 卷</span>
-                    <button onclick="useHint()" class="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 text-xs font-bold py-1 px-3 rounded-full shadow-sm active:scale-95 transition-transform">
+                    <button onclick="useHint()" id="hint-btn" class="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 text-xs font-bold py-1 px-3 rounded-full shadow-sm active:scale-95 transition-transform">
                         💡 錦囊 (<span id="hint-count-display">5</span>)
                     </button>
                 </div>
-                <div class="text-right text-xs font-bold text-gray-500 mb-3" id="mistake-counter">失誤：0</div>
                 
                 <div class="bg-white rounded-lg p-5 shadow-sm border border-[#E7DCC8] mb-4" id="level-content">
                     <!-- 關卡內容注入區 -->
                 </div>
             </div>
 
-            <!-- 結局區塊 (Canvas 成就卡) -->
+            <!-- 結局區塊 (圖片成就卡) -->
             <div id="ending-section" class="hidden">
                 <div class="text-center mb-4 fade-in">
                     <h2 class="text-2xl font-black text-[#8B2500]">試煉完成</h2>
                     <p class="text-sm text-gray-700 mt-2">老夫子已為你們頒發新科弟子專屬成就卡！</p>
                 </div>
                 
-                <div class="relative w-full rounded-xl overflow-hidden mb-6 card-reveal bg-white p-2 border-2 border-[#8B2500]">
-                    <canvas id="achievement-canvas" width="800" height="1000" class="w-full h-auto rounded-lg"></canvas>
-                    <div id="stamp-overlay" class="absolute bottom-10 right-8 w-24 h-24 border-4 border-red-600 text-red-600 font-black text-xl flex items-center justify-center rounded-lg stamp-reveal mix-blend-multiply bg-white/10 p-1 text-center leading-tight">孔廟<br>認證</div>
+                <div class="relative w-full rounded-xl mb-4 card-reveal text-center">
+                    <p class="text-sm font-bold text-red-600 mb-2 animate-pulse">👇 請長按下方圖片儲存至手機 👇</p>
+                    <!-- 隱藏的 Canvas 用來畫圖 -->
+                    <canvas id="achievement-canvas" width="800" height="1000" class="hidden"></canvas>
+                    <!-- 顯示出來供玩家長按下載的 img -->
+                    <img id="achievement-img" class="w-full h-auto rounded-lg border-4 border-[#8B2500] shadow-xl">
                 </div>
 
                 <div class="flex gap-2">
-                    <button onclick="downloadCard()" class="flex-1 bg-[#1B5E20] text-white font-bold py-3 px-4 rounded-lg tracking-widest text-base shadow-md active:scale-95 transition-transform">
-                        📥 保存成就卡
-                    </button>
-                    <button onclick="location.reload()" class="flex-1 border-2 border-[#8B2500] text-[#8B2500] font-bold py-3 px-4 rounded-lg tracking-widest text-base">
+                    <button onclick="location.reload()" class="w-full border-2 border-[#8B2500] bg-[#FAF3E0] text-[#8B2500] font-bold py-3 px-4 rounded-lg tracking-widest text-base active:bg-orange-100">
                         再玩一次
                     </button>
                 </div>
@@ -147,11 +159,13 @@
         let teamName = "無名";
         let teamPhotoImg = null; 
         let hintsLeft = 5; 
+        
+        // 紀錄各關卡完成與提示狀態
+        let completedLevels = new Set();
+        let revealedHints = new Set();
 
-        // 完整的 14 個樂器選項
         const instrumentOptions = ["編鐘", "編磬", "笛", "蕭", "笙", "鳳簫", "拍板", "塤", "甄", "琴", "瑟", "鼗", "敔", "搏拊"];
 
-        // 8 道關卡設定
         const levels = [
             {
                 type: 'standard',
@@ -225,9 +239,8 @@
                     { id: '2', src: 'audio_3.mp3', label: '神秘聲音三' },
                     { id: '3', src: 'audio_4.mp3', label: '神秘聲音四' }
                 ],
-                // 請在此設定四個音檔對應的正確答案順序
                 answers: ["編鐘", "編磬", "塤", "笙"],
-                hint: "清脆的石頭聲是「編磬」；金屬敲擊聲是「編鐘」；像風聲般低沉的是「塤」；有許多竹管吹奏的是「笙」！"
+                hint: "清脆石頭聲是「編磬」；金屬敲擊是「編鐘」；風聲般低沉是「塤」；多管吹奏是「笙」！"
             }
         ];
 
@@ -254,11 +267,42 @@
             loadLevel();
         }
 
+        // 渲染上方跳關導航列
+        function renderLevelNav() {
+            const navContainer = document.getElementById('level-nav');
+            let html = '';
+            for (let i = 0; i < levels.length; i++) {
+                let isCompleted = completedLevels.has(i);
+                let isCurrent = (i === currentLevel);
+                
+                let bgClass = isCurrent ? 'bg-[#8B2500] text-white border-2 border-yellow-400 scale-110' : 
+                              (isCompleted ? 'bg-green-600 text-white border-2 border-green-700' : 'bg-gray-200 text-gray-500 border-2 border-transparent');
+                
+                html += `<button onclick="goToLevel(${i})" class="shrink-0 w-10 h-10 rounded-full font-bold shadow-sm transition-all ${bgClass}">${i + 1}</button>`;
+            }
+            navContainer.innerHTML = html;
+        }
+
+        function goToLevel(idx) {
+            currentLevel = idx;
+            loadLevel();
+        }
+
         function loadLevel() {
+            renderLevelNav();
             const level = levels[currentLevel];
             document.getElementById('level-indicator').textContent = `卷 ${currentLevel + 1} / 共 ${levels.length} 卷`;
-            const content = document.getElementById('level-content');
             
+            // 設定錦囊按鈕狀態
+            const hintBtn = document.getElementById('hint-btn');
+            if (completedLevels.has(currentLevel)) {
+                hintBtn.style.opacity = '0.5';
+                hintBtn.style.pointerEvents = 'none';
+            } else {
+                hintBtn.style.opacity = '1';
+                hintBtn.style.pointerEvents = 'auto';
+            }
+
             let html = `
                 <h2 class="text-2xl font-bold mb-3 text-[#5D4037] border-b-2 border-[#8B2500] pb-2 inline-block">${level.title}</h2>
                 <div class="flex items-start gap-3 mb-5">
@@ -273,66 +317,108 @@
                 html += `<img src="${level.image}" alt="關卡提示" class="w-full rounded-lg mb-4 shadow-sm border border-[#E7DCC8]" onerror="this.style.display='none'">`;
             }
 
-            if (level.type === 'audio_match') {
-                html += `<p class="font-bold text-[#8B2500] text-lg mb-3">請聆聽聲音，並在孔廟現場尋找對應的樂器：</p>`;
-                level.questions.forEach((q, idx) => {
-                    html += `
-                    <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 mb-3 shadow-sm">
-                        <p class="font-bold text-[#8B2500] mb-2">🔊 ${q.label}</p>
-                        <audio controls class="w-full h-10 mb-3 rounded">
-                            <source src="${q.src}" type="audio/mpeg">
-                            您的瀏覽器不支援音訊。
-                        </audio>
-                        <select id="audio-ans-${idx}" class="w-full px-3 py-3 rounded-lg bg-white border-2 border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-lg font-bold text-[#3E2723]">
-                            <option value="">-- 選擇樂器 --</option>`;
-                    instrumentOptions.forEach(opt => {
-                        html += `<option value="${opt}">${opt}</option>`;
-                    });
-                    html += `
-                        </select>
-                    </div>`;
-                });
-
+            // 檢查是否已完成
+            if (completedLevels.has(currentLevel)) {
                 html += `
-                    <label class="block w-full bg-[#D7CCC8] hover:bg-[#BCAAA4] text-[#3E2723] text-center py-3 rounded-lg cursor-pointer shadow-sm font-bold mb-4 transition-colors text-base active:scale-95">
-                        📷 拍下找到的樂器 (選用)
-                        <input type="file" accept="image/*" capture="environment" class="hidden">
-                    </label>
-                    <div class="h-8 mb-2 flex items-center justify-center">
-                        <p id="inline-feedback" class="text-base font-bold text-center w-full" style="opacity: 0; transition: opacity 0.3s ease;"></p>
+                    <div class="bg-green-100 border-2 border-green-500 text-green-800 p-6 rounded-lg text-center font-bold text-lg mb-4">
+                        ✅ 此卷試煉已完成！<br><span class="text-sm mt-2 block">請點擊上方泡泡切換至其他未完成關卡</span>
                     </div>
-                    <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] transition-colors tracking-widest">呈交配對</button>
-                `;
-            } else if (level.type.startsWith('ar_')) {
-                html += `
-                    <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
-                    <button onclick="openARCamera('${level.type}')" class="w-full bg-[#1B5E20] text-white font-bold py-4 px-4 rounded-lg shadow-md mb-4 flex items-center justify-center gap-2 active:scale-95 transition-transform text-lg">
-                        <span class="text-2xl">📱</span> 開啟透視鏡
-                    </button>
-                    ${getInputHTML()}
-                `;
-            } else if (level.type === 'link') {
-                html += `
-                    <a href="${level.linkUrl}" target="_blank" class="block w-full bg-[#1B5E20] hover:bg-[#144718] text-white text-center py-4 rounded-lg shadow-md font-bold mb-4 transition-transform active:scale-95 text-lg">
-                        ${level.linkText}
-                    </a>
-                    <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
-                    ${getInputHTML()}
                 `;
             } else {
-                html += `
-                    <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
-                    ${getInputHTML()}
-                `;
+                // 根據類型產生答題區
+                if (level.type === 'coop') {
+                    html += `
+                        <div class="flex gap-2 mb-4">
+                            <button onclick="selectRole('east')" class="flex-1 border-2 border-[#8B2500] text-[#8B2500] font-bold py-2 rounded transition-colors active:bg-orange-100">我是東廡弟子</button>
+                            <button onclick="selectRole('west')" class="flex-1 bg-[#8B2500] text-white font-bold py-2 rounded transition-colors active:bg-[#6A1B00]">我是西廡弟子</button>
+                        </div>
+                        <div id="role-info" class="hidden mb-4 p-3 bg-orange-50 border border-orange-200 rounded text-base font-bold text-[#8B2500]"></div>
+                        <div id="input-area" class="hidden fade-in">
+                            <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
+                            ${getInputHTML()}
+                        </div>`;
+                } else if (level.type === 'photo') {
+                    html += `
+                        <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
+                        <label class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg cursor-pointer shadow-md font-bold mb-4 active:scale-95 transition-transform text-lg">
+                            📷 點此開啟相機拍照
+                            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoUpload(event)">
+                        </label>
+                        <div id="photo-preview-box" class="hidden fade-in">
+                            <img id="photo-preview" class="w-full h-48 object-cover rounded border-2 border-gray-300 mb-4">
+                            <p class="font-bold text-[#8B2500] text-lg mb-3">${level.questionAfter}</p>
+                            ${getInputHTML()}
+                        </div>`;
+                } else if (level.type === 'audio_match') {
+                    html += `<p class="font-bold text-[#8B2500] text-lg mb-3">請聆聽聲音，並在孔廟現場尋找對應的樂器：</p>`;
+                    level.questions.forEach((q, idx) => {
+                        html += `
+                        <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 mb-3 shadow-sm">
+                            <p class="font-bold text-[#8B2500] mb-2">🔊 ${q.label}</p>
+                            <audio controls class="w-full h-10 mb-3 rounded">
+                                <source src="${q.src}" type="audio/mpeg">
+                            </audio>
+                            <select id="audio-ans-${idx}" class="w-full px-3 py-3 rounded-lg bg-white border-2 border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-lg font-bold text-[#3E2723]">
+                                <option value="">-- 選擇樂器 --</option>`;
+                        instrumentOptions.forEach(opt => {
+                            html += `<option value="${opt}">${opt}</option>`;
+                        });
+                        html += `
+                            </select>
+                        </div>`;
+                    });
+                    html += `
+                        <label class="block w-full bg-[#D7CCC8] hover:bg-[#BCAAA4] text-[#3E2723] text-center py-3 rounded-lg cursor-pointer shadow-sm font-bold mb-4 transition-colors text-base active:scale-95">
+                            📷 拍下找到的樂器 (選用)
+                            <input type="file" accept="image/*" capture="environment" class="hidden">
+                        </label>
+                        ${getInputHTML(true)}
+                    `;
+                } else if (level.type.startsWith('ar_')) {
+                    html += `
+                        <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
+                        <button onclick="openARCamera('${level.type}')" class="w-full bg-[#1B5E20] text-white font-bold py-4 px-4 rounded-lg shadow-md mb-4 flex items-center justify-center gap-2 active:scale-95 transition-transform text-lg">
+                            <span class="text-2xl">📱</span> 開啟透視鏡
+                        </button>
+                        ${getInputHTML()}
+                    `;
+                } else if (level.type === 'link') {
+                    html += `
+                        <a href="${level.linkUrl}" target="_blank" class="block w-full bg-[#1B5E20] hover:bg-[#144718] text-white text-center py-4 rounded-lg shadow-md font-bold mb-4 transition-transform active:scale-95 text-lg">
+                            ${level.linkText}
+                        </a>
+                        <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
+                        ${getInputHTML()}
+                    `;
+                } else {
+                    html += `
+                        <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
+                        ${getInputHTML()}
+                    `;
+                }
             }
-            content.innerHTML = html;
+
+            // 固定放置不會消失的提示框 (只要解鎖過就顯示)
+            let hintStyle = revealedHints.has(currentLevel) ? 'block' : 'hidden';
+            let hintContent = revealedHints.has(currentLevel) ? `💡 錦囊：${level.hint}` : '';
+            html += `
+                <div id="persistent-hint-box" class="${hintStyle} mt-4 bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded-lg text-yellow-800 text-sm font-bold fade-in shadow-sm leading-relaxed">
+                    ${hintContent}
+                </div>
+            `;
+
+            document.getElementById('level-content').innerHTML = html;
         }
 
-        function getInputHTML() {
-            return `
+        // isAudio 用來控制是否需要純文字輸入框
+        function getInputHTML(isAudio = false) {
+            let inputField = isAudio ? '' : `
                 <div class="mb-1 relative">
                     <input type="text" id="answer-input" placeholder="請點此輸入答案..." class="w-full px-4 py-4 rounded bg-gray-50 border-2 border-gray-300 focus:outline-none focus:border-[#8B2500] focus:ring-0 text-center text-xl font-bold transition-all" autocomplete="off">
                 </div>
+            `;
+            return `
+                ${inputField}
                 <div class="h-8 mb-2 flex items-center justify-center">
                     <p id="inline-feedback" class="text-base font-bold text-center w-full" style="opacity: 0; transition: opacity 0.3s ease;"></p>
                 </div>
@@ -340,13 +426,51 @@
             `;
         }
 
+        // 錦囊系統
         window.useHint = function() {
+            if (completedLevels.has(currentLevel)) return; // 過關後不能點
+            
+            if (revealedHints.has(currentLevel)) {
+                // 已經解鎖過了
+                return;
+            }
+
             if (hintsLeft > 0) {
                 hintsLeft--;
                 document.getElementById('hint-count-display').textContent = hintsLeft;
-                showInlineFeedback("💡 " + levels[currentLevel].hint, true, 6000); 
+                revealedHints.add(currentLevel);
+                
+                // 顯示永久提示框
+                const hintBox = document.getElementById('persistent-hint-box');
+                hintBox.textContent = `💡 錦囊：${levels[currentLevel].hint}`;
+                hintBox.classList.remove('hidden');
+                hintBox.classList.add('block');
+                
             } else {
-                showInlineFeedback("錦囊已經用完囉！請靠小隊的智慧吧！", false, 3000);
+                // 錦囊耗盡提示
+                showInlineFeedback("錦囊已用完！若需提示，請找到關主並對他說一句稱讚的話！", false, 4000);
+            }
+        };
+
+        window.selectRole = function(role) {
+            const level = levels[currentLevel];
+            const infoBox = document.getElementById('role-info');
+            const inputArea = document.getElementById('input-area');
+            infoBox.innerHTML = level.roles[role];
+            infoBox.classList.remove('hidden');
+            if (role === 'west') inputArea.classList.remove('hidden');
+            else inputArea.classList.add('hidden');
+        };
+
+        window.handlePhotoUpload = function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('photo-preview').src = e.target.result;
+                    document.getElementById('photo-preview-box').classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
             }
         };
 
@@ -384,8 +508,8 @@
             fb.textContent = msg;
             fb.style.opacity = '1';
             
-            if (msg.startsWith("💡")) {
-                fb.style.color = '#D97706'; 
+            if (msg.includes("錦囊已用完")) {
+                fb.style.color = '#EA580C'; // 橘色警告
             } else if (isSuccess) {
                 fb.style.color = '#16A34A'; 
             } else {
@@ -394,14 +518,14 @@
             
             const inputEl = document.getElementById('answer-input');
             if (inputEl) {
-                if (!isSuccess && !msg.startsWith("💡")) {
+                if (!isSuccess && !msg.includes("錦囊已用完")) {
                     inputEl.classList.add('animate-shake');
                     inputEl.style.borderColor = '#DC2626';
                     setTimeout(() => {
                         inputEl.classList.remove('animate-shake');
                         inputEl.style.borderColor = '#D1D5DB';
                     }, 400);
-                } else if (isSuccess && !msg.startsWith("💡")) {
+                } else if (isSuccess) {
                     inputEl.style.borderColor = '#16A34A';
                 }
             }
@@ -414,11 +538,11 @@
 
         window.checkAnswer = function() {
             const level = levels[currentLevel];
+            let isCorrect = false;
 
             if (level.type === 'audio_match') {
                 let allCorrect = true;
                 let isAnyEmpty = false;
-                
                 for (let i = 0; i < level.answers.length; i++) {
                     const selectEl = document.getElementById(`audio-ans-${i}`);
                     if (!selectEl.value) isAnyEmpty = true;
@@ -426,50 +550,49 @@
                         allCorrect = false;
                     }
                 }
-                
                 if (isAnyEmpty) {
                     showInlineFeedback("請完成所有聲音的樂器配對！", false);
                     return;
                 }
-
-                if (allCorrect) {
-                    showInlineFeedback("🎵 找回一段祭孔樂章！", true, 2000);
-                    currentLevel++;
-                    setTimeout(() => {
-                        showInlineFeedback("🎼 祭孔樂章已恢復！老夫子：「做得好！」", true, 2000);
-                        setTimeout(() => {
-                            if (currentLevel < levels.length) loadLevel();
-                            else showEnding();
-                        }, 2000);
-                    }, 1500);
-                } else {
-                    wrongAttempts++;
-                    const counterEl = document.getElementById('mistake-counter');
-                    if (counterEl) counterEl.textContent = `失誤：${wrongAttempts}`;
-                    showInlineFeedback("答案不對喔，老夫子：「再仔細觀察孔廟裡的樂器！」", false);
-                }
-                return; 
+                isCorrect = allCorrect;
+            } else {
+                const inputEl = document.getElementById('answer-input');
+                if (!inputEl) return;
+                const userAnswer = inputEl.value.trim().toLowerCase().replace(/\s+/g, ''); 
+                if (!userAnswer) { showInlineFeedback("請輸入答案！", false); return; }
+                isCorrect = level.answer.some(ans => userAnswer === ans.toLowerCase());
             }
 
-            const inputEl = document.getElementById('answer-input');
-            if (!inputEl) return;
-            const userAnswer = inputEl.value.trim().toLowerCase().replace(/\s+/g, ''); 
-            if (!userAnswer) { showInlineFeedback("請輸入答案！", false); return; }
-
-            let isCorrect = level.answer.some(ans => userAnswer === ans.toLowerCase());
-
             if (isCorrect) {
-                showInlineFeedback("正確！老夫子：「跟我前往下一關！」", true, 2000);
-                currentLevel++;
+                completedLevels.add(currentLevel);
+                renderLevelNav(); // 更新上方泡泡為綠色
+                
+                showInlineFeedback("🌟 正確！老夫子：「做得好！」", true, 2000);
+                
                 setTimeout(() => {
-                    if (currentLevel < levels.length) loadLevel();
-                    else showEnding();
+                    if (completedLevels.size === levels.length) {
+                        showEnding();
+                    } else {
+                        // 自動尋找下一關未完成的關卡跳轉
+                        let nextUncompleted = -1;
+                        for (let i = 1; i <= levels.length; i++) {
+                            let checkIdx = (currentLevel + i) % levels.length;
+                            if (!completedLevels.has(checkIdx)) {
+                                nextUncompleted = checkIdx;
+                                break;
+                            }
+                        }
+                        if (nextUncompleted !== -1) {
+                            currentLevel = nextUncompleted;
+                            loadLevel();
+                        }
+                    }
                 }, 1500);
             } else {
                 wrongAttempts++;
                 const counterEl = document.getElementById('mistake-counter');
                 if (counterEl) counterEl.textContent = `失誤：${wrongAttempts}`;
-                showInlineFeedback("答案不對喔，老夫子：「再仔細觀察看看！」", false);
+                showInlineFeedback("答案不對喔，再仔細觀察看看！", false);
             }
         };
 
@@ -479,13 +602,13 @@
             
             let score = 100 - (wrongAttempts * 2);
             if (score < 60) score = 60;
-            
             let rank = wrongAttempts === 0 ? "狀元及第" : wrongAttempts <= 3 ? "榜眼之才" : "探花之秀";
             
             document.getElementById('ending-section').classList.remove('hidden');
             drawAchievementCard(score, rank);
         }
 
+        // 使用 Canvas 繪製成就圖並輸出到 img 標籤供手機長按儲存
         function drawAchievementCard(score, rank) {
             const canvas = document.getElementById('achievement-canvas');
             const ctx = canvas.getContext('2d');
@@ -552,6 +675,7 @@
             ctx.fillStyle = '#D32F2F';
             ctx.fillText(`最終試煉得分：${score} 分`, canvas.width / 2, 900);
 
+            // 繪製假印章
             ctx.save();
             ctx.translate(650, 850);
             ctx.rotate(-0.15); 
@@ -563,16 +687,13 @@
             ctx.fillText('孔廟', 0, -10);
             ctx.fillText('認證', 0, 35);
             ctx.restore();
-        }
 
-        window.downloadCard = function() {
-            const canvas = document.getElementById('achievement-canvas');
-            const dataURL = canvas.toDataURL('image/jpeg', 0.9);
-            const link = document.createElement('a');
-            link.download = `旗山孔廟_新科弟子_${teamName}隊.jpg`;
-            link.href = dataURL;
-            link.click();
-        };
+            // 將畫好的 Canvas 轉成圖片顯示，讓手機可以直接長按儲存
+            setTimeout(() => {
+                const imgEl = document.getElementById('achievement-img');
+                imgEl.src = canvas.toDataURL('image/jpeg', 0.9);
+            }, 100);
+        }
 
         document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !document.getElementById('puzzle-section').classList.contains('hidden')) {
