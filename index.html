@@ -81,7 +81,7 @@
             <!-- 解謎區塊 -->
             <div id="puzzle-section" class="hidden fade-in">
                 
-                <!-- 關卡導航列 (跳關功能) -->
+                <!-- 關卡導航列 -->
                 <div class="mb-3 flex flex-col gap-2">
                     <div class="flex justify-between items-center">
                         <span class="text-xs font-bold text-[#8B2500] tracking-widest">任務地圖：</span>
@@ -93,7 +93,7 @@
                 </div>
 
                 <div class="flex justify-between items-center text-sm font-bold text-[#8B2500] mb-2 tracking-widest">
-                    <span id="level-indicator">卷 1 / 共 8 卷</span>
+                    <span id="level-indicator">卷 1 / 共 11 卷</span>
                     <button onclick="useHint()" id="hint-btn" class="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 text-xs font-bold py-1 px-3 rounded-full shadow-sm active:scale-95 transition-transform">
                         💡 錦囊 (<span id="hint-count-display">5</span>)
                     </button>
@@ -104,7 +104,7 @@
                 </div>
             </div>
 
-            <!-- 結局區塊 (圖片成就卡) -->
+            <!-- 結局區塊 -->
             <div id="ending-section" class="hidden">
                 <div class="text-center mb-4 fade-in">
                     <h2 class="text-2xl font-black text-[#8B2500]">試煉完成</h2>
@@ -134,7 +134,6 @@
             <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
                 <rect x="456" y="360" width="88" height="100" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
                 <text x="500" y="340" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
-                <!-- 莓紅色線段 #C1395E -->
                 <g stroke="#C1395E" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
                     <path d="M 196 480 L 276 580 L 356 480" fill="none"/>
                     <line x1="356" y1="480" x2="644" y2="480" />
@@ -206,7 +205,7 @@
                 hint: "拼出來的英文字母是四個字，代表晚上的『月亮』喔！"
             },
             {
-                type: 'iframe_puzzle', // 更新為 iframe_puzzle 類型
+                type: 'iframe_puzzle',
                 title: "大成門的威儀",
                 desc: "大成門象徵通往大成殿的禮敬之門。孔廟屬聖廟，不畫一般廟宇的門神，改以沉穩深紅門扇與銅門釘裝飾，且不書對聯以示崇敬。",
                 iframeUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b&view=iframe",
@@ -242,6 +241,38 @@
                 ],
                 answers: ["編鐘", "編磬", "塤", "笙"],
                 hint: "清脆石頭聲是「編磬」；金屬敲擊是「編鐘」；風聲般低沉是「塤」；多管吹奏是「笙」！"
+            },
+            {
+                type: 'logic_seat',
+                title: "君子之爭",
+                desc: "開學了，有 9 個同學在教室上課，但是洪唯宸同學找不到他的位置在哪。老夫子擺下了投壺挑戰：「君子無所爭，必也射乎！請找關主完成『投壺 9 中 3』挑戰，才能獲得尋找座位的線索。」",
+                question: "請問：洪唯宸坐在第幾個位置？（請輸入數字）",
+                answer: ["7", "七"],
+                password: "123", // ⬅️ 你可以在這裡更改關主給的密碼
+                hint: "仔細排排看：汪1, 劉子綺2, 劉可婕3, 林6。王宏宇和王宏智不能在5、7，也不能相鄰。莊芷菱必須在莊于萱上面且中間至少有2人！"
+            },
+            {
+                type: 'standard',
+                title: "畫中玄機",
+                desc: "老夫子留下了一張未完成的孔子畫像，請利用發給你們的畫紙完成著色任務。",
+                question: "著色完成後，圖中隱藏了一組代表老夫子生日的四碼數字，請輸入：",
+                answer: ["0928"],
+                hint: "這四個數字也是現在的『教師節』日期喔！"
+            },
+            {
+                type: 'plaque_fill',
+                title: "大成殿的智慧",
+                desc: "主殿內懸掛著許多匾額，乘載著歷代對至聖先師的推崇。請觀察現場的匾額，將對應的成語填入。",
+                questions: [
+                    { id: 'p1', text: '1. 形容品德高尚，培育人才。' },
+                    { id: 'p2', text: '2. 道理貫通古今，不受時間限制。' },
+                    { id: 'p3', text: '3. 形容極高極堅固，難以超越。' },
+                    { id: 'p4', text: '4. 形容教育沒有身分類別的限制。' },
+                    { id: 'p5', text: '5. 用一個根本的道理貫穿所有事物。' },
+                    { id: 'p6', text: '6. 參與天地萬物的化育生長。' }
+                ],
+                answers: ["立德樹人", "道貫古今", "彌高彌堅", "有教無類", "一以貫之", "參贊化育"],
+                hint: "這些成語都在主殿內的匾額上，抬頭仔細找找看！"
             }
         ];
 
@@ -324,29 +355,50 @@
                     </div>
                 `;
             } else {
-                if (level.type === 'coop') {
+                if (level.type === 'logic_seat') {
                     html += `
-                        <div class="flex gap-2 mb-4">
-                            <button onclick="selectRole('east')" class="flex-1 border-2 border-[#8B2500] text-[#8B2500] font-bold py-2 rounded transition-colors active:bg-orange-100">我是東廡弟子</button>
-                            <button onclick="selectRole('west')" class="flex-1 bg-[#8B2500] text-white font-bold py-2 rounded transition-colors active:bg-[#6A1B00]">我是西廡弟子</button>
+                        <div id="touhu-password-area" class="mb-4 bg-orange-50 p-4 rounded-xl border border-orange-200 shadow-sm text-center">
+                            <p class="text-sm font-bold text-[#8B2500] mb-3">請找關主完成投壺任務，並向關主索取密碼！</p>
+                            <input type="text" id="touhu-password" placeholder="請輸入通關密碼" class="w-full px-3 py-3 rounded bg-white border border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-xl font-bold mb-3" autocomplete="off">
+                            <button onclick="checkTouhuPassword()" class="w-full bg-[#1B5E20] text-white font-bold py-3 px-4 rounded-lg shadow-md text-lg active:scale-95 transition-transform">
+                                解鎖座位線索
+                            </button>
+                            <p id="password-feedback" class="text-red-600 text-sm font-bold mt-2 opacity-0 transition-opacity"></p>
                         </div>
-                        <div id="role-info" class="hidden mb-4 p-3 bg-orange-50 border border-orange-200 rounded text-base font-bold text-[#8B2500]"></div>
-                        <div id="input-area" class="hidden fade-in">
+
+                        <div id="logic-puzzle-area" class="hidden fade-in bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                            <p class="font-bold text-[#8B2500] text-base mb-2">📜 座位線索：</p>
+                            <ul class="list-decimal list-inside text-sm font-bold text-gray-800 mb-4 space-y-1">
+                                <li>汪紹暘要在第 1 個。</li>
+                                <li>劉子綺必須坐在第 2 個位置。</li>
+                                <li>劉子琦、劉可婕要坐在一起。</li>
+                                <li>林殿鈺必須坐在第 6 個位置。</li>
+                                <li>王宏宇、王宏智、林殿鈺一定要分開，兩兩不能坐在一起。</li>
+                                <li>莊芷菱必須排在莊于萱的上面，且中間至少要有 2 人。</li>
+                                <li>不能有 3 個男生坐在一起。</li>
+                            </ul>
                             <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
                             ${getInputHTML()}
-                        </div>`;
-                } else if (level.type === 'photo') {
+                        </div>
+                    `;
+                } else if (level.type === 'plaque_fill') {
+                    html += `<p class="font-bold text-[#8B2500] text-lg mb-4 text-center">請尋找對應的匾額並填寫成語：</p>`;
+                    html += `<div class="flex flex-col gap-4 mb-4">`;
+                    level.questions.forEach((q, idx) => {
+                        html += `
+                            <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 shadow-sm flex flex-col gap-2">
+                                <p class="font-bold text-gray-800 text-sm leading-snug">${q.text}</p>
+                                <input type="text" id="plaque-ans-${idx}" placeholder="請輸入四字成語" class="w-full px-3 py-2 rounded bg-white border border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-lg font-bold text-[#8B2500]" autocomplete="off">
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
                     html += `
-                        <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
-                        <label class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg cursor-pointer shadow-md font-bold mb-4 active:scale-95 transition-transform text-lg">
-                            📷 點此開啟相機拍照
-                            <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoUpload(event)">
-                        </label>
-                        <div id="photo-preview-box" class="hidden fade-in">
-                            <img id="photo-preview" class="w-full h-48 object-cover rounded border-2 border-gray-300 mb-4">
-                            <p class="font-bold text-[#8B2500] text-lg mb-3">${level.questionAfter}</p>
-                            ${getInputHTML()}
-                        </div>`;
+                        <div class="h-8 mb-2 flex items-center justify-center">
+                            <p id="inline-feedback" class="text-base font-bold text-center w-full" style="opacity: 0; transition: opacity 0.3s ease;"></p>
+                        </div>
+                        <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] transition-colors tracking-widest">呈交答案</button>
+                    `;
                 } else if (level.type === 'audio_match') {
                     html += `<p class="font-bold text-[#8B2500] text-lg mb-3">請聆聽聲音，並在孔廟現場尋找對應的樂器：</p>`;
                     level.questions.forEach((q, idx) => {
@@ -365,6 +417,7 @@
                             </select>
                         </div>`;
                     });
+
                     html += `
                         <label class="block w-full bg-[#D7CCC8] hover:bg-[#BCAAA4] text-[#3E2723] text-center py-3 rounded-lg cursor-pointer shadow-sm font-bold mb-4 transition-colors text-base active:scale-95">
                             📷 拍下找到的樂器 (選用)
@@ -407,6 +460,22 @@
             document.getElementById('level-content').innerHTML = html;
         }
 
+        // 投壺密碼驗證函數
+        window.checkTouhuPassword = function() {
+            const inputEl = document.getElementById('touhu-password');
+            const feedback = document.getElementById('password-feedback');
+            const password = levels[currentLevel].password;
+
+            if (inputEl.value.trim() === password) {
+                document.getElementById('touhu-password-area').classList.add('hidden');
+                document.getElementById('logic-puzzle-area').classList.remove('hidden');
+            } else {
+                feedback.textContent = "密碼錯誤！請確認是否已向關主詢問正確密碼。";
+                feedback.style.opacity = '1';
+                setTimeout(() => { feedback.style.opacity = '0'; }, 3000);
+            }
+        };
+
         function getInputHTML(isAudio = false) {
             let inputField = isAudio ? '' : `
                 <div class="mb-1 relative">
@@ -428,9 +497,7 @@
             const hintBox = document.getElementById('persistent-hint-box');
 
             if (revealedHints.has(currentLevel)) {
-                if (hintBox) {
-                    hintBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
+                if (hintBox) hintBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
 
@@ -443,10 +510,7 @@
                     hintBox.textContent = `💡 錦囊：${levels[currentLevel].hint}`;
                     hintBox.classList.remove('hidden');
                     hintBox.classList.add('block');
-                    
-                    setTimeout(() => {
-                        hintBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 100);
+                    setTimeout(() => { hintBox.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
                 }
             } else {
                 showInlineFeedback("錦囊已用完！若需提示，請找到關主並對他說一句稱讚的話！", false, 4000);
@@ -531,6 +595,26 @@
                 }
                 if (isAnyEmpty) {
                     showInlineFeedback("請完成所有聲音的樂器配對！", false);
+                    return;
+                }
+                isCorrect = allCorrect;
+            } else if (level.type === 'plaque_fill') {
+                let allCorrect = true;
+                let isAnyEmpty = false;
+                for (let i = 0; i < level.answers.length; i++) {
+                    const inputEl = document.getElementById(`plaque-ans-${i}`);
+                    let val = inputEl.value.trim().toLowerCase().replace(/\s+/g, '');
+                    if (!val) isAnyEmpty = true;
+                    if (val !== level.answers[i].toLowerCase()) {
+                        allCorrect = false;
+                        inputEl.classList.add('border-red-500');
+                    } else {
+                        inputEl.classList.remove('border-red-500');
+                        inputEl.classList.add('border-green-500');
+                    }
+                }
+                if (isAnyEmpty) {
+                    showInlineFeedback("請將六個匾額都填寫完整！", false);
                     return;
                 }
                 isCorrect = allCorrect;
@@ -672,7 +756,10 @@
 
         document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !document.getElementById('puzzle-section').classList.contains('hidden')) {
-                if (levels[currentLevel].type === 'audio_match' || document.activeElement.id === 'answer-input') {
+                const level = levels[currentLevel];
+                if (document.activeElement.id === 'touhu-password') {
+                    checkTouhuPassword();
+                } else if (level.type === 'audio_match' || level.type === 'plaque_fill' || document.activeElement.id === 'answer-input') {
                     checkAnswer();
                 }
             }
