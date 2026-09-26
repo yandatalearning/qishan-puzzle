@@ -57,7 +57,7 @@
                 老夫子幻影浮現：「年輕人，孔廟的智慧藏在團隊、自然與幾何之中。今日的試煉融合了天地星辰與歷史印記，準備好迎接挑戰了嗎？」
             </div>
 
-            <!-- 解謎區塊 (動態渲染內容) -->
+            <!-- 解謎區塊 -->
             <div id="puzzle-section">
                 <div class="flex justify-between text-xs font-bold text-[#8B2500] mb-2 tracking-widest">
                     <span id="level-indicator">卷 1 / 共 11 卷</span>
@@ -290,7 +290,7 @@
             content.innerHTML = html;
         }
 
-        // 修改的輸入框區塊，包含下方的 inline-feedback
+        // 行內回饋設計
         function getInputHTML() {
             return `
                 <div class="mb-1 relative">
@@ -354,7 +354,6 @@
             box.classList.toggle('hidden');
         };
 
-        // 新增的行內提示邏輯
         function showInlineFeedback(msg, isSuccess) {
             const fb = document.getElementById('inline-feedback');
             fb.textContent = msg;
