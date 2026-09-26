@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>旗山孔廟｜實境解謎</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 html2canvas 負責一鍵下載畫面 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&display=swap');
         
@@ -24,14 +26,22 @@
         }
         .animate-shake { animation: shake 0.3s ease-in-out; }
 
-        .card-reveal { animation: popGlow 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        /* 卡片進場動畫 */
+        .card-reveal { animation: popGlow 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes popGlow {
-            0% { transform: scale(0.8); opacity: 0; box-shadow: 0 0 0 rgba(255, 213, 79, 0); }
-            50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 30px rgba(255, 213, 79, 0.8); }
-            100% { transform: scale(1); opacity: 1; box-shadow: 0 0 15px rgba(255, 213, 79, 0.5); }
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
-        .stamp-reveal { opacity: 0; transform: scale(3) rotate(-20deg); animation: stampPress 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; animation-delay: 1s; }
+        /* 卷軸展開動畫 */
+        @keyframes scrollUnfold {
+            0% { transform: scaleY(0); }
+            100% { transform: scaleY(1); }
+        }
+        .scroll-unfold { transform-origin: top; animation: scrollUnfold 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+
+        /* 古風印章動畫 */
+        .stamp-reveal { opacity: 0; transform: scale(3) rotate(-20deg); animation: stampPress 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; animation-delay: 0.5s; }
         @keyframes stampPress { 0% { opacity: 0; transform: scale(3) rotate(-20deg); } 50% { opacity: 1; transform: scale(0.9) rotate(-5deg); } 100% { opacity: 1; transform: scale(1) rotate(-10deg); } }
 
         .scrollbar-hide::-webkit-scrollbar { display: none; }
@@ -102,21 +112,120 @@
                 </div>
             </div>
 
-            <!-- 結局區塊 -->
+            <!-- 結局區塊 (多款式 HTML 卡片系統) -->
             <div id="ending-section" class="hidden">
-                <div class="text-center mb-4 fade-in">
+                <div class="text-center mb-3 fade-in">
                     <h2 class="text-2xl font-black text-[#8B2500]">試煉完成</h2>
-                    <p class="text-sm text-gray-700 mt-2">老夫子已為你們頒發新科弟子專屬成就卡！</p>
+                    <p class="text-sm text-gray-700 mt-1 font-bold">左右切換喜歡的樣式，並點擊保存！</p>
                 </div>
                 
-                <div class="relative w-full rounded-xl mb-4 card-reveal text-center">
-                    <p class="text-sm font-bold text-red-600 mb-2 animate-pulse">👇 請長按下方圖片儲存至手機 👇</p>
-                    <canvas id="achievement-canvas" width="800" height="1000" class="hidden"></canvas>
-                    <img id="achievement-img" class="w-full h-auto rounded-lg border-4 border-[#8B2500] shadow-xl">
+                <!-- 卡片切換導航 -->
+                <div class="flex justify-between items-center mb-3">
+                    <button onclick="changeCardStyle(-1)" class="w-10 h-10 bg-[#8B2500] text-white rounded-full font-bold shadow-md active:scale-95 flex items-center justify-center">◀</button>
+                    <span id="card-title-indicator" class="font-bold text-[#8B2500] text-sm tracking-widest">1/4 御賜卡</span>
+                    <button onclick="changeCardStyle(1)" class="w-10 h-10 bg-[#8B2500] text-white rounded-full font-bold shadow-md active:scale-95 flex items-center justify-center">▶</button>
+                </div>
+
+                <!-- 截圖專用區域 (html2canvas 會抓這個區塊) -->
+                <div id="card-export-area" class="w-full relative rounded-xl mb-4 card-reveal overflow-hidden shadow-xl aspect-[3/4] bg-white">
+                    
+                    <!-- 款式 1：古風御賜卡 -->
+                    <div id="style-0" class="card-style w-full h-full bg-[#8B2500] text-[#F4EAD5] p-3 flex flex-col border-[8px] border-yellow-500 relative">
+                        <div class="text-center text-xl tracking-widest mt-2 border-b-2 border-yellow-500 pb-2 font-black">奉天承運・孔廟詔曰</div>
+                        <div class="flex-1 flex flex-col items-center justify-center p-2 relative z-10">
+                            <div class="bg-[#F4EAD5] p-2 shadow-lg w-[75%] aspect-[4/3] mb-4 border border-yellow-600 flex items-center justify-center">
+                                <img src="" class="val-photo w-full h-full object-cover hidden">
+                                <div class="val-no-photo text-[#8B2500] font-bold text-center">此處應有小隊英姿</div>
+                            </div>
+                            <div class="text-3xl text-yellow-400 mb-2 font-black">【<span class="val-rank"></span>】</div>
+                            <div class="text-xl mb-1 font-bold tracking-widest">新科弟子：<span class="val-team"></span></div>
+                            <div class="text-lg">最終試煉：<span class="val-score text-yellow-400 font-bold"></span> 分</div>
+                        </div>
+                        <div class="absolute bottom-6 right-6 border-4 border-red-500 text-red-500 p-2 transform -rotate-12 bg-[#8B2500] font-black mix-blend-screen stamp-reveal">
+                            <span class="block text-2xl leading-none text-center">孔廟<br>金榜</span>
+                        </div>
+                    </div>
+
+                    <!-- 款式 2：Q版貼紙卡 -->
+                    <div id="style-1" class="card-style hidden w-full h-full bg-[#FFF9E6] text-[#3E2723] p-4 flex flex-col items-center justify-center border-4 border-dashed border-orange-400 relative">
+                        <span class="absolute top-6 left-6 text-4xl animate-pulse">🏮</span>
+                        <span class="absolute top-10 right-6 text-4xl">🧧</span>
+                        <span class="absolute bottom-24 left-6 text-4xl">🪭</span>
+                        <span class="absolute bottom-8 right-8 text-4xl">📜</span>
+                        <div class="text-2xl font-black text-orange-600 mb-6 bg-white px-4 py-1 rounded-full shadow-sm z-10 border-2 border-orange-200">🌟 孔廟冒險完成 🌟</div>
+                        <div class="bg-white p-3 rounded-2xl shadow-md rotate-3 w-[70%] aspect-[4/3] mb-6 border-4 border-orange-100 z-10 flex items-center justify-center">
+                            <img src="" class="val-photo w-full h-full object-cover rounded-lg hidden">
+                            <div class="val-no-photo text-orange-500 font-bold text-center text-sm">小隊合照區⭐</div>
+                        </div>
+                        <div class="bg-orange-500 text-white px-5 py-2 rounded-full shadow-md text-xl font-bold z-10 mb-2 border-2 border-orange-600">🏆 <span class="val-team"></span></div>
+                        <div class="text-lg font-bold text-gray-700 z-10 bg-white/80 px-3 py-1 rounded">成就分：<span class="val-score text-orange-600"></span></div>
+                        <div class="text-sm font-bold text-gray-500 z-10 mt-1">稱號：<span class="val-rank"></span></div>
+                    </div>
+
+                    <!-- 款式 3：探員證 -->
+                    <div id="style-2" class="card-style hidden w-full h-full bg-gray-200 text-gray-800 flex flex-col border-2 border-gray-400 font-sans relative">
+                        <div class="bg-gray-800 text-white text-center py-4 font-black tracking-widest text-xl shadow-md flex justify-center items-center gap-2">
+                            <span>🏛️</span> 古蹟探索局・探員證
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col">
+                            <div class="flex items-start gap-4 mb-5">
+                                <div class="bg-white w-28 h-28 border-4 border-gray-300 shadow-sm shrink-0 flex items-center justify-center">
+                                    <img src="" class="val-photo w-full h-full object-cover hidden">
+                                    <div class="val-no-photo text-xs text-gray-400 font-bold">PHOTO</div>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="text-xs text-gray-500 font-bold mb-1">TEAM ID</div>
+                                    <div class="text-xl font-black text-gray-900 border-b-2 border-gray-400 pb-1 mb-2 val-team"></div>
+                                    <div class="text-xs text-gray-500 font-bold">STATUS</div>
+                                    <div class="text-sm font-black text-green-600">MISSION COMPLETE ✓</div>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-lg p-4 font-bold flex-1 border border-gray-300 shadow-inner text-sm text-gray-700">
+                                <p class="mb-3 text-gray-500 border-b border-gray-200 pb-2">任務結算清單：</p>
+                                <p class="flex justify-between mb-2"><span>🔎 線索破解</span> <span class="text-green-500">✓</span></p>
+                                <p class="flex justify-between mb-2"><span>🏛️ 古蹟探索</span> <span class="text-green-500">✓</span></p>
+                                <p class="flex justify-between mb-2"><span>🎵 樂器尋找</span> <span class="text-green-500">✓</span></p>
+                                <p class="flex justify-between mb-2"><span>🧩 最終謎題</span> <span class="text-green-500">✓</span></p>
+                                <div class="mt-auto pt-4 border-t border-gray-200 flex justify-between items-end">
+                                    <div>
+                                        <span class="text-xs text-gray-400 block mb-1">RANK</span>
+                                        <span class="text-blue-700 font-black val-rank"></span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs text-gray-500 block mb-1">SCORE</span>
+                                        <span class="text-2xl font-black text-gray-900 val-score"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 款式 4：功名卷軸 -->
+                    <div id="style-3" class="card-style hidden w-full h-full bg-[#E7DCC8] p-4 flex flex-col items-center border-x-[16px] border-x-[#5D4037] relative">
+                        <div class="scroll-unfold flex-1 w-full bg-[#F4EAD5] border-2 border-[#8B2500] p-4 flex flex-col items-center justify-center text-center shadow-inner relative">
+                            <!-- 頂部與底部卷軸裝飾線 -->
+                            <div class="absolute top-2 left-2 right-2 border-t-2 border-[#8B2500] opacity-50"></div>
+                            <div class="absolute bottom-2 left-2 right-2 border-b-2 border-[#8B2500] opacity-50"></div>
+                            
+                            <div class="text-3xl font-black text-[#8B2500] mb-5 tracking-[0.3em] [writing-mode:vertical-rl] h-40">旗山孔廟</div>
+                            <div class="text-lg font-bold mb-3 text-[#5D4037] border-b border-[#5D4037] pb-1 px-4">新科弟子榜</div>
+                            <div class="bg-[#E7DCC8] w-[65%] aspect-square p-1 border-2 border-[#8B2500] mb-4 flex items-center justify-center relative z-10">
+                                <img src="" class="val-photo w-full h-full object-cover hidden">
+                                <div class="val-no-photo text-[#8B2500] font-bold text-sm">小隊畫像</div>
+                            </div>
+                            <div class="text-2xl font-black text-[#8B2500] mb-2 tracking-widest val-team"></div>
+                            <div class="text-sm font-bold text-gray-700 mb-2">以 【<span class="val-score font-black text-red-600"></span>】 分通過試煉</div>
+                            <div class="text-base font-bold text-red-700 border-2 border-red-700 px-3 py-1 mt-1 tracking-widest stamp-reveal bg-[#F4EAD5]">金榜題名</div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="flex gap-2">
-                    <button onclick="location.reload()" class="w-full border-2 border-[#8B2500] bg-[#FAF3E0] text-[#8B2500] font-bold py-3 px-4 rounded-lg tracking-widest text-base active:bg-orange-100">
+                    <button id="download-btn" onclick="downloadAchievement()" class="flex-1 bg-[#1B5E20] text-white font-bold py-3 px-4 rounded-lg tracking-widest text-base shadow-md active:scale-95 transition-all flex items-center justify-center gap-2">
+                        📥 保存此成就卡
+                    </button>
+                    <button onclick="location.reload()" class="flex-1 border-2 border-[#8B2500] bg-[#FAF3E0] text-[#8B2500] font-bold py-3 px-4 rounded-lg tracking-widest text-base active:bg-orange-100">
                         再玩一次
                     </button>
                 </div>
@@ -124,7 +233,7 @@
         </div>
     </div>
 
-    <!-- Web AR 相機視窗 -->
+    <!-- Web AR 相機視窗 (無更動) -->
     <div id="ar-modal" class="fixed inset-0 z-50 bg-black hidden flex flex-col">
         <div id="ar-hint" class="w-full bg-black/70 text-white text-center py-3 px-4 z-20 text-sm font-bold text-yellow-400"></div>
         <div class="relative w-full flex-1 overflow-hidden">
@@ -156,12 +265,16 @@
         let currentLevel = 0;
         let wrongAttempts = 0;
         let cameraStream = null;
-        let teamName = "無名";
+        let teamName = "無名隊"; // 預設隊名
         let teamPhotoImg = null; 
         let hintsLeft = 5; 
         
         let completedLevels = new Set();
         let revealedHints = new Set();
+        
+        // 結算卡片變數
+        let currentCardStyle = 0;
+        const cardTitles = ["1/4 御賜卡", "2/4 貼紙卡", "3/4 探員證", "4/4 卷軸"];
 
         const instrumentOptions = ["編鐘", "編磬", "笛", "蕭", "笙", "鳳簫", "拍板", "塤", "甄", "琴", "瑟", "鼗", "敔", "搏拊"];
 
@@ -220,7 +333,6 @@
                 hint: "石碑上的數字通常會用中文寫成（例如：一七二九），仔細找找石碑上的文字！"
             },
             {
-                // 原卷七刪除，此處換上新增的解謎題
                 type: 'two_inputs',
                 title: "先賢的密碼",
                 desc: "東西廡供奉著許多先賢先儒。老夫子拿出了一張畫著各種圖案的紙條說：「這裡隱藏著尋找兩位先賢牌位的線索，試著唸出圖案的聲音，也許能找到方向。」",
@@ -250,7 +362,7 @@
                 desc: "開學了，有 9 個同學在教室上課，但是洪唯宸同學找不到他的位置在哪。老夫子擺下了投壺挑戰：「君子無所爭，必也射乎！請找關主完成『投壺 9 中 3』挑戰，才能獲得尋找座位的線索。」",
                 question: "請問：洪唯宸坐在第幾個位置？（請輸入數字）",
                 answer: ["7", "七"],
-                password: "123", // 可更改通關密碼
+                password: "123", 
                 hint: "仔細排排看：汪1, 劉子綺2, 劉可婕3, 林6。王宏宇和王宏智不能在5、7，也不能相鄰。莊芷菱必須在莊于萱上面且中間至少有2人！"
             },
             {
@@ -402,7 +514,6 @@
                         <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] transition-colors tracking-widest">呈交答案</button>
                     `;
                 } else if (level.type === 'two_inputs') {
-                    // 新增的諧音找牌位題，有兩個輸入框
                     html += `
                         <div class="mb-4">
                             <p class="font-bold text-[#8B2500] text-lg mb-2">${level.question1}</p>
@@ -434,7 +545,6 @@
                             </select>
                         </div>`;
                     });
-
                     html += `
                         <label class="block w-full bg-[#D7CCC8] hover:bg-[#BCAAA4] text-[#3E2723] text-center py-3 rounded-lg cursor-pointer shadow-sm font-bold mb-4 transition-colors text-base active:scale-95">
                             📷 拍下找到的樂器 (選用)
@@ -707,6 +817,7 @@
             }
         };
 
+        // 結算與 4 款卡片系統
         function showEnding() {
             document.getElementById('puzzle-section').classList.add('hidden');
             document.getElementById('intro-section').classList.add('hidden');
@@ -715,93 +826,85 @@
             if (score < 60) score = 60;
             let rank = wrongAttempts === 0 ? "狀元及第" : wrongAttempts <= 3 ? "榜眼之才" : "探花之秀";
             
-            document.getElementById('ending-section').classList.remove('hidden');
-            drawAchievementCard(score, rank);
-        }
+            // 寫入所有卡片的共用資料
+            document.querySelectorAll('.val-team').forEach(el => el.textContent = teamName);
+            document.querySelectorAll('.val-score').forEach(el => el.textContent = score);
+            document.querySelectorAll('.val-rank').forEach(el => el.textContent = rank);
 
-        function drawAchievementCard(score, rank) {
-            const canvas = document.getElementById('achievement-canvas');
-            const ctx = canvas.getContext('2d');
-            
-            ctx.fillStyle = '#F4EAD5';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.strokeStyle = '#8B2500';
-            ctx.lineWidth = 15;
-            ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
-            ctx.strokeStyle = '#D7CCC8';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
-
-            ctx.fillStyle = '#8B2500';
-            ctx.textAlign = 'center';
-            ctx.font = 'bold 50px sans-serif';
-            ctx.fillText('🏮 旗山孔廟 🏮', canvas.width / 2, 110);
-            ctx.font = 'bold 36px sans-serif';
-            ctx.fillStyle = '#5D4037';
-            ctx.fillText('新科弟子・結業紀念', canvas.width / 2, 170);
-
-            const photoX = 100, photoY = 220, photoW = 600, photoH = 450;
-            
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(photoX - 10, photoY - 10, photoW + 20, photoH + 20);
-            ctx.strokeStyle = '#8B2500';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(photoX - 10, photoY - 10, photoW + 20, photoH + 20);
-
-            if (teamPhotoImg) {
-                const imgRatio = teamPhotoImg.width / teamPhotoImg.height;
-                const boxRatio = photoW / photoH;
-                let srcX = 0, srcY = 0, srcW = teamPhotoImg.width, srcH = teamPhotoImg.height;
-                
-                if (imgRatio > boxRatio) {
-                    srcW = teamPhotoImg.height * boxRatio;
-                    srcX = (teamPhotoImg.width - srcW) / 2;
-                } else {
-                    srcH = teamPhotoImg.width / boxRatio;
-                    srcY = (teamPhotoImg.height - srcH) / 2;
-                }
-                ctx.drawImage(teamPhotoImg, srcX, srcY, srcW, srcH, photoX, photoY, photoW, photoH);
-            } else {
-                ctx.fillStyle = '#E7DCC8';
-                ctx.fillRect(photoX, photoY, photoW, photoH);
-                ctx.fillStyle = '#8B2500';
-                ctx.font = '30px sans-serif';
-                ctx.fillText('此處應有小隊英姿', canvas.width / 2, photoY + photoH / 2);
+            // 處理照片寫入
+            if (teamPhotoImg && teamPhotoImg.src) {
+                document.querySelectorAll('.val-photo').forEach(img => {
+                    img.src = teamPhotoImg.src;
+                    img.classList.remove('hidden');
+                });
+                document.querySelectorAll('.val-no-photo').forEach(div => {
+                    div.classList.add('hidden');
+                });
             }
 
-            ctx.font = '120px sans-serif';
-            ctx.fillText('🎓', canvas.width / 2, photoY + 40);
-
-            ctx.fillStyle = '#8B2500';
-            ctx.font = 'bold 55px sans-serif';
-            ctx.fillText(`【${rank}】`, canvas.width / 2, 770);
+            document.getElementById('ending-section').classList.remove('hidden');
             
-            ctx.font = 'bold 40px sans-serif';
-            ctx.fillStyle = '#3E2723';
-            ctx.fillText(`第 ${teamName} 隊`, canvas.width / 2, 840);
-            
-            ctx.font = 'bold 36px sans-serif';
-            ctx.fillStyle = '#D32F2F';
-            ctx.fillText(`最終試煉得分：${score} 分`, canvas.width / 2, 900);
-
-            ctx.save();
-            ctx.translate(650, 850);
-            ctx.rotate(-0.15); 
-            ctx.strokeStyle = '#D32F2F';
-            ctx.lineWidth = 8;
-            ctx.strokeRect(-60, -60, 120, 120);
-            ctx.fillStyle = '#D32F2F';
-            ctx.font = 'bold 36px sans-serif';
-            ctx.fillText('孔廟', 0, -10);
-            ctx.fillText('認證', 0, 35);
-            ctx.restore();
-
-            setTimeout(() => {
-                const imgEl = document.getElementById('achievement-img');
-                imgEl.src = canvas.toDataURL('image/jpeg', 0.9);
-            }, 100);
+            // 初始化顯示第一張卡
+            currentCardStyle = 0;
+            updateCardDisplay();
         }
+
+        // 切換卡片款式
+        window.changeCardStyle = function(direction) {
+            currentCardStyle += direction;
+            if (currentCardStyle < 0) currentCardStyle = 3;
+            if (currentCardStyle > 3) currentCardStyle = 0;
+            updateCardDisplay();
+        };
+
+        function updateCardDisplay() {
+            // 更新標題文字
+            document.getElementById('card-title-indicator').textContent = cardTitles[currentCardStyle];
+            
+            // 顯示與隱藏卡片 DOM
+            for (let i = 0; i < 4; i++) {
+                if (i === currentCardStyle) {
+                    document.getElementById(`style-${i}`).classList.remove('hidden');
+                } else {
+                    document.getElementById(`style-${i}`).classList.add('hidden');
+                }
+            }
+        }
+
+        // 一鍵下載成就卡 (使用 html2canvas)
+        window.downloadAchievement = function() {
+            const btn = document.getElementById('download-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ 正在生成影像...';
+            btn.style.pointerEvents = 'none';
+
+            // 取得目前顯示的那個卡片 DOM
+            const activeCard = document.getElementById(`style-${currentCardStyle}`);
+            
+            // 使用 html2canvas 截圖
+            html2canvas(activeCard, {
+                scale: 2, // 提高畫質
+                useCORS: true,
+                backgroundColor: null // 允許透明或保留原有背景
+            }).then(canvas => {
+                const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+                const link = document.createElement('a');
+                // 根據樣式給予不同檔名
+                const styleNames = ["御賜金榜", "冒險貼紙", "探員證", "功名卷軸"];
+                link.download = `旗山孔廟_${styleNames[currentCardStyle]}_${teamName}.jpg`;
+                link.href = dataURL;
+                link.click();
+
+                // 恢復按鈕狀態
+                btn.innerHTML = originalText;
+                btn.style.pointerEvents = 'auto';
+            }).catch(err => {
+                console.error("生成截圖失敗", err);
+                alert("生成圖片失敗，請嘗試使用手機內建的截圖功能！");
+                btn.innerHTML = originalText;
+                btn.style.pointerEvents = 'auto';
+            });
+        };
 
         document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !document.getElementById('puzzle-section').classList.contains('hidden')) {
