@@ -75,10 +75,12 @@
             <!-- 解謎區塊 -->
             <div id="puzzle-section" class="hidden fade-in">
                 
-                <!-- 關卡導航列 -->
+                <!-- 關卡導航列與地圖按鈕 -->
                 <div class="mb-3 flex flex-col gap-2">
                     <div class="flex justify-between items-center">
-                        <span class="text-xs font-bold text-[#8B2500] tracking-widest">任務地圖：</span>
+                        <button onclick="toggleMap()" class="bg-[#8B2500] hover:bg-[#6A1B00] text-white text-xs font-bold py-1.5 px-3 rounded shadow-sm active:scale-95 transition-transform flex items-center gap-1 tracking-widest">
+                            🗺️ 開啟闖關地圖
+                        </button>
                         <div class="text-right text-xs font-bold text-gray-500" id="mistake-counter">失誤：0</div>
                     </div>
                     <div id="level-nav" class="flex overflow-x-auto scrollbar-hide gap-2 pb-2">
@@ -128,6 +130,23 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- 闖關地圖彈出視窗 -->
+    <div id="map-modal" class="fixed inset-0 z-50 bg-black/85 hidden flex-col items-center justify-center p-4 fade-in">
+        <div class="relative w-full max-w-lg bg-[#FAF3E0] rounded-xl p-3 border-4 border-[#8B2500] flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-2 px-2">
+                <h3 class="font-bold text-[#8B2500] text-xl tracking-widest">🗺️ 孔廟闖關地圖</h3>
+                <button onclick="toggleMap()" class="text-[#8B2500] hover:text-red-600 font-black text-3xl leading-none px-2">&times;</button>
+            </div>
+            <div class="overflow-auto flex-1 border-2 border-[#D7CCC8] rounded relative bg-white flex items-center justify-center">
+                <!-- 讀取您提供的地圖圖片 -->
+                <img src="闖關地圖.png" alt="孔廟全景平面圖" class="w-full h-auto object-contain" onerror="this.alt='無法載入地圖，請確認 闖關地圖.png 檔案是否存在'">
+            </div>
+            <button onclick="toggleMap()" class="mt-3 w-full bg-[#1B5E20] text-white font-bold py-3 rounded-lg shadow-md active:scale-95 transition-transform tracking-widest text-lg">
+                返回解謎
+            </button>
         </div>
     </div>
 
@@ -241,7 +260,6 @@
                 hint: "觀察圖案並試著用諧音唸出來！找到對應名字的牌位後，依照指示方向數數看！(提示：東廡40先賢、39先儒；西廡39先賢、38先儒；崇聖祠5世祖父)"
             },
             {
-                // 音樂題 (移除了拍照按鈕)
                 type: 'audio_match',
                 title: "孔廟的失落之聲",
                 desc: "祭孔大典即將開始，但古老樂章失去了幾個聲音。新科弟子必須聽聲辨器，找回散落在孔廟中的樂器。",
@@ -335,6 +353,7 @@
             renderLevelNav();
             const level = levels[currentLevel];
             document.getElementById('level-indicator').textContent = `卷 ${currentLevel + 1} / 共 ${levels.length} 卷`;
+            const content = document.getElementById('level-content');
             
             const hintBtn = document.getElementById('hint-btn');
             if (completedLevels.has(currentLevel)) {
@@ -442,7 +461,6 @@
                             </select>
                         </div>`;
                     });
-                    // 音樂題取消相機上傳按鈕，直接顯示送出按鈕
                     html += getInputHTML(true);
                 } else if (level.type === 'iframe_puzzle') {
                     html += `
@@ -531,7 +549,6 @@
                     setTimeout(() => { hintBox.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
                 }
             } else {
-                // 錦囊耗盡的提示置底顯示
                 if (hintBox) {
                     hintBox.textContent = "💡 錦囊已用完！若需提示，請找到關主並對他說一句稱讚的話！";
                     hintBox.classList.remove('hidden', 'bg-yellow-50', 'text-yellow-800', 'border-yellow-500');
@@ -539,6 +556,13 @@
                     setTimeout(() => { hintBox.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
                 }
             }
+        };
+
+        // 地圖功能
+        window.toggleMap = function() {
+            const modal = document.getElementById('map-modal');
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
         };
 
         window.openARCamera = async function(type) {
@@ -715,7 +739,6 @@
             }
         };
 
-        // --- 純 Canvas 卡片繪製與長按儲存系統 ---
         window.changeCardStyle = function(dir) {
             currentCardStyle += dir;
             if (currentCardStyle > 3) currentCardStyle = 0;
@@ -749,7 +772,6 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 照片繪製輔助函數
             function drawPhoto(px, py, pw, ph, rotation=0) {
                 ctx.save();
                 ctx.translate(px + pw/2, py + ph/2);
@@ -759,7 +781,6 @@
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(px - 10, py - 10, pw + 20, ph + 20);
                 
-                // 保留預設外框，可被外部覆蓋
                 if(ctx.lineWidth !== 0){
                     ctx.strokeRect(px - 10, py - 10, pw + 20, ph + 20);
                 }
@@ -788,7 +809,6 @@
             }
 
             if (styleIndex === 0) {
-                // 1. 古風御賜卡
                 ctx.fillStyle = '#8B2500';
                 ctx.fillRect(0, 0, 800, 1000);
                 ctx.strokeStyle = '#F59E0B'; ctx.lineWidth = 15; ctx.strokeRect(20, 20, 760, 960);
@@ -820,7 +840,6 @@
                 ctx.restore();
 
             } else if (styleIndex === 1) {
-                // 2. Q版貼紙卡
                 ctx.fillStyle = '#FFF9E6';
                 ctx.fillRect(0, 0, 800, 1000);
                 ctx.strokeStyle = '#FB923C'; ctx.lineWidth = 10; ctx.setLineDash([20, 15]);
@@ -855,7 +874,6 @@
                 ctx.fillText(`獲得稱號：${rank}`, 400, 890);
 
             } else if (styleIndex === 2) {
-                // 3. 拍立得旅行卡
                 ctx.fillStyle = '#E5E7EB';
                 ctx.fillRect(0, 0, 800, 1000);
 
@@ -872,7 +890,6 @@
                 ctx.fillRect(100, 150, 600, 750);
                 ctx.shadowColor = 'transparent';
 
-                // 畫照片 (拍立得無邊框)
                 const px = 140, py = 190, pw = 520, ph = 520;
                 ctx.fillStyle = '#000000';
                 ctx.fillRect(px, py, pw, ph);
@@ -909,7 +926,6 @@
 
                 ctx.restore();
 
-                // 頂部紙膠帶
                 ctx.fillStyle = 'rgba(253, 246, 227, 0.8)';
                 ctx.save();
                 ctx.translate(400, 130);
@@ -918,7 +934,6 @@
                 ctx.restore();
 
             } else if (styleIndex === 3) {
-                // 4. 孔門弟子卡
                 ctx.fillStyle = '#1A237E'; 
                 ctx.fillRect(0, 0, 800, 1000);
                 
@@ -991,7 +1006,6 @@
                 ctx.restore();
             }
 
-            // 將畫好的 Canvas 更新給 <img> 標籤供玩家長按儲存
             setTimeout(() => {
                 const imgEl = document.getElementById('achievement-img');
                 imgEl.src = canvas.toDataURL('image/jpeg', 0.9);
