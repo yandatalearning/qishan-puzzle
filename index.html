@@ -24,7 +24,6 @@
         }
         .animate-shake { animation: shake 0.3s ease-in-out; }
 
-        /* 結算卡片金光與彈出動畫 */
         .card-reveal { animation: popGlow 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes popGlow {
             0% { transform: scale(0.8); opacity: 0; box-shadow: 0 0 0 rgba(255, 213, 79, 0); }
@@ -32,7 +31,6 @@
             100% { transform: scale(1); opacity: 1; box-shadow: 0 0 15px rgba(255, 213, 79, 0.5); }
         }
 
-        /* 模擬印章蓋下的動畫特效 */
         .stamp-reveal { opacity: 0; transform: scale(3) rotate(-20deg); animation: stampPress 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; animation-delay: 1s; }
         @keyframes stampPress { 0% { opacity: 0; transform: scale(3) rotate(-20deg); } 50% { opacity: 1; transform: scale(0.9) rotate(-5deg); } 100% { opacity: 1; transform: scale(1) rotate(-10deg); } }
     </style>
@@ -75,11 +73,10 @@
                 </button>
             </div>
 
-            <!-- 解謎區塊 (融合錦囊按鈕與失誤計數) -->
+            <!-- 解謎區塊 -->
             <div id="puzzle-section" class="hidden fade-in">
                 <div class="flex justify-between items-center text-sm font-bold text-[#8B2500] mb-1 tracking-widest">
-                    <span id="level-indicator">卷 1 / 共 11 卷</span>
-                    <!-- 錦囊按鈕 -->
+                    <span id="level-indicator">卷 1 / 共 8 卷</span>
                     <button onclick="useHint()" class="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 text-xs font-bold py-1 px-3 rounded-full shadow-sm active:scale-95 transition-transform">
                         💡 錦囊 (<span id="hint-count-display">5</span>)
                     </button>
@@ -120,7 +117,6 @@
         <div id="ar-hint" class="w-full bg-black/70 text-white text-center py-3 px-4 z-20 text-sm font-bold text-yellow-400"></div>
         <div class="relative w-full flex-1 overflow-hidden">
             <video id="ar-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
-            <!-- AR 紅柱密碼 (MOON) -->
             <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
                 <rect x="456" y="360" width="88" height="100" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
                 <text x="500" y="340" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
@@ -130,27 +126,6 @@
                     <line x1="356" y1="580" x2="644" y2="580" />
                     <line x1="500" y1="480" x2="500" y2="580" />
                     <line x1="644" y1="480" x2="804" y2="580" />
-                </g>
-            </svg>
-            <!-- AR 人體陣法 -->
-            <svg id="svg-human" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet">
-                <g transform="translate(150, 300)" stroke="#00E676" stroke-width="8" stroke-dasharray="10 10" fill="none">
-                    <circle cx="150" cy="80" r="50" />
-                    <line x1="150" y1="130" x2="150" y2="400" />
-                    <line x1="150" y1="180" x2="0" y2="80" /> 
-                    <line x1="150" y1="180" x2="250" y2="300" />
-                    <line x1="150" y1="400" x2="50" y2="600" />
-                    <line x1="150" y1="400" x2="250" y2="600" />
-                    <text x="150" y="700" fill="#00E676" font-size="40" stroke="none" text-anchor="middle">隊友一入陣</text>
-                </g>
-                <g transform="translate(550, 300)" stroke="#29B6F6" stroke-width="8" stroke-dasharray="10 10" fill="none">
-                    <circle cx="150" cy="80" r="50" />
-                    <line x1="150" y1="130" x2="150" y2="400" />
-                    <line x1="150" y1="180" x2="50" y2="300" />
-                    <line x1="150" y1="180" x2="300" y2="80" /> 
-                    <line x1="150" y1="400" x2="50" y2="600" />
-                    <line x1="150" y1="400" x2="250" y2="600" />
-                    <text x="150" y="700" fill="#29B6F6" font-size="40" stroke="none" text-anchor="middle">隊友二入陣</text>
                 </g>
             </svg>
         </div>
@@ -166,15 +141,17 @@
     </div>
 
     <script>
-        // 全域變數
         let currentLevel = 0;
         let wrongAttempts = 0;
         let cameraStream = null;
         let teamName = "無名";
         let teamPhotoImg = null; 
-        let hintsLeft = 5; // 全遊戲 5 次錦囊
+        let hintsLeft = 5; 
 
-        // 11 道關卡設定 (已補回提示文字)
+        // 更新的樂器選項 (僅包含指定的四種)
+        const instrumentOptions = ["編鐘", "編磬", "塤", "笙"];
+
+        // 8 道關卡設定
         const levels = [
             {
                 type: 'standard',
@@ -239,43 +216,18 @@
                 hint: "這四個字通常用來形容非常公平公正。第一個字是『大』，最後一個字是『正』。"
             },
             {
-                type: 'standard',
-                title: "黌門的起點",
-                desc: "求學必須從正門而入。這座孔廟最外側有兩座宏偉的牌坊。",
-                question: "請找找看，這座代表古代學校大門的牌坊上刻著哪兩個字？（提示：音同紅門）",
-                answer: ["黌門"],
-                hint: "抬頭看看紅色的牌樓上面，第一個字有很多筆畫，裡面藏著一個『黃』字喔！"
-            },
-            {
-                type: 'coop',
-                title: "分頭行動的默契",
-                desc: "孔子曰：三人行必有我師。請小組分工合作！",
-                roles: {
-                    east: "【東廡弟子】請前往東側廂房找『先賢左子丘明神位』。<br>👉 請大聲告訴夥伴：牌位最下方木雕是什麼神獸？",
-                    west: "【西廡弟子】請前往西側廂房找牆上『尊道』匾額。<br>👉 將夥伴傳遞來的神獸名稱，加上匾額的第二個字，就是密碼！"
-                },
-                question: "請西廡弟子負責輸入兩人合作得出的兩字密碼：",
-                answer: ["龍道"],
-                hint: "東廡的神獸會飛天（龍），西廡的字是『尊道』的第二個字，合起來就是密碼！"
-            },
-            {
-                type: 'photo',
-                title: "四靈的賜福",
-                desc: "萬物皆有靈。老夫子需要你記錄下神獸的色彩。",
-                question: "請在廂房內尋找任何一面刻有『龍』的先賢/先儒牌位，並拍下它的照片。",
-                questionAfter: "做得好！觀察你拍下的照片，牌位中間寫著古人名字的底色，是什麼顏色？",
-                answer: ["紅", "紅色"],
-                hint: "很喜氣的顏色，像蘋果一樣的顏色喔！"
-            },
-            {
-                type: 'ar_human',
-                title: "人體三才陣",
-                desc: "天地人和方能成事。老夫子要考驗你們的團隊行動力。",
-                question: "隊長請點擊下方開啟陣法，指揮兩位隊友站進虛線框。完成後請隊友齊聲大喊『天地人』，並由隊長輸入這三個字！",
-                answer: ["天地人"],
-                arHint: "請指揮隊友退後，完美塞進人形虛線框中！",
-                fallback: "這關需要隊友擺出特定的姿勢，答案就是通關密語：天地人。",
-                hint: "這三個字包含了天空、大地跟人類，就是『天_ _』。"
+                type: 'audio_match',
+                title: "孔廟的失落之聲",
+                desc: "祭孔大典即將開始，但古老樂章失去了幾個聲音。新科弟子必須聽聲辨器，找回散落在孔廟中的樂器。",
+                questions: [
+                    { id: '0', src: 'audio_1.mp3', label: '神秘聲音一' },
+                    { id: '1', src: 'audio_2.mp3', label: '神秘聲音二' },
+                    { id: '2', src: 'audio_3.mp3', label: '神秘聲音三' },
+                    { id: '3', src: 'audio_4.mp3', label: '神秘聲音四' }
+                ],
+                // 請在此設定四個音檔對應的正確答案順序
+                answers: ["編鐘", "編磬", "塤", "笙"],
+                hint: "清脆的石頭聲是「編磬」；金屬敲擊聲是「編鐘」；像風聲般低沉的是「塤」；有許多竹管吹奏的是「笙」！"
             }
         ];
 
@@ -307,7 +259,6 @@
             document.getElementById('level-indicator').textContent = `卷 ${currentLevel + 1} / 共 ${levels.length} 卷`;
             const content = document.getElementById('level-content');
             
-            // 老夫子 RPG 對話泡泡
             let html = `
                 <h2 class="text-2xl font-bold mb-3 text-[#5D4037] border-b-2 border-[#8B2500] pb-2 inline-block">${level.title}</h2>
                 <div class="flex items-start gap-3 mb-5">
@@ -322,34 +273,41 @@
                 html += `<img src="${level.image}" alt="關卡提示" class="w-full rounded-lg mb-4 shadow-sm border border-[#E7DCC8]" onerror="this.style.display='none'">`;
             }
 
-            if (level.type === 'coop') {
-                html += `
-                    <div class="flex gap-2 mb-4">
-                        <button onclick="selectRole('east')" class="flex-1 border-2 border-[#8B2500] text-[#8B2500] font-bold py-2 rounded transition-colors active:bg-orange-100">我是東廡弟子</button>
-                        <button onclick="selectRole('west')" class="flex-1 bg-[#8B2500] text-white font-bold py-2 rounded transition-colors active:bg-[#6A1B00]">我是西廡弟子</button>
-                    </div>
-                    <div id="role-info" class="hidden mb-4 p-3 bg-orange-50 border border-orange-200 rounded text-base font-bold text-[#8B2500]"></div>
-                    <div id="input-area" class="hidden fade-in">
-                        <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
-                        ${getInputHTML()}
+            if (level.type === 'audio_match') {
+                html += `<p class="font-bold text-[#8B2500] text-lg mb-3">請聆聽聲音，並在孔廟現場尋找對應的樂器：</p>`;
+                level.questions.forEach((q, idx) => {
+                    html += `
+                    <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 mb-3 shadow-sm">
+                        <p class="font-bold text-[#8B2500] mb-2">🔊 ${q.label}</p>
+                        <audio controls class="w-full h-10 mb-3 rounded">
+                            <source src="${q.src}" type="audio/mpeg">
+                            您的瀏覽器不支援音訊。
+                        </audio>
+                        <select id="audio-ans-${idx}" class="w-full px-3 py-3 rounded-lg bg-white border-2 border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-lg font-bold text-[#3E2723]">
+                            <option value="">-- 選擇樂器 --</option>`;
+                    instrumentOptions.forEach(opt => {
+                        html += `<option value="${opt}">${opt}</option>`;
+                    });
+                    html += `
+                        </select>
                     </div>`;
-            } else if (level.type === 'photo') {
+                });
+
                 html += `
-                    <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
-                    <label class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg cursor-pointer shadow-md font-bold mb-4 active:scale-95 transition-transform text-lg">
-                        📷 點此開啟相機拍照
-                        <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoUpload(event)">
+                    <label class="block w-full bg-[#D7CCC8] hover:bg-[#BCAAA4] text-[#3E2723] text-center py-3 rounded-lg cursor-pointer shadow-sm font-bold mb-4 transition-colors text-base active:scale-95">
+                        📷 拍下找到的樂器 (選用)
+                        <input type="file" accept="image/*" capture="environment" class="hidden">
                     </label>
-                    <div id="photo-preview-box" class="hidden fade-in">
-                        <img id="photo-preview" class="w-full h-48 object-cover rounded border-2 border-gray-300 mb-4">
-                        <p class="font-bold text-[#8B2500] text-lg mb-3">${level.questionAfter}</p>
-                        ${getInputHTML()}
-                    </div>`;
+                    <div class="h-8 mb-2 flex items-center justify-center">
+                        <p id="inline-feedback" class="text-base font-bold text-center w-full" style="opacity: 0; transition: opacity 0.3s ease;"></p>
+                    </div>
+                    <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] transition-colors tracking-widest">呈交配對</button>
+                `;
             } else if (level.type.startsWith('ar_')) {
                 html += `
                     <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
                     <button onclick="openARCamera('${level.type}')" class="w-full bg-[#1B5E20] text-white font-bold py-4 px-4 rounded-lg shadow-md mb-4 flex items-center justify-center gap-2 active:scale-95 transition-transform text-lg">
-                        <span class="text-2xl">📱</span> 開啟透視鏡陣法
+                        <span class="text-2xl">📱</span> 開啟透視鏡
                     </button>
                     ${getInputHTML()}
                 `;
@@ -370,7 +328,6 @@
             content.innerHTML = html;
         }
 
-        // 行內回饋設計
         function getInputHTML() {
             return `
                 <div class="mb-1 relative">
@@ -383,7 +340,6 @@
             `;
         }
 
-        // 錦囊系統
         window.useHint = function() {
             if (hintsLeft > 0) {
                 hintsLeft--;
@@ -394,28 +350,6 @@
             }
         };
 
-        window.selectRole = function(role) {
-            const level = levels[currentLevel];
-            const infoBox = document.getElementById('role-info');
-            const inputArea = document.getElementById('input-area');
-            infoBox.innerHTML = level.roles[role];
-            infoBox.classList.remove('hidden');
-            if (role === 'west') inputArea.classList.remove('hidden');
-            else inputArea.classList.add('hidden');
-        };
-
-        window.handlePhotoUpload = function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('photo-preview').src = e.target.result;
-                    document.getElementById('photo-preview-box').classList.remove('hidden');
-                }
-                reader.readAsDataURL(file);
-            }
-        };
-
         window.openARCamera = async function(type) {
             const level = levels[currentLevel];
             document.getElementById('ar-modal').classList.remove('hidden');
@@ -423,9 +357,7 @@
             document.getElementById('fallback-text').innerHTML = level.fallback;
             
             document.getElementById('svg-landscape').classList.add('hidden');
-            document.getElementById('svg-human').classList.add('hidden');
             if (type === 'ar_landscape') document.getElementById('svg-landscape').classList.remove('hidden');
-            if (type === 'ar_human') document.getElementById('svg-human').classList.remove('hidden');
 
             try {
                 cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -445,7 +377,6 @@
             box.classList.toggle('hidden');
         };
 
-        // JS 強制控制顏色，確保 100% 顯示
         function showInlineFeedback(msg, isSuccess, duration = 2500) {
             const fb = document.getElementById('inline-feedback');
             if (!fb) return;
@@ -454,23 +385,25 @@
             fb.style.opacity = '1';
             
             if (msg.startsWith("💡")) {
-                fb.style.color = '#D97706'; // 黃色
+                fb.style.color = '#D97706'; 
             } else if (isSuccess) {
-                fb.style.color = '#16A34A'; // 綠色
+                fb.style.color = '#16A34A'; 
             } else {
-                fb.style.color = '#DC2626'; // 紅色
+                fb.style.color = '#DC2626'; 
             }
             
             const inputEl = document.getElementById('answer-input');
-            if (!isSuccess && !msg.startsWith("💡")) {
-                inputEl.classList.add('animate-shake');
-                inputEl.style.borderColor = '#DC2626';
-                setTimeout(() => {
-                    inputEl.classList.remove('animate-shake');
-                    inputEl.style.borderColor = '#D1D5DB';
-                }, 400);
-            } else if (isSuccess && !msg.startsWith("💡")) {
-                inputEl.style.borderColor = '#16A34A';
+            if (inputEl) {
+                if (!isSuccess && !msg.startsWith("💡")) {
+                    inputEl.classList.add('animate-shake');
+                    inputEl.style.borderColor = '#DC2626';
+                    setTimeout(() => {
+                        inputEl.classList.remove('animate-shake');
+                        inputEl.style.borderColor = '#D1D5DB';
+                    }, 400);
+                } else if (isSuccess && !msg.startsWith("💡")) {
+                    inputEl.style.borderColor = '#16A34A';
+                }
             }
 
             if (window.feedbackTimeout) clearTimeout(window.feedbackTimeout);
@@ -480,12 +413,49 @@
         }
 
         window.checkAnswer = function() {
+            const level = levels[currentLevel];
+
+            if (level.type === 'audio_match') {
+                let allCorrect = true;
+                let isAnyEmpty = false;
+                
+                for (let i = 0; i < level.answers.length; i++) {
+                    const selectEl = document.getElementById(`audio-ans-${i}`);
+                    if (!selectEl.value) isAnyEmpty = true;
+                    if (selectEl.value !== level.answers[i]) {
+                        allCorrect = false;
+                    }
+                }
+                
+                if (isAnyEmpty) {
+                    showInlineFeedback("請完成所有聲音的樂器配對！", false);
+                    return;
+                }
+
+                if (allCorrect) {
+                    showInlineFeedback("🎵 找回一段祭孔樂章！", true, 2000);
+                    currentLevel++;
+                    setTimeout(() => {
+                        showInlineFeedback("🎼 祭孔樂章已恢復！老夫子：「做得好！」", true, 2000);
+                        setTimeout(() => {
+                            if (currentLevel < levels.length) loadLevel();
+                            else showEnding();
+                        }, 2000);
+                    }, 1500);
+                } else {
+                    wrongAttempts++;
+                    const counterEl = document.getElementById('mistake-counter');
+                    if (counterEl) counterEl.textContent = `失誤：${wrongAttempts}`;
+                    showInlineFeedback("答案不對喔，老夫子：「再仔細觀察孔廟裡的樂器！」", false);
+                }
+                return; 
+            }
+
             const inputEl = document.getElementById('answer-input');
             if (!inputEl) return;
             const userAnswer = inputEl.value.trim().toLowerCase().replace(/\s+/g, ''); 
             if (!userAnswer) { showInlineFeedback("請輸入答案！", false); return; }
 
-            const level = levels[currentLevel];
             let isCorrect = level.answer.some(ans => userAnswer === ans.toLowerCase());
 
             if (isCorrect) {
@@ -497,7 +467,8 @@
                 }, 1500);
             } else {
                 wrongAttempts++;
-                document.getElementById('mistake-counter').textContent = `失誤：${wrongAttempts}`;
+                const counterEl = document.getElementById('mistake-counter');
+                if (counterEl) counterEl.textContent = `失誤：${wrongAttempts}`;
                 showInlineFeedback("答案不對喔，老夫子：「再仔細觀察看看！」", false);
             }
         };
@@ -605,7 +576,9 @@
 
         document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !document.getElementById('puzzle-section').classList.contains('hidden')) {
-                if (document.activeElement.id === 'answer-input') checkAnswer();
+                if (levels[currentLevel].type === 'audio_match' || document.activeElement.id === 'answer-input') {
+                    checkAnswer();
+                }
             }
         });
 
