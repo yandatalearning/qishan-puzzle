@@ -57,7 +57,7 @@
                 <p class="text-xs font-bold text-gray-600 tracking-widest mt-1">新科弟子試煉</p>
             </div>
 
-            <!-- 開場引言區與小隊報到 -->
+            <!-- 開場引言區與小隊報到 (保留上一版) -->
             <div id="intro-section" class="mb-2 text-gray-700 leading-relaxed bg-[#F4EAD5] p-5 rounded-lg border-2 border-[#D7CCC8] shadow-sm text-center fade-in">
                 <h3 class="text-xl font-bold text-[#8B2500] mb-3">【新科弟子報到】</h3>
                 <p class="text-sm text-left mb-4 font-bold text-gray-600">老夫子：「年輕人，試煉前請先留下你們的小隊名號與合照，這將是你們最後結算成績的印記。」</p>
@@ -75,15 +75,16 @@
                 </button>
             </div>
 
-            <!-- 解謎區塊 -->
+            <!-- 解謎區塊 (融合錦囊按鈕與失誤計數) -->
             <div id="puzzle-section" class="hidden fade-in">
-                <div class="flex justify-between items-center text-sm font-bold text-[#8B2500] mb-3 tracking-widest">
+                <div class="flex justify-between items-center text-sm font-bold text-[#8B2500] mb-1 tracking-widest">
                     <span id="level-indicator">卷 1 / 共 11 卷</span>
                     <!-- 錦囊按鈕 -->
                     <button onclick="useHint()" class="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 text-xs font-bold py-1 px-3 rounded-full shadow-sm active:scale-95 transition-transform">
                         💡 錦囊 (<span id="hint-count-display">5</span>)
                     </button>
                 </div>
+                <div class="text-right text-xs font-bold text-gray-500 mb-3" id="mistake-counter">失誤：0</div>
                 
                 <div class="bg-white rounded-lg p-5 shadow-sm border border-[#E7DCC8] mb-4" id="level-content">
                     <!-- 關卡內容注入區 -->
@@ -114,7 +115,7 @@
         </div>
     </div>
 
-    <!-- Web AR 相機視窗 -->
+    <!-- Web AR 相機視窗 (保留上一版) -->
     <div id="ar-modal" class="fixed inset-0 z-50 bg-black hidden flex flex-col">
         <div id="ar-hint" class="w-full bg-black/70 text-white text-center py-3 px-4 z-20 text-sm font-bold text-yellow-400"></div>
         <div class="relative w-full flex-1 overflow-hidden">
@@ -171,7 +172,7 @@
         let cameraStream = null;
         let teamName = "無名";
         let teamPhotoImg = null; 
-        let hintsLeft = 5; 
+        let hintsLeft = 5; // 全遊戲 5 次錦囊提示
 
         // 11 道關卡設定 (加入 hint)
         const levels = [
@@ -307,11 +308,9 @@
             document.getElementById('level-indicator').textContent = `卷 ${currentLevel + 1} / 共 ${levels.length} 卷`;
             const content = document.getElementById('level-content');
             
-            // 結合 RPG 對話泡泡與舊版大字體 UI
-            let html = `<h2 class="text-2xl font-bold mb-3 text-[#5D4037] border-b-2 border-[#8B2500] pb-2 inline-block">${level.title}</h2>`;
-
-            // RPG 老夫子對話框
-            html += `
+            // 融合 RPG 對話泡泡與上一版的排版
+            let html = `
+                <h2 class="text-2xl font-bold mb-3 text-[#5D4037] border-b-2 border-[#8B2500] pb-2 inline-block">${level.title}</h2>
                 <div class="flex items-start gap-3 mb-5">
                     <div class="w-12 h-12 rounded-full bg-[#8B2500] text-white flex items-center justify-center text-2xl font-bold shrink-0 border-2 border-yellow-500 shadow-md">夫</div>
                     <div class="bg-white border-2 border-[#E7DCC8] p-3 rounded-2xl rounded-tl-none shadow-sm relative w-full">
@@ -372,7 +371,7 @@
             content.innerHTML = html;
         }
 
-        // 輸入框與行內提示
+        // 行內回饋設計 (字體放大，融合錦囊顏色)
         function getInputHTML() {
             return `
                 <div class="mb-1 relative">
@@ -385,12 +384,12 @@
             `;
         }
 
-        // 錦囊系統
+        // 提示系統邏輯
         window.useHint = function() {
             if (hintsLeft > 0) {
                 hintsLeft--;
                 document.getElementById('hint-count-display').textContent = hintsLeft;
-                showInlineFeedback("💡 " + levels[currentLevel].hint, true, 6000); 
+                showInlineFeedback("💡 " + levels[currentLevel].hint, true, 6000); // 提示顯示 6 秒
             } else {
                 showInlineFeedback("錦囊已經用完囉！請靠小隊的智慧吧！", false, 3000);
             }
@@ -447,26 +446,26 @@
             box.classList.toggle('hidden');
         };
 
-        // 修復 Tailwind 動態 Class 遺失問題，直接寫死完整的字串
+        // 更新的行內提示，支援黃色錦囊字體
         function showInlineFeedback(msg, isSuccess, duration = 2500) {
             const fb = document.getElementById('inline-feedback');
+            if (!fb) return;
             fb.textContent = msg;
             
-            // 完整寫出 className 確保 Tailwind CDN 正確解析顏色
-            if (msg.startsWith("💡")) {
-                fb.className = "text-base font-bold transition-opacity text-center w-full opacity-100 text-yellow-600";
-            } else if (isSuccess) {
-                fb.className = "text-base font-bold transition-opacity text-center w-full opacity-100 text-green-600";
-            } else {
-                fb.className = "text-base font-bold transition-opacity text-center w-full opacity-100 text-red-600";
-            }
+            let textColor = 'text-green-600';
+            if (msg.startsWith("💡")) textColor = 'text-yellow-600';
+            else if (!isSuccess) textColor = 'text-red-600';
+
+            fb.className = `text-base font-bold transition-opacity text-center w-full opacity-100 ${textColor}`;
             
             const inputEl = document.getElementById('answer-input');
-            if (!isSuccess && !msg.startsWith("💡")) {
-                inputEl.classList.add('animate-shake', 'border-red-500');
-                setTimeout(() => inputEl.classList.remove('animate-shake', 'border-red-500'), 400);
-            } else if (isSuccess && !msg.startsWith("💡")) {
-                inputEl.classList.add('border-green-500');
+            if (inputEl) {
+                if (!isSuccess && !msg.startsWith("💡")) {
+                    inputEl.classList.add('animate-shake', 'border-red-500');
+                    setTimeout(() => inputEl.classList.remove('animate-shake', 'border-red-500'), 400);
+                } else if (isSuccess && !msg.startsWith("💡")) {
+                    inputEl.classList.add('border-green-500');
+                }
             }
 
             if (window.feedbackTimeout) clearTimeout(window.feedbackTimeout);
@@ -493,7 +492,8 @@
                 }, 1500);
             } else {
                 wrongAttempts++;
-                document.getElementById('mistake-counter').textContent = `失誤：${wrongAttempts}`;
+                const counterEl = document.getElementById('mistake-counter');
+                if (counterEl) counterEl.textContent = `失誤：${wrongAttempts}`;
                 showInlineFeedback("答案不對喔，再仔細觀察看看！", false);
             }
         };
@@ -555,6 +555,7 @@
 
             // 畫上傳的合照 (如果有)
             if (teamPhotoImg) {
+                // 計算等比例裁切 (Cover)
                 const imgRatio = teamPhotoImg.width / teamPhotoImg.height;
                 const boxRatio = photoW / photoH;
                 let srcX = 0, srcY = 0, srcW = teamPhotoImg.width, srcH = teamPhotoImg.height;
@@ -575,7 +576,7 @@
                 ctx.fillText('此處應有小隊英姿', canvas.width / 2, photoY + photoH / 2);
             }
 
-            // 疊加狀元帽 Emoji
+            // 疊加狀元帽 Emoji (蓋在照片上方)
             ctx.font = '120px sans-serif';
             ctx.fillText('🎓', canvas.width / 2, photoY + 40);
 
