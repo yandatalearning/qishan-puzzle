@@ -159,8 +159,8 @@
         <div id="ar-hint" class="w-full bg-black/70 text-white text-center py-3 px-4 z-20 text-sm font-bold text-yellow-400"></div>
         <div class="relative w-full flex-1 overflow-hidden">
             <video id="ar-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
-            <!-- 在這邊將 hidden 移除，透過 js 來控制顯示與否，確保進入 ar_landscape 時一定會跑出來 -->
-            <svg id="svg-landscape" class="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" style="display: none;">
+            <!-- 修復了 svg 隱藏的 Bug，現在依賴 classList 切換顯示 -->
+            <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
                 <rect x="456" y="360" width="88" height="100" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
                 <text x="500" y="340" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
                 <g stroke="#C1395E" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
@@ -172,8 +172,16 @@
                 </g>
             </svg>
         </div>
-        <div class="w-full bg-black/80 p-4 flex justify-end items-center z-20">
+        <div class="w-full bg-black/80 p-4 flex justify-between items-center z-20">
+            <!-- 恢復了備用提示按鈕 -->
+            <button onclick="toggleFallbackHint()" class="text-xs text-yellow-400 underline pl-2">鏡頭不支援？點此</button>
             <button onclick="closeARCamera()" class="bg-[#8B2500] text-white px-6 py-3 rounded-full font-bold shadow-lg mr-2">返回作答</button>
+        </div>
+        <!-- 恢復了備用提示對話框 -->
+        <div id="fallback-box" class="hidden absolute inset-4 bg-gray-900/95 text-white p-6 rounded-xl z-30 flex flex-col justify-center items-center text-center">
+            <h3 class="text-lg font-bold text-yellow-400 mb-2">AR 輔助提示</h3>
+            <p class="text-sm text-gray-300 mb-4 leading-relaxed" id="fallback-text"></p>
+            <button onclick="toggleFallbackHint()" class="bg-gray-700 text-white px-4 py-2 rounded text-sm">關閉提示</button>
         </div>
     </div>
 
@@ -232,6 +240,7 @@
                 question: "請利用透視鏡找出主門的密碼？（一個詞）",
                 answer: ["moon", "moons"],
                 arHint: "請先將畫面上的黃色虛線框貼齊大成門的「正中央拱門」！",
+                fallback: "當紅線與四根柱子對齊時：<br>左側柱子與V型組成「M」<br>中央柱群與上下橫條組成兩個「O」<br>右側柱子與斜線組成「N」",
                 hint: "將紅線與現場相符合的顏色連接，會得到四位數的單字喔！"
             },
             {
@@ -291,7 +300,7 @@
                 question: "請找關主拿著色紙，完成並回答畫中隱藏的數字是多少？",
                 answer: ["0928"],
                 hint: "數字是孔子的生日喔！",
-                hintImage: "anser.jpg" // 這裡加上錦囊專用的提示圖片
+                hintImage: "anser.png" // 更新為 png
             },
             {
                 type: 'plaque_fill',
@@ -321,6 +330,7 @@
                 question: "請利用透視鏡找出主門的密碼？（一個詞）",
                 answer: ["moon", "moons"],
                 arHint: "請先將畫面上的黃色虛線框貼齊大成門的「正中央拱門」！",
+                fallback: "當紅線與四根柱子對齊時：<br>左側柱子與V型組成「M」<br>中央柱群與上下橫條組成兩個「O」<br>右側柱子與斜線組成「N」",
                 hint: "將紅線與現場相符合的顏色連接，會得到四位數的單字喔！"
             },
             {
@@ -369,7 +379,7 @@
                 question: "請找關主拿著色紙，完成並回答畫中隱藏的數字是多少？",
                 answer: ["0928"],
                 hint: "數字是孔子的生日喔！",
-                hintImage: "anser.jpg" // 錦囊的提示圖片
+                hintImage: "anser.png" // 更新為 png
             }
         ];
 
@@ -593,7 +603,6 @@
             let hintStyle = revealedHints.has(currentLevel) ? 'block' : 'hidden';
             let hintContent = revealedHints.has(currentLevel) ? `💡 錦囊：${level.hint}` : '';
             
-            // 處理錦囊圖片 (針對畫中玄機)
             let hintImageHtml = '';
             if (revealedHints.has(currentLevel) && level.hintImage) {
                 hintImageHtml = `<img src="${level.hintImage}" class="w-full mt-3 rounded-lg border-2 border-yellow-400 shadow-sm" onerror="this.style.display='none'">`;
@@ -701,8 +710,11 @@
             document.getElementById('ar-hint').textContent = "💡 提示：" + level.arHint;
             document.getElementById('fallback-text').innerHTML = level.fallback;
             
-            // 確保每次開啟 AR 時都顯示黃框跟紅線
-            document.getElementById('svg-landscape').style.display = 'block';
+            // 透過 classList 確保輔助線顯示
+            const svgEl = document.getElementById('svg-landscape');
+            if (level.type === 'ar_landscape') {
+                svgEl.classList.remove('hidden');
+            }
 
             try {
                 cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -714,7 +726,7 @@
 
         window.closeARCamera = function() {
             document.getElementById('ar-modal').classList.add('hidden');
-            document.getElementById('svg-landscape').style.display = 'none'; // 關閉時隱藏輔助線
+            document.getElementById('svg-landscape').classList.add('hidden');
             if (cameraStream) { cameraStream.getTracks().forEach(track => track.stop()); cameraStream = null; }
         };
 
