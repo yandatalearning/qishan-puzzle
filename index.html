@@ -154,12 +154,13 @@
         </div>
     </div>
 
-    <!-- Web AR 相機視窗 (移除備用按鈕與提示框) -->
+    <!-- Web AR 相機視窗 -->
     <div id="ar-modal" class="fixed inset-0 z-50 bg-black hidden flex flex-col">
         <div id="ar-hint" class="w-full bg-black/70 text-white text-center py-3 px-4 z-20 text-sm font-bold text-yellow-400"></div>
         <div class="relative w-full flex-1 overflow-hidden">
             <video id="ar-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
-            <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
+            <!-- 在這邊將 hidden 移除，透過 js 來控制顯示與否，確保進入 ar_landscape 時一定會跑出來 -->
+            <svg id="svg-landscape" class="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" style="display: none;">
                 <rect x="456" y="360" width="88" height="100" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
                 <text x="500" y="340" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
                 <g stroke="#C1395E" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
@@ -172,7 +173,6 @@
             </svg>
         </div>
         <div class="w-full bg-black/80 p-4 flex justify-end items-center z-20">
-            <!-- 已移除不支援備用按鈕 -->
             <button onclick="closeARCamera()" class="bg-[#8B2500] text-white px-6 py-3 rounded-full font-bold shadow-lg mr-2">返回作答</button>
         </div>
     </div>
@@ -183,7 +183,7 @@
         let currentLevel = 0;
         let wrongAttempts = 0;
         let cameraStream = null;
-        let teamName = "無名";
+        let teamName = "無名隊";
         let teamPhotoImg = null; 
         let hintsLeft = 5; 
         
@@ -196,7 +196,7 @@
         const instrumentOptions = ["編鐘", "編磬", "笛", "蕭", "笙", "鳳簫", "拍板", "塤", "甄", "琴", "瑟", "鼗", "敔", "搏拊"];
 
         // ==========================================
-        // 【題庫一】新科弟子版 (11 卷，依照最新文本)
+        // 【題庫一】新科弟子版
         // ==========================================
         const levels_teen = [
             {
@@ -205,7 +205,7 @@
                 desc: "你們現在所在位置為孔廟的第一道門，稱為「櫺星門」。櫺星又稱文曲星，文曲星則被古人視為主管教育、文學與得士的星宿。以此象徵孔子育才施教的崇高地位。正巧！你們來到孔廟的時間，正值中秋節日升月降之際，此時在「櫺星門」觀星賞月時，可以看到文曲星閃閃發光喔！",
                 image: "stars.png",
                 question: "已知文曲星總是佇立在角落與編號01074平行排列，且與編號01073的星星相離最遠。仔細觀察星圖的位置，請問文曲星的編號是幾號？",
-                answer: ["01043"],
+                answer: ["01044"],
                 hint: "想一想「櫺星門」這裡在晚上看不到路時，可以照亮的物品是什麼呢？"
             },
             {
@@ -238,7 +238,7 @@
                 type: 'iframe_puzzle',
                 title: "大成門的象徵",
                 desc: "大成門象徵通往大成殿的禮敬之門。由於孔廟屬聖廟，為了展現崇敬，大成門不畫一般廟宇的門神，改以沉穩深紅門扇與銅門釘裝飾，也不書寫對聯。它遵循古制，平時不全開，僅在春秋祭孔大典或國家元首蒞臨等重大儀式時，才會三門齊開。",
-                iframeUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b&view=iframe",
+                iframeUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b&view=iframe&pieces=35",
                 question: "請根據夫子敘述的大成門特徵完成拼圖。並回答：大成門不畫門神、不書對聯，又被尊稱為哪一座象徵崇敬與秩序的大門？",
                 answer: ["儀門"],
                 hint: "大成門又象徵著「禮儀」之門，答案是兩個字喔！"
@@ -260,7 +260,7 @@
                 answer1: ["羅子從彥"],
                 question2: "請問第二個圖案線索指向的牌位是誰？",
                 answer2: ["胡子安國"],
-                hint: "請觀察圖案並試著用諧音唸出來！"
+                hint: "觀察圖案並試著用諧音唸出來！找到對應名字的牌位後，依照指示方向數數看！(提示：東廡40先賢、39先儒；西廡39先賢、38先儒；崇聖祠5世祖父)"
             },
             {
                 type: 'audio_match',
@@ -290,7 +290,8 @@
                 desc: "走進莊嚴的大成殿，你們會發現這裡供奉的是至聖先師的牌位，而不是一般寺廟的雕刻神像。於是你們興起一個念頭，想要為老師畫一幅畫像，紀念夫子立德樹人的典範。",
                 question: "請找關主拿著色紙，完成並回答畫中隱藏的數字是多少？",
                 answer: ["0928"],
-                hint: "數字是孔子的生日喔！"
+                hint: "數字是孔子的生日喔！",
+                hintImage: "anser.jpg" // 這裡加上錦囊專用的提示圖片
             },
             {
                 type: 'plaque_fill',
@@ -310,7 +311,7 @@
         ];
 
         // ==========================================
-        // 【題庫二】童蒙探索版 (6 卷，依照最新文本同步更新)
+        // 【題庫二】童蒙探索版
         // ==========================================
         const levels_child = [
             {
@@ -326,7 +327,7 @@
                 type: 'iframe_puzzle',
                 title: "大成門的象徵",
                 desc: "大成門象徵通往大成殿的禮敬之門。由於孔廟屬聖廟，為了展現崇敬，大成門不畫一般廟宇的門神，改以沉穩深紅門扇與銅門釘裝飾，也不書寫對聯。它遵循古制，平時不全開，僅在春秋祭孔大典或國家元首蒞臨等重大儀式時，才會三門齊開。",
-                iframeUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b&view=iframe",
+                iframeUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b&view=iframe&pieces=24",
                 question: "請根據夫子敘述的大成門特徵完成拼圖。並回答：大成門不畫門神、不書對聯，又被尊稱為哪一座象徵崇敬與秩序的大門？",
                 answer: ["儀門"],
                 hint: "大成門又象徵著「禮儀」之門，答案是兩個字喔！"
@@ -341,7 +342,7 @@
                     { id: '2', src: 'audio_3.mp3', label: '神秘聲音三' },
                     { id: '3', src: 'audio_4.mp3', label: '神秘聲音四' }
                 ],
-                options: ["鼗", "編磬", "塤", "笙", "琴"], // 童蒙版專屬 5 個選項
+                options: ["鼗", "編磬", "塤", "笙", "琴"], 
                 answers: ["鼗", "編磬", "塤", "笙"],
                 hint: "清脆石頭聲是「編磬」；搖動發出咚咚聲的是「鼗」；風聲般低沉是「塤」；多管吹奏是「笙」！"
             },
@@ -367,7 +368,8 @@
                 desc: "走進莊嚴的大成殿，你們會發現這裡供奉的是至聖先師的牌位，而不是一般寺廟的雕刻神像。於是你們興起一個念頭，想要為老師畫一幅畫像，紀念夫子立德樹人的典範。",
                 question: "請找關主拿著色紙，完成並回答畫中隱藏的數字是多少？",
                 answer: ["0928"],
-                hint: "數字是孔子的生日喔！"
+                hint: "數字是孔子的生日喔！",
+                hintImage: "anser.jpg" // 錦囊的提示圖片
             }
         ];
 
@@ -386,7 +388,6 @@
             }
         }
 
-        // 分流啟動遊戲
         function startGame(mode) {
             const nameInput = document.getElementById('team-name-input').value.trim();
             if (nameInput) teamName = nameInput;
@@ -591,9 +592,17 @@
 
             let hintStyle = revealedHints.has(currentLevel) ? 'block' : 'hidden';
             let hintContent = revealedHints.has(currentLevel) ? `💡 錦囊：${level.hint}` : '';
+            
+            // 處理錦囊圖片 (針對畫中玄機)
+            let hintImageHtml = '';
+            if (revealedHints.has(currentLevel) && level.hintImage) {
+                hintImageHtml = `<img src="${level.hintImage}" class="w-full mt-3 rounded-lg border-2 border-yellow-400 shadow-sm" onerror="this.style.display='none'">`;
+            }
+
             html += `
                 <div id="persistent-hint-box" class="${hintStyle} mt-4 bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded-lg text-yellow-800 text-sm font-bold fade-in shadow-sm leading-relaxed scroll-mt-4">
                     ${hintContent}
+                    ${hintImageHtml}
                 </div>
             `;
 
@@ -647,6 +656,7 @@
             if (completedLevels.has(currentLevel)) return; 
             
             const hintBox = document.getElementById('persistent-hint-box');
+            const level = activeLevels[currentLevel];
 
             if (revealedHints.has(currentLevel)) {
                 if (hintBox) hintBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -659,7 +669,11 @@
                 revealedHints.add(currentLevel);
                 
                 if (hintBox) {
-                    hintBox.textContent = `💡 錦囊：${activeLevels[currentLevel].hint}`;
+                    let hintHtml = `💡 錦囊：${level.hint}`;
+                    if(level.hintImage) {
+                        hintHtml += `<img src="${level.hintImage}" class="w-full mt-3 rounded-lg border-2 border-yellow-400 shadow-sm" onerror="this.style.display='none'">`;
+                    }
+                    hintBox.innerHTML = hintHtml;
                     hintBox.classList.remove('hidden', 'bg-orange-50', 'text-orange-800', 'border-orange-500');
                     hintBox.classList.add('block', 'bg-yellow-50', 'text-yellow-800', 'border-yellow-500');
                     setTimeout(() => { hintBox.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
@@ -687,8 +701,8 @@
             document.getElementById('ar-hint').textContent = "💡 提示：" + level.arHint;
             document.getElementById('fallback-text').innerHTML = level.fallback;
             
-            document.getElementById('svg-landscape').classList.add('hidden');
-            if (type === 'ar_landscape') document.getElementById('svg-landscape').classList.remove('hidden');
+            // 確保每次開啟 AR 時都顯示黃框跟紅線
+            document.getElementById('svg-landscape').style.display = 'block';
 
             try {
                 cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
@@ -700,6 +714,7 @@
 
         window.closeARCamera = function() {
             document.getElementById('ar-modal').classList.add('hidden');
+            document.getElementById('svg-landscape').style.display = 'none'; // 關閉時隱藏輔助線
             if (cameraStream) { cameraStream.getTracks().forEach(track => track.stop()); cameraStream = null; }
         };
 
