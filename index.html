@@ -187,13 +187,13 @@
         let currentLevel = 0;
         let wrongAttempts = 0;
         let cameraStream = null;
-        let teamName = "無名";
+        let teamName = "無名隊";
         let teamPhotoImg = null; 
         let hintsLeft = 5; 
         
         let completedLevels = new Set();
         let revealedHints = new Set();
-        let huntPhotoUploaded = false; // 專用於尋寶題的判定
+        let huntPhotoUploaded = false; 
 
         let currentCardStyle = 0;
         const cardTitles = ["1/4 古風御賜卡", "2/4 Q版貼紙卡", "3/4 拍立得旅行卡", "4/4 孔門弟子卡"];
@@ -243,7 +243,7 @@
                 type: 'iframe_puzzle',
                 title: "大成門的威儀",
                 desc: "大成門象徵通往大成殿的禮敬之門。孔廟屬聖廟，不畫一般廟宇的門神，改以沉穩深紅門扇與銅門釘裝飾，且不書對聯以示崇敬。",
-                iframeUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b&=5&pieces=35&view=iframe",
+                iframeUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b&view=iframe",
                 question: "拼圖完成後，請觀察現場介紹或回想老夫子的教誨，大成門的另外一個名稱是什麼？",
                 answer: ["儀門"],
                 hint: "大成門又象徵著「禮儀」之門，答案是兩個字喔！"
@@ -277,8 +277,8 @@
                     { id: '2', src: 'audio_3.mp3', label: '神秘聲音三' },
                     { id: '3', src: 'audio_4.mp3', label: '神秘聲音四' }
                 ],
-                answers: ["編鐘", "編磬", "塤", "笙"],
-                hint: "清脆石頭聲是「編磬」；金屬敲擊是「編鐘」；風聲般低沉是「塤」；多管吹奏是「笙」！"
+                answers: ["鼗", "編磬", "塤", "笙"],
+                hint: "清脆石頭聲是「編磬」；搖動發出咚咚聲的是「鼗」；風聲般低沉是「塤」；多管吹奏是「笙」！"
             },
             {
                 type: 'logic_seat',
@@ -332,7 +332,7 @@
                 type: 'iframe_puzzle',
                 title: "大成門的威儀",
                 desc: "大成門象徵通往大成殿的禮敬之門。孔廟屬聖廟，不畫一般廟宇的門神，改以沉穩深紅門扇與銅門釘裝飾，且不書對聯以示崇敬。",
-                iframeUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b&=5&pieces=24&view=iframe",
+                iframeUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b&view=iframe",
                 question: "拼圖完成後，請觀察現場介紹或回想老夫子的教誨，大成門的另外一個名稱是什麼？",
                 answer: ["儀門"],
                 hint: "大成門又象徵著「禮儀」之門，答案是兩個字喔！"
@@ -347,12 +347,12 @@
                     { id: '2', src: 'audio_3.mp3', label: '神秘聲音三' },
                     { id: '3', src: 'audio_4.mp3', label: '神秘聲音四' }
                 ],
-                options: ["編鐘", "編磬", "塤", "笙", "琴"], // 童蒙版專屬 5 個選項
-                answers: ["編鐘", "編磬", "塤", "笙"],
-                hint: "清脆石頭聲是「編磬」；金屬敲擊是「編鐘」；風聲般低沉是「塤」；多管吹奏是「笙」！"
+                options: ["鼗", "編磬", "塤", "笙", "琴"], // 童蒙版專屬 5 個選項
+                answers: ["鼗", "編磬", "塤", "笙"],
+                hint: "清脆石頭聲是「編磬」；搖動發出咚咚聲的是「鼗」；風聲般低沉是「塤」；多管吹奏是「笙」！"
             },
             {
-                type: 'photo_hunt', // 新增的尋寶拍照題
+                type: 'photo_hunt', 
                 title: "孔廟尋寶記",
                 desc: "老夫子在孔廟裡藏了幾個特別的寶物，請根據下方的照片，在孔廟內找出它們的真面目！",
                 images: ["bell.jpg", "duck.jpg", "fan.jpg", "painting.jpg", "calligraphy.jpg"],
@@ -360,7 +360,7 @@
                 hint: "可以在大成門、東廡、西廡或大成殿周圍，仔細找找這些物品的蹤影喔！"
             },
             {
-                type: 'touhu_simple', // 新增的純投壺密碼題
+                type: 'touhu_simple', 
                 title: "君子之爭",
                 desc: "老夫子擺下了投壺挑戰：「君子無所爭，必也射乎！請找關主完成『投壺 9 進 4』挑戰，才能獲得通關密碼。」",
                 question: "請輸入關主給予的通關密碼：",
@@ -487,7 +487,6 @@
                         </div>
                     `;
                 } else if (level.type === 'touhu_simple') {
-                    // 童蒙版的簡單投壺
                     html += `
                         <div class="bg-orange-50 p-5 rounded-xl border border-orange-200 shadow-sm text-center mb-4">
                             <p class="text-lg font-bold text-[#8B2500] mb-4">${level.question}</p>
@@ -501,8 +500,7 @@
                         </div>
                     `;
                 } else if (level.type === 'photo_hunt') {
-                    // 童蒙版的合照尋寶
-                    huntPhotoUploaded = false; // 初始化狀態
+                    huntPhotoUploaded = false; 
                     html += `<div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">`;
                     level.images.forEach(img => {
                         html += `<img src="${img}" class="w-full h-24 object-cover rounded border-2 border-[#8B2500] shadow-sm" onerror="this.style.display='none'">`;
@@ -555,7 +553,7 @@
                     `;
                 } else if (level.type === 'audio_match') {
                     html += `<p class="font-bold text-[#8B2500] text-lg mb-3">請聆聽聲音，並在孔廟現場尋找對應的樂器：</p>`;
-                    const optionsList = level.options || instrumentOptions; // 動態選擇選項清單
+                    const optionsList = level.options || instrumentOptions; 
                     level.questions.forEach((q, idx) => {
                         html += `
                         <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 mb-3 shadow-sm">
