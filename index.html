@@ -31,11 +31,9 @@
             100% { transform: scale(1); opacity: 1; box-shadow: 0 0 15px rgba(255, 213, 79, 0.5); }
         }
 
-        /* 模擬印章蓋下的動畫特效 */
         .stamp-reveal { opacity: 0; transform: scale(3) rotate(-20deg); animation: stampPress 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; animation-delay: 1s; }
         @keyframes stampPress { 0% { opacity: 0; transform: scale(3) rotate(-20deg); } 50% { opacity: 1; transform: scale(0.9) rotate(-5deg); } 100% { opacity: 1; transform: scale(1) rotate(-10deg); } }
 
-        /* 隱藏卷軸但可滑動 */
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -222,12 +220,16 @@
                 hint: "石碑上的數字通常會用中文寫成（例如：一七二九），仔細找找石碑上的文字！"
             },
             {
-                type: 'standard',
-                title: "窗櫺裡的真理",
-                desc: "迴廊上的花磚與窗櫺，光影交錯間透出了古人的思想。",
-                question: "觀察窗櫺的洞洞排列。孔子倡導的中庸之道，追求不偏不倚、無過不及，正是什麼精神核心？（請輸入四個字）",
-                answer: ["大中至正"],
-                hint: "這四個字通常用來形容非常公平公正。第一個字是『大』，最後一個字是『正』。"
+                // 原卷七刪除，此處換上新增的解謎題
+                type: 'two_inputs',
+                title: "先賢的密碼",
+                desc: "東西廡供奉著許多先賢先儒。老夫子拿出了一張畫著各種圖案的紙條說：「這裡隱藏著尋找兩位先賢牌位的線索，試著唸出圖案的聲音，也許能找到方向。」",
+                image: "image_9703b3.png",
+                question1: "請問第一個圖案線索指向的牌位是誰？",
+                answer1: ["羅子從彥"],
+                question2: "請問第二個圖案線索指向的牌位是誰？",
+                answer2: ["胡子安國"],
+                hint: "觀察圖案並試著用諧音唸出來！例如「飯、中、菸、網、右、鼠、五、刺蝟」。找到對應名字的牌位後，依照指示方向數數看！(提示：東廡40先賢、39先儒；西廡39先賢、38先儒；崇聖祠5世祖父)"
             },
             {
                 type: 'audio_match',
@@ -248,7 +250,7 @@
                 desc: "開學了，有 9 個同學在教室上課，但是洪唯宸同學找不到他的位置在哪。老夫子擺下了投壺挑戰：「君子無所爭，必也射乎！請找關主完成『投壺 9 中 3』挑戰，才能獲得尋找座位的線索。」",
                 question: "請問：洪唯宸坐在第幾個位置？（請輸入數字）",
                 answer: ["7", "七"],
-                password: "123", // ⬅️ 你可以在這裡更改關主給的密碼
+                password: "123", // 可更改通關密碼
                 hint: "仔細排排看：汪1, 劉子綺2, 劉可婕3, 林6。王宏宇和王宏智不能在5、7，也不能相鄰。莊芷菱必須在莊于萱上面且中間至少有2人！"
             },
             {
@@ -399,6 +401,21 @@
                         </div>
                         <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] transition-colors tracking-widest">呈交答案</button>
                     `;
+                } else if (level.type === 'two_inputs') {
+                    // 新增的諧音找牌位題，有兩個輸入框
+                    html += `
+                        <div class="mb-4">
+                            <p class="font-bold text-[#8B2500] text-lg mb-2">${level.question1}</p>
+                            <input type="text" id="answer-input-1" placeholder="輸入第一位先賢名稱" class="w-full px-4 py-3 rounded bg-gray-50 border-2 border-gray-300 focus:outline-none focus:border-[#8B2500] focus:ring-0 text-center text-lg font-bold transition-all mb-4" autocomplete="off">
+                            
+                            <p class="font-bold text-[#8B2500] text-lg mb-2">${level.question2}</p>
+                            <input type="text" id="answer-input-2" placeholder="輸入第二位先賢名稱" class="w-full px-4 py-3 rounded bg-gray-50 border-2 border-gray-300 focus:outline-none focus:border-[#8B2500] focus:ring-0 text-center text-lg font-bold transition-all" autocomplete="off">
+                        </div>
+                        <div class="h-8 mb-2 flex items-center justify-center">
+                            <p id="inline-feedback" class="text-base font-bold text-center w-full" style="opacity: 0; transition: opacity 0.3s ease;"></p>
+                        </div>
+                        <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] transition-colors tracking-widest">呈交答案</button>
+                    `;
                 } else if (level.type === 'audio_match') {
                     html += `<p class="font-bold text-[#8B2500] text-lg mb-3">請聆聽聲音，並在孔廟現場尋找對應的樂器：</p>`;
                     level.questions.forEach((q, idx) => {
@@ -460,7 +477,6 @@
             document.getElementById('level-content').innerHTML = html;
         }
 
-        // 投壺密碼驗證函數
         window.checkTouhuPassword = function() {
             const inputEl = document.getElementById('touhu-password');
             const feedback = document.getElementById('password-feedback');
@@ -618,6 +634,39 @@
                     return;
                 }
                 isCorrect = allCorrect;
+            } else if (level.type === 'two_inputs') {
+                const input1 = document.getElementById('answer-input-1');
+                const input2 = document.getElementById('answer-input-2');
+                if (!input1 || !input2) return;
+
+                const val1 = input1.value.trim().toLowerCase().replace(/\s+/g, '');
+                const val2 = input2.value.trim().toLowerCase().replace(/\s+/g, '');
+
+                if (!val1 || !val2) {
+                    showInlineFeedback("請將兩位先賢的名字都輸入！", false);
+                    return;
+                }
+
+                const isCorrect1 = level.answer1.some(ans => val1 === ans.toLowerCase());
+                const isCorrect2 = level.answer2.some(ans => val2 === ans.toLowerCase());
+
+                if (isCorrect1 && isCorrect2) {
+                    isCorrect = true;
+                } else {
+                    if (!isCorrect1) {
+                        input1.classList.add('border-red-500', 'animate-shake');
+                        setTimeout(() => input1.classList.remove('border-red-500', 'animate-shake'), 400);
+                    } else {
+                        input1.classList.add('border-green-500');
+                    }
+                    if (!isCorrect2) {
+                        input2.classList.add('border-red-500', 'animate-shake');
+                        setTimeout(() => input2.classList.remove('border-red-500', 'animate-shake'), 400);
+                    } else {
+                        input2.classList.add('border-green-500');
+                    }
+                    isCorrect = false;
+                }
             } else {
                 const inputEl = document.getElementById('answer-input');
                 if (!inputEl) return;
@@ -759,7 +808,7 @@
                 const level = levels[currentLevel];
                 if (document.activeElement.id === 'touhu-password') {
                     checkTouhuPassword();
-                } else if (level.type === 'audio_match' || level.type === 'plaque_fill' || document.activeElement.id === 'answer-input') {
+                } else if (level.type === 'audio_match' || level.type === 'plaque_fill' || level.type === 'two_inputs' || document.activeElement.id === 'answer-input') {
                     checkAnswer();
                 }
             }
