@@ -51,15 +51,18 @@
                 <p class="text-xs font-bold text-gray-600 tracking-widest mt-1">新科弟子試煉</p>
             </div>
 
-            <!-- 引言 -->
-            <div id="intro-section" class="mb-6 text-sm text-gray-700 leading-relaxed bg-[#F4EAD5] p-4 rounded border border-[#D7CCC8]">
-                <strong>【身分賦予】</strong><br>
-                老夫子幻影浮現：「年輕人，孔廟的智慧藏在團隊、自然與幾何之中。今日的試煉融合了天地星辰與歷史印記，準備好迎接挑戰了嗎？」
+            <!-- 開場引言區 (點擊後隱藏) -->
+            <div id="intro-section" class="mb-2 text-gray-700 leading-relaxed bg-[#F4EAD5] p-5 rounded-lg border-2 border-[#D7CCC8] shadow-sm text-center fade-in">
+                <h3 class="text-xl font-bold text-[#8B2500] mb-3">【身分賦予】</h3>
+                <p class="text-base text-left mb-6">老夫子幻影浮現：「年輕人，孔廟的智慧藏在團隊、自然與幾何之中。今日的試煉融合了天地星辰與歷史印記，準備好迎接挑戰了嗎？」</p>
+                <button onclick="startGame()" class="w-full bg-[#8B2500] text-white font-bold py-3 px-4 rounded-lg shadow-md text-lg active:bg-[#6A1B00] transition-colors tracking-widest">
+                    接受試煉
+                </button>
             </div>
 
-            <!-- 解謎區塊 -->
-            <div id="puzzle-section">
-                <div class="flex justify-between text-xs font-bold text-[#8B2500] mb-2 tracking-widest">
+            <!-- 解謎區塊 (預設隱藏，字體放大) -->
+            <div id="puzzle-section" class="hidden fade-in">
+                <div class="flex justify-between text-sm font-bold text-[#8B2500] mb-3 tracking-widest">
                     <span id="level-indicator">卷 1 / 共 11 卷</span>
                     <span id="mistake-counter">失誤：0</span>
                 </div>
@@ -74,12 +77,12 @@
                 <div class="bg-white rounded-lg p-6 shadow-sm border-2 border-[#8B2500] relative text-center">
                     <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#8B2500] text-white px-4 py-1 rounded text-sm tracking-widest font-bold">試煉完成</div>
                     <h2 class="text-3xl font-black text-[#8B2500] mt-4 mb-2" id="final-rank">狀元及第</h2>
-                    <p class="text-gray-500 font-bold mb-4" id="final-score">最終得分：100 分</p>
-                    <div class="text-sm text-gray-700 leading-relaxed border-t border-dashed border-gray-300 pt-4 text-left">
+                    <p class="text-gray-500 font-bold mb-4 text-lg" id="final-score">最終得分：100 分</p>
+                    <div class="text-base text-gray-700 leading-relaxed border-t border-dashed border-gray-300 pt-4 text-left">
                         老夫子欣慰地微笑：「善哉！你們學會了分工合作、細心觀察，最後更看破了紅柱間的異國之謎 <span class="text-[#8B2500] font-bold">【MOON】</span>。你們已領悟大中至正的儒門大道，這份智慧將伴隨你們一生！」
                     </div>
                 </div>
-                <button onclick="location.reload()" class="w-full mt-6 border-2 border-[#8B2500] text-[#8B2500] font-bold py-2 px-4 rounded tracking-widest">再玩一次</button>
+                <button onclick="location.reload()" class="w-full mt-6 border-2 border-[#8B2500] text-[#8B2500] font-bold py-3 px-4 rounded-lg tracking-widest text-lg">再玩一次</button>
             </div>
         </div>
     </div>
@@ -92,8 +95,10 @@
             
             <!-- AR 紅柱密碼 (MOON) -->
             <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
-                <rect x="447.5" y="440" width="105" height="113" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
-                <text x="500" y="420" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
+                <!-- 調整後的黃色框：寬度縮減為 88，向上提至 y=360，避免與紅線重疊 -->
+                <rect x="456" y="360" width="88" height="100" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
+                <text x="500" y="340" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
+                
                 <g stroke="#C62828" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
                     <path d="M 196 480 L 276 580 L 356 480" fill="none"/>
                     <line x1="356" y1="480" x2="644" y2="480" />
@@ -139,12 +144,13 @@
     </div>
 
     <script>
-        // 依據企劃檔案順序排列的 11 道關卡
+        // 依據企劃檔案順序排列的 11 道關卡，加入 image 屬性
         const levels = [
             {
                 type: 'standard',
                 title: "星象的指引",
                 desc: "孔廟的第一道門被稱為「櫺星門」。櫺星又稱文曲星，象徵孔子育才施教的崇高地位。日升月降之際，「櫺星」與星月相映。",
+                image: "stars.png", // ★ 請上傳星星圖片並命名為 stars.png
                 question: "新科弟子們發現天上星宿有幾處較閃耀的光，觀察地上的星圖，請問這組編號是幾號？",
                 answer: ["01043"]
             },
@@ -158,7 +164,8 @@
             {
                 type: 'standard',
                 title: "靈魂之窗口",
-                desc: "走到門前，需要最後的通關密語才能進入。老夫子給了一張提示卡：「孔孟聖道貫古今」。",
+                desc: "走到門前，需要最後的通關密語才能進入。老夫子給了一張提示卡：",
+                image: "hint_card.png", // ★ 請上傳提示卡圖片並命名為 hint_card.png
                 question: "請問想要通過「櫺星門」的密碼是什麼？（請輸入3位數字）",
                 answer: ["324"]
             },
@@ -235,12 +242,24 @@
         let wrongAttempts = 0;
         let cameraStream = null;
 
+        function startGame() {
+            document.getElementById('intro-section').classList.add('hidden');
+            document.getElementById('puzzle-section').classList.remove('hidden');
+        }
+
         function loadLevel() {
             const level = levels[currentLevel];
             document.getElementById('level-indicator').textContent = `卷 ${currentLevel + 1} / 共 ${levels.length} 卷`;
             const content = document.getElementById('level-content');
-            let html = `<h2 class="text-xl font-bold mb-3 text-[#5D4037] border-b-2 border-[#8B2500] pb-2 inline-block">${level.title}</h2>
-                        <p class="text-gray-700 mb-4 text-sm leading-relaxed">${level.desc}</p>`;
+            
+            // 放大標題與內文字體
+            let html = `<h2 class="text-2xl font-bold mb-3 text-[#5D4037] border-b-2 border-[#8B2500] pb-2 inline-block">${level.title}</h2>
+                        <p class="text-gray-800 mb-4 text-base leading-relaxed">${level.desc}</p>`;
+
+            // 支援載入圖片功能
+            if (level.image) {
+                html += `<img src="${level.image}" alt="關卡提示圖" class="w-full rounded-lg mb-4 shadow-sm border border-[#E7DCC8]" onerror="this.style.display='none'">`;
+            }
 
             if (level.type === 'coop') {
                 html += `
@@ -248,58 +267,58 @@
                         <button onclick="selectRole('east')" class="flex-1 border-2 border-[#8B2500] text-[#8B2500] font-bold py-2 rounded transition-colors active:bg-orange-100">我是東廡弟子</button>
                         <button onclick="selectRole('west')" class="flex-1 bg-[#8B2500] text-white font-bold py-2 rounded transition-colors active:bg-[#6A1B00]">我是西廡弟子</button>
                     </div>
-                    <div id="role-info" class="hidden mb-4 p-3 bg-orange-50 border border-orange-200 rounded text-sm font-bold text-[#8B2500]"></div>
+                    <div id="role-info" class="hidden mb-4 p-3 bg-orange-50 border border-orange-200 rounded text-base font-bold text-[#8B2500]"></div>
                     <div id="input-area" class="hidden fade-in">
-                        <p class="font-bold text-[#8B2500] mb-2">${level.question}</p>
+                        <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
                         ${getInputHTML()}
                     </div>`;
             } else if (level.type === 'photo') {
                 html += `
-                    <p class="font-bold text-[#8B2500] mb-4">${level.question}</p>
-                    <label class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg cursor-pointer shadow-md font-bold mb-4 active:scale-95 transition-transform">
+                    <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
+                    <label class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg cursor-pointer shadow-md font-bold mb-4 active:scale-95 transition-transform text-lg">
                         📷 點此開啟相機拍照
                         <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoUpload(event)">
                     </label>
                     <div id="photo-preview-box" class="hidden fade-in">
                         <img id="photo-preview" class="w-full h-48 object-cover rounded border-2 border-gray-300 mb-4">
-                        <p class="font-bold text-[#8B2500] mb-2">${level.questionAfter}</p>
+                        <p class="font-bold text-[#8B2500] text-lg mb-3">${level.questionAfter}</p>
                         ${getInputHTML()}
                     </div>`;
             } else if (level.type.startsWith('ar_')) {
                 html += `
-                    <p class="font-bold text-[#8B2500] mb-4">${level.question}</p>
-                    <button onclick="openARCamera('${level.type}')" class="w-full bg-[#1B5E20] text-white font-bold py-3 px-4 rounded-lg shadow-md mb-4 flex items-center justify-center gap-2 active:scale-95 transition-transform">
-                        <span class="text-xl">📱</span> 開啟透視鏡陣法
+                    <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
+                    <button onclick="openARCamera('${level.type}')" class="w-full bg-[#1B5E20] text-white font-bold py-4 px-4 rounded-lg shadow-md mb-4 flex items-center justify-center gap-2 active:scale-95 transition-transform text-lg">
+                        <span class="text-2xl">📱</span> 開啟透視鏡陣法
                     </button>
                     ${getInputHTML()}
                 `;
             } else if (level.type === 'link') {
                 html += `
-                    <a href="${level.linkUrl}" target="_blank" class="block w-full bg-[#1B5E20] hover:bg-[#144718] text-white text-center py-4 rounded-lg shadow-md font-bold mb-4 transition-transform active:scale-95">
+                    <a href="${level.linkUrl}" target="_blank" class="block w-full bg-[#1B5E20] hover:bg-[#144718] text-white text-center py-4 rounded-lg shadow-md font-bold mb-4 transition-transform active:scale-95 text-lg">
                         ${level.linkText}
                     </a>
-                    <p class="font-bold text-[#8B2500] mb-2">${level.question}</p>
+                    <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
                     ${getInputHTML()}
                 `;
             } else {
                 html += `
-                    <p class="font-bold text-[#8B2500] mb-4">${level.question}</p>
+                    <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
                     ${getInputHTML()}
                 `;
             }
             content.innerHTML = html;
         }
 
-        // 行內回饋設計
+        // 行內回饋設計 (字體放大)
         function getInputHTML() {
             return `
                 <div class="mb-1 relative">
-                    <input type="text" id="answer-input" placeholder="請輸入答案..." class="w-full px-4 py-3 rounded bg-gray-50 border-2 border-gray-300 focus:border-[#8B2500] focus:ring-0 text-center text-lg transition-all" autocomplete="off">
+                    <input type="text" id="answer-input" placeholder="請點此輸入答案..." class="w-full px-4 py-4 rounded bg-gray-50 border-2 border-gray-300 focus:border-[#8B2500] focus:ring-0 text-center text-xl font-bold transition-all" autocomplete="off">
                 </div>
-                <div class="h-6 mb-3 flex items-center justify-center">
-                    <p id="inline-feedback" class="text-sm font-bold opacity-0 transition-opacity text-center w-full"></p>
+                <div class="h-8 mb-2 flex items-center justify-center">
+                    <p id="inline-feedback" class="text-base font-bold opacity-0 transition-opacity text-center w-full"></p>
                 </div>
-                <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-3 px-4 rounded shadow-md text-lg active:bg-[#6A1B00] transition-colors">呈交答案</button>
+                <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] transition-colors tracking-widest">呈交答案</button>
             `;
         }
 
@@ -357,7 +376,7 @@
         function showInlineFeedback(msg, isSuccess) {
             const fb = document.getElementById('inline-feedback');
             fb.textContent = msg;
-            fb.className = `text-sm font-bold transition-opacity text-center w-full opacity-100 ${isSuccess ? 'text-green-600' : 'text-red-600'}`;
+            fb.className = `text-base font-bold transition-opacity text-center w-full opacity-100 ${isSuccess ? 'text-green-600' : 'text-red-600'}`;
             
             const inputEl = document.getElementById('answer-input');
             if (!isSuccess) {
@@ -398,10 +417,17 @@
         function showEnding() {
             document.getElementById('puzzle-section').classList.add('hidden');
             document.getElementById('intro-section').classList.add('hidden');
-            let score = 100 - (wrongAttempts * 10);
-            if (score < 60) score = 60;
             
-            let rank = wrongAttempts === 0 ? "【狀元及第】完美無瑕" : wrongAttempts <= 2 ? "【榜眼之才】略有瑕疵" : "【新科秀才】尚須努力";
+            // 改為錯一次扣 2 分
+            let score = 100 - (wrongAttempts * 2);
+            if (score < 60) score = 60; // 佛心保底 60 分
+            
+            // 稱號全改為正面鼓勵
+            let rank = "";
+            if (wrongAttempts === 0) rank = "【狀元及第】完美無瑕！";
+            else if (wrongAttempts <= 3) rank = "【榜眼之才】機智過人！";
+            else rank = "【探花之秀】百折不撓！";
+            
             document.getElementById('final-rank').textContent = rank;
             document.getElementById('final-score').textContent = `最終得分：${score} 分`;
 
