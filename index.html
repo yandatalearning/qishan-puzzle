@@ -86,7 +86,6 @@
             <!-- 解謎區塊 -->
             <div id="puzzle-section" class="hidden fade-in">
                 
-                <!-- 關卡導航列與地圖按鈕 -->
                 <div class="mb-3 flex flex-col gap-2">
                     <div class="flex justify-between items-center">
                         <button onclick="toggleMap()" class="bg-[#8B2500] hover:bg-[#6A1B00] text-white text-xs font-bold py-1.5 px-3 rounded shadow-sm active:scale-95 transition-transform flex items-center gap-1 tracking-widest">
@@ -166,13 +165,11 @@
                 <button onclick="closeHuntModalAndContinue()" class="text-[#8B2500] hover:text-red-600 font-black text-3xl leading-none px-2">&times;</button>
             </div>
             <div class="overflow-auto flex-1 rounded relative flex flex-col items-center pb-2">
-                <!-- 原圖合輯大圖 -->
                 <p class="text-sm font-bold text-red-600 w-full text-center animate-pulse z-10 bg-white/80 py-1 sticky top-0">👇 請長按下方圖片儲存至手機 👇</p>
                 <canvas id="hunt-canvas" width="800" height="1000" class="hidden"></canvas>
                 <img id="hunt-img" class="w-full h-auto rounded-lg border-2 border-[#8B2500] shadow-sm mb-4 mt-2">
                 
                 <h4 class="font-bold text-[#8B2500] text-lg mt-2 mb-2 w-full border-t border-[#D7CCC8] pt-2 text-center">【各別原圖保存區】</h4>
-                <!-- 動態生成的原圖列表 -->
                 <div id="hunt-original-images" class="w-full flex flex-col gap-3">
                 </div>
             </div>
@@ -419,12 +416,12 @@
                 seatImage: "chair2.png", 
                 clues: [
                     "林殿澧必須坐在第1個位置。",
-                    "劉子瑜、簡妘靜必須坐在一起。",
+                    "簡妘靜必須坐在劉子瑜的左邊、且兩人必須坐在一起。",
                     "劉子瑜必須坐在第3個位置。",
                     "李煜恩、李煜睿不能坐在一起。",
                     "洪璿恩不能排在李煜睿的右邊。"
                 ],
-                hint: "動動腦筋排排看喔！"
+                hint: "仔細排排看：林殿澧(1)，簡妘靜在劉子瑜(3)的左邊所以是(2)。李家兄弟要分開，且洪不能在李煜睿右邊，所以排法會是：李煜恩(4)、洪璿恩(5)、李煜睿(6)喔！"
             },
             {
                 type: 'standard',
@@ -572,7 +569,6 @@
                         </div>
                     `;
                 } else if (level.type === 'photo_hunt') {
-                    // 修改：不擋住原圖的排列方式
                     html += `<p class="font-bold text-[#8B2500] text-lg mb-4 text-center border-b-2 border-[#8B2500] pb-2">${level.question}</p>`;
                     html += `<div class="grid grid-cols-2 gap-3 mb-6">`;
                     
@@ -646,7 +642,7 @@
                             <audio controls class="w-full h-10 mb-3 rounded">
                                 <source src="${q.src}" type="audio/mpeg">
                             </audio>
-                            <select id="audio-ans-${idx}" class="w-full px-3 py-3 rounded-lg bg-white border-2 border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-lg font-bold text-[#3E2723]">
+                            <select id="audio-ans-${idx}" class="w-full px-3 py-3 rounded-lg bg-white border-2 border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-lg font-bold text-[#3E2723] transition-colors">
                                 <option value="">-- 選擇樂器 --</option>`;
                         optionsList.forEach(opt => {
                             html += `<option value="${opt}">${opt}</option>`;
@@ -837,6 +833,7 @@
             }
         };
 
+        // 修改尋寶全紀錄：只繪製原圖大合輯，下方提供 5 張原圖供長按
         window.drawHuntImage = function() {
             const canvas = document.getElementById('hunt-canvas');
             const ctx = canvas.getContext('2d');
@@ -894,7 +891,7 @@
                         const div = document.createElement('div');
                         div.className = "flex flex-col items-center border border-gray-300 rounded p-2 bg-white";
                         div.innerHTML = `
-                            <span class="text-xs font-bold text-gray-500 mb-1">寶物 ${idx + 1} (長按圖保存)</span>
+                            <span class="text-xs font-bold text-gray-500 mb-1">照片 ${idx + 1} (長按圖保存)</span>
                             <img src="${img.src}" class="w-full h-auto max-h-48 object-contain rounded">
                         `;
                         originalImagesContainer.appendChild(div);
@@ -981,6 +978,11 @@
                     if (!selectEl.value) isAnyEmpty = true;
                     if (selectEl.value !== level.answers[i]) {
                         allCorrect = false;
+                        selectEl.classList.add('border-red-500', 'bg-red-50');
+                        selectEl.classList.remove('border-gray-300', 'border-green-500', 'bg-green-50');
+                    } else {
+                        selectEl.classList.add('border-green-500', 'bg-green-50');
+                        selectEl.classList.remove('border-gray-300', 'border-red-500', 'bg-red-50');
                     }
                 }
                 if (isAnyEmpty) {
