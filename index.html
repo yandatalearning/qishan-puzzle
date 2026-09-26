@@ -33,7 +33,6 @@
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 尋寶圖片專屬樣式 */
         .hunt-item-uploaded { border-color: #16A34A !important; }
         .hunt-btn-uploaded { background-color: #16A34A !important; }
     </style>
@@ -93,11 +92,8 @@
                         <button onclick="toggleMap()" class="bg-[#8B2500] hover:bg-[#6A1B00] text-white text-xs font-bold py-1.5 px-3 rounded shadow-sm active:scale-95 transition-transform flex items-center gap-1 tracking-widest">
                             🗺️ 開啟闖關地圖
                         </button>
-                        <!-- 移除了失誤計數器 -->
                     </div>
-                    <div id="level-nav" class="flex overflow-x-auto scrollbar-hide gap-2 pb-2">
-                        <!-- JS 動態生成關卡泡泡 -->
-                    </div>
+                    <div id="level-nav" class="flex overflow-x-auto scrollbar-hide gap-2 pb-2"></div>
                 </div>
 
                 <div class="flex justify-between items-center text-sm font-bold text-[#8B2500] mb-2 tracking-widest">
@@ -107,9 +103,7 @@
                     </button>
                 </div>
                 
-                <div class="bg-white rounded-lg p-5 shadow-sm border border-[#E7DCC8] mb-4" id="level-content">
-                    <!-- 關卡內容注入區 -->
-                </div>
+                <div class="bg-white rounded-lg p-5 shadow-sm border border-[#E7DCC8] mb-4" id="level-content"></div>
             </div>
 
             <!-- 結局區塊 -->
@@ -131,6 +125,13 @@
                     <p class="text-sm font-bold text-red-600 mb-2 animate-pulse">👇 請長按下方圖片儲存至手機 👇</p>
                     <canvas id="achievement-canvas" width="800" height="1000" class="hidden"></canvas>
                     <img id="achievement-img" class="w-full h-auto rounded-lg border-4 border-[#8B2500] shadow-xl">
+                </div>
+
+                <!-- 結局頁面新增：童蒙版專屬「查看/保存尋寶全紀錄」按鈕 -->
+                <div id="ending-hunt-btn-area" class="hidden mb-3">
+                    <button onclick="toggleHuntModal()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-base active:scale-95 transition-transform tracking-widest flex items-center justify-center gap-2">
+                        📸 查看 / 長按保存尋寶全紀錄
+                    </button>
                 </div>
 
                 <div class="flex gap-2">
@@ -163,7 +164,7 @@
         <div class="relative w-full max-w-md bg-[#FAF3E0] rounded-xl p-3 border-4 border-[#8B2500] flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center mb-2 px-2">
                 <h3 class="font-bold text-[#8B2500] text-xl tracking-widest">📸 尋寶全紀錄</h3>
-                <button onclick="toggleHuntModal()" class="text-[#8B2500] hover:text-red-600 font-black text-3xl leading-none px-2">&times;</button>
+                <button onclick="closeHuntModalAndContinue()" class="text-[#8B2500] hover:text-red-600 font-black text-3xl leading-none px-2">&times;</button>
             </div>
             <div class="overflow-auto flex-1 rounded relative flex items-center justify-center pb-2">
                 <p class="text-sm font-bold text-red-600 absolute top-2 w-full text-center animate-pulse z-10 bg-white/80 py-1">👇 請長按下方圖片儲存至手機 👇</p>
@@ -174,8 +175,8 @@
                 <button onclick="drawHuntImage('grid')" class="flex-1 bg-yellow-600 text-white font-bold py-2 rounded shadow-md active:scale-95">原圖合輯</button>
                 <button onclick="drawHuntImage('frame')" class="flex-1 bg-orange-600 text-white font-bold py-2 rounded shadow-md active:scale-95">相框合輯</button>
             </div>
-            <button onclick="toggleHuntModal()" class="mt-3 w-full bg-[#1B5E20] text-white font-bold py-3 rounded-lg shadow-md active:scale-95 transition-transform tracking-widest text-lg">
-                返回解謎
+            <button onclick="closeHuntModalAndContinue()" class="mt-3 w-full bg-[#1B5E20] text-white font-bold py-3 rounded-lg shadow-md active:scale-95 transition-transform tracking-widest text-lg">
+                確認完成・前往下一關
             </button>
         </div>
     </div>
@@ -201,7 +202,6 @@
             <button onclick="toggleFallbackHint()" class="text-xs text-yellow-400 underline pl-2">鏡頭不支援？點此</button>
             <button onclick="closeARCamera()" class="bg-[#8B2500] text-white px-6 py-3 rounded-full font-bold shadow-lg mr-2">返回作答</button>
         </div>
-        <!-- 備用提示框 -->
         <div id="fallback-box" class="hidden absolute inset-4 bg-gray-900/95 text-white p-6 rounded-xl z-30 flex flex-col justify-center items-center text-center">
             <h3 class="text-lg font-bold text-yellow-400 mb-2">AR 輔助提示</h3>
             <p class="text-sm text-gray-300 mb-4 leading-relaxed" id="fallback-text"></p>
@@ -221,16 +221,12 @@
         let completedLevels = new Set();
         let revealedHints = new Set();
         
-        // 尋寶題專用陣列
         let huntPhotos = [null, null, null, null, null]; 
 
         let currentCardStyle = 0;
         const cardTitles = ["1/4 古風御賜卡", "2/4 Q版貼紙卡", "3/4 拍立得旅行卡", "4/4 孔門弟子卡"];
         const instrumentOptions = ["編鐘", "編磬", "笛", "蕭", "笙", "鳳簫", "拍板", "塤", "甄", "琴", "瑟", "鼗", "敔", "搏拊"];
 
-        // ==========================================
-        // 【題庫一】新科弟子版
-        // ==========================================
         const levels_teen = [
             {
                 type: 'standard',
@@ -281,7 +277,7 @@
                 type: 'standard',
                 title: "歷史的重建",
                 desc: "高雄縣孔廟於民國七十四年興建完成，是國內規模最大的一座孔廟，後因施工缺失而封閉禁用。為了文化的傳承與延續，孔廟重建整修工程於九十年開工，並於當年十二月竣工。《高雄縣孔廟整修重建成工程落成紀念碑》記錄了這段歷史。孔廟歷史源遠流長，在清代雍正年間，也曾有過一場大規模的殿宇整修。",
-                question: "據傳清代時，雍正在位期間（1678—1735）對尊孔政策極為重視，因此對孔廟相關建築進行了極為精細的全面翻修，是一次歷史上非常著名的大規模改建，請利用紙板並回答：雍正是在西元哪一年進行整修的呢？",
+                question: "據傳清代時，雍正在位期間（1678—735）對尊孔政策極為重視，因此對孔廟相關建築進行了極為精細的全面翻修，是一次歷史上非常著名的大規模改建，請利用紙板並回答：雍正是在西元哪一年進行整修的呢？",
                 answer: ["1729", "1729年"],
                 hint: "紙板中的空格皆會對到數字喔！"
             },
@@ -325,7 +321,7 @@
                 question: "請找關主拿著色紙，完成並回答畫中隱藏的數字是多少？",
                 answer: ["0928"],
                 hint: "數字是孔子的生日喔！",
-                hintImage: "anser.png" 
+                hintImage: "anser.png"
             },
             {
                 type: 'plaque_fill',
@@ -344,12 +340,9 @@
             }
         ];
 
-        // ==========================================
-        // 【題庫二】童蒙探索版
-        // ==========================================
         const levels_child = [
             {
-                type: 'standard', // 童蒙版加入星象題，並使用 stars2.jpg
+                type: 'standard',
                 title: "星象的指引",
                 desc: "你們現在所在位置為孔廟的第一道門，稱為「櫺星門」。櫺星又稱文曲星，文曲星則被古人視為主管教育、文學與得士的星宿。以此象徵孔子育才施教的崇高地位。正巧！你們來到孔廟的時間，正值中秋節日升月降之際，此時在「櫺星門」觀星賞月時，可以看到文曲星閃閃發光喔！",
                 image: "stars2.jpg",
@@ -391,7 +384,7 @@
                 hint: "清脆石頭聲是「編磬」；搖動發出咚咚聲的是「鼗」；風聲般低沉是「塤」；多管吹奏是「笙」！"
             },
             {
-                type: 'photo_hunt', // 五宮格尋寶
+                type: 'photo_hunt',
                 title: "孔廟尋寶記",
                 desc: "老夫子在孔廟裡藏了 5 個特別的寶物，請根據下方的照片，在孔廟內找出它們的真面目！",
                 images: ["bell.jpg", "duck.jpg", "fan.jpg", "painting.jpg", "calligraphy.jpg"],
@@ -416,7 +409,6 @@
                 hintImage: "anser.png"
             }
         ];
-
 
         function handleTeamPhotoPreload(event) {
             const file = event.target.files[0];
@@ -493,7 +485,6 @@
             }
 
             if (completedLevels.has(currentLevel)) {
-                // 已過關的畫面：針對尋寶題給予不同的按鈕
                 html += `
                     <div class="bg-green-100 border-2 border-green-500 text-green-800 p-6 rounded-lg text-center font-bold text-lg mb-4">
                         ✅ 此卷試煉已完成！<br><span class="text-sm mt-2 block">請點擊上方泡泡切換至其他未完成關卡</span>
@@ -501,8 +492,8 @@
                 `;
                 if (level.type === 'photo_hunt') {
                     html += `
-                        <button onclick="toggleHuntModal()" class="w-full bg-yellow-600 text-white font-bold py-3 px-4 rounded-lg shadow-md text-lg active:scale-95 transition-transform tracking-widest mt-2 flex items-center justify-center gap-2">
-                            📸 下載尋寶全紀錄
+                        <button onclick="toggleHuntModal()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-lg active:scale-95 transition-transform tracking-widest mt-2 flex items-center justify-center gap-2">
+                            📸 查看 / 長按保存尋寶全紀錄
                         </button>
                     `;
                 }
@@ -547,7 +538,6 @@
                         </div>
                     `;
                 } else if (level.type === 'photo_hunt') {
-                    // 五宮格尋寶介面
                     html += `<p class="font-bold text-[#8B2500] text-lg mb-4 text-center border-b-2 border-[#8B2500] pb-2">${level.question}</p>`;
                     html += `<div class="grid grid-cols-2 gap-3 mb-6">`;
                     
@@ -671,7 +661,6 @@
 
             document.getElementById('level-content').innerHTML = html;
             
-            // 重新載入時檢查尋寶按鈕狀態
             if(level.type === 'photo_hunt' && !completedLevels.has(currentLevel)){
                 checkHuntProgress();
             }
@@ -692,7 +681,6 @@
             }
         };
 
-        // 處理五宮格尋寶照片上傳
         window.handleHuntPhotoGrid = function(event, idx) {
             const file = event.target.files[0];
             if (file) {
@@ -701,7 +689,7 @@
                     let img = new Image();
                     img.onload = function() {
                         huntPhotos[idx] = img;
-                        loadLevel(); // 重新渲染畫面更新照片與按鈕狀態
+                        loadLevel();
                     }
                     img.src = e.target.result;
                 }
@@ -776,30 +764,49 @@
             }
         };
 
-        // 地圖功能
         window.toggleMap = function() {
             const modal = document.getElementById('map-modal');
             modal.classList.toggle('hidden');
             modal.classList.toggle('flex');
         };
 
-        // 尋寶紀錄模態框
         window.toggleHuntModal = function() {
             const modal = document.getElementById('hunt-modal');
             modal.classList.toggle('hidden');
             modal.classList.toggle('flex');
             if (!modal.classList.contains('hidden')) {
-                drawHuntImage('grid'); // 預設畫第一種風格
+                drawHuntImage('grid');
             }
         };
 
-        // 繪製尋寶全紀錄 Canvas
+        window.closeHuntModalAndContinue = function() {
+            document.getElementById('hunt-modal').classList.add('hidden');
+            document.getElementById('hunt-modal').classList.remove('flex');
+            
+            // 尋寶視窗關閉後，自動進入下一關或結局
+            if (completedLevels.size === activeLevels.length) {
+                showEnding();
+            } else {
+                let nextUncompleted = -1;
+                for (let i = 1; i <= activeLevels.length; i++) {
+                    let checkIdx = (currentLevel + i) % activeLevels.length;
+                    if (!completedLevels.has(checkIdx)) {
+                        nextUncompleted = checkIdx;
+                        break;
+                    }
+                }
+                if (nextUncompleted !== -1) {
+                    currentLevel = nextUncompleted;
+                    loadLevel();
+                }
+            }
+        };
+
         window.drawHuntImage = function(style) {
             const canvas = document.getElementById('hunt-canvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 輔助畫圖函數
             function drawHuntThumb(img, px, py, pw, ph) {
                 if(!img) return;
                 const imgRatio = img.width / img.height;
@@ -819,7 +826,6 @@
             ctx.fillRect(0, 0, 800, 1000);
 
             if (style === 'grid') {
-                // 風格1：原圖合輯 (寶立得拼圖風)
                 ctx.fillStyle = '#8B2500';
                 ctx.textAlign = 'center';
                 ctx.font = 'bold 50px sans-serif';
@@ -828,13 +834,11 @@
                 ctx.fillStyle = '#5D4037';
                 ctx.fillText(`Team: ${teamName}`, 400, 160);
 
-                // 上排3張
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(40, 220, 220, 260); drawHuntThumb(huntPhotos[0], 50, 230, 200, 200);
                 ctx.fillRect(290, 220, 220, 260); drawHuntThumb(huntPhotos[1], 300, 230, 200, 200);
                 ctx.fillRect(540, 220, 220, 260); drawHuntThumb(huntPhotos[2], 550, 230, 200, 200);
                 
-                // 下排2張
                 ctx.fillRect(165, 520, 220, 260); drawHuntThumb(huntPhotos[3], 175, 530, 200, 200);
                 ctx.fillRect(415, 520, 220, 260); drawHuntThumb(huntPhotos[4], 425, 530, 200, 200);
 
@@ -845,7 +849,6 @@
                 ctx.fillText('MISSION COMPLETE', 400, 880);
 
             } else if (style === 'frame') {
-                // 風格2：相框合輯 (一大四小)
                 ctx.fillStyle = '#3E2723';
                 ctx.fillRect(0, 0, 800, 1000);
                 ctx.strokeStyle = '#D4AF37'; ctx.lineWidth = 8; ctx.strokeRect(30, 30, 740, 940);
@@ -856,11 +859,9 @@
                 ctx.fillText('尋 寶 結 業 誌', 400, 110);
                 
                 ctx.fillStyle = '#FFFFFF';
-                // 主圖 (選最後一張或隨機)
                 ctx.fillRect(80, 150, 640, 480);
                 drawHuntThumb(huntPhotos[4], 90, 160, 620, 460);
 
-                // 下方四小圖
                 let startX = 80;
                 for(let i=0; i<4; i++){
                     ctx.fillRect(startX, 660, 140, 140);
@@ -1037,6 +1038,14 @@
                 
                 showInlineFeedback("🌟 正確！老夫子：「做得好！」", true, 2000);
                 
+                // 尋寶題通關時，直接彈出尋寶全紀錄大圖供小隊長按保存
+                if (level.type === 'photo_hunt') {
+                    setTimeout(() => {
+                        toggleHuntModal();
+                    }, 800);
+                    return;
+                }
+
                 setTimeout(() => {
                     if (completedLevels.size === activeLevels.length) {
                         showEnding();
@@ -1066,7 +1075,7 @@
             if (currentCardStyle < 0) currentCardStyle = 3;
             document.getElementById('card-title-indicator').textContent = cardTitles[currentCardStyle];
             
-            let rank = "狀元及第"; // 移除扣分，統一給最高榮譽
+            let rank = "狀元及第";
             drawAchievementCard(rank, currentCardStyle);
         }
 
@@ -1074,16 +1083,21 @@
             document.getElementById('puzzle-section').classList.add('hidden');
             document.getElementById('intro-section').classList.add('hidden');
             
-            let rank = "狀元及第"; // 移除扣分，統一給最高榮譽
+            let rank = "狀元及第";
             
             document.getElementById('ending-section').classList.remove('hidden');
             
+            // 童蒙版完成後，在結局卡片下方顯示尋寶紀錄按鈕
+            if (currentMode === 'child') {
+                const endingHuntBtn = document.getElementById('ending-hunt-btn-area');
+                if (endingHuntBtn) endingHuntBtn.classList.remove('hidden');
+            }
+
             currentCardStyle = 0;
             document.getElementById('card-title-indicator').textContent = cardTitles[0];
             drawAchievementCard(rank, 0);
         }
 
-        // 結算卡片重新排版（移除分數，放大隊名與稱號）
         function drawAchievementCard(rank, styleIndex) {
             const canvas = document.getElementById('achievement-canvas');
             const ctx = canvas.getContext('2d');
