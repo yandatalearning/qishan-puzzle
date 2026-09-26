@@ -31,6 +31,10 @@
             100% { transform: scale(1); opacity: 1; box-shadow: 0 0 15px rgba(255, 213, 79, 0.5); }
         }
 
+        /* 模擬印章蓋下的動畫特效 */
+        .stamp-reveal { opacity: 0; transform: scale(3) rotate(-20deg); animation: stampPress 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards; animation-delay: 1s; }
+        @keyframes stampPress { 0% { opacity: 0; transform: scale(3) rotate(-20deg); } 50% { opacity: 1; transform: scale(0.9) rotate(-5deg); } 100% { opacity: 1; transform: scale(1) rotate(-10deg); } }
+
         /* 隱藏卷軸但可滑動 */
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
@@ -132,7 +136,8 @@
             <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
                 <rect x="456" y="360" width="88" height="100" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
                 <text x="500" y="340" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
-                <g stroke="#C62828" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
+                <!-- 莓紅色線段 #C1395E -->
+                <g stroke="#C1395E" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
                     <path d="M 196 480 L 276 580 L 356 480" fill="none"/>
                     <line x1="356" y1="480" x2="644" y2="480" />
                     <line x1="356" y1="580" x2="644" y2="580" />
@@ -208,10 +213,10 @@
                 title: "大成門的威儀",
                 desc: "大成門象徵通往大成殿的禮敬之門。孔廟屬聖廟，不畫一般廟宇的門神，改以沉穩深紅門扇與銅門釘裝飾，且不書對聯以示崇敬。",
                 linkUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b",
-                linkText: "🧩 點擊前往完成大成門拼圖",
-                question: "拼圖完成後，請數數看或是回想老夫子的教誨，大成門上共有幾顆銅門釘，代表著至高無上的威儀？",
-                answer: ["108", "一百零八"],
-                hint: "陽數最大是9，這個數字是9的倍數，也是我們常說『煩惱』的數量喔（一百零...）。"
+                linkText: "🧩 點擊前往拼圖<br><span class='text-sm text-yellow-300 font-normal'>（將開啟新分頁，完成後請切換回原網頁作答）</span>",
+                question: "拼圖完成後，請觀察現場介紹或回想老夫子的教誨，大成門的另外一個名稱是什麼？",
+                answer: ["儀門"],
+                hint: "大成門又象徵著「禮儀」之門，答案是兩個字喔！"
             },
             {
                 type: 'standard',
@@ -384,7 +389,7 @@
                     `;
                 } else if (level.type === 'link') {
                     html += `
-                        <a href="${level.linkUrl}" target="_blank" class="block w-full bg-[#1B5E20] hover:bg-[#144718] text-white text-center py-4 rounded-lg shadow-md font-bold mb-4 transition-transform active:scale-95 text-lg">
+                        <a href="${level.linkUrl}" target="_blank" class="block w-full bg-[#1B5E20] hover:bg-[#144718] text-white text-center py-3 rounded-lg shadow-md font-bold mb-4 transition-transform active:scale-95 text-lg leading-snug">
                             ${level.linkText}
                         </a>
                         <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
@@ -402,7 +407,7 @@
             let hintStyle = revealedHints.has(currentLevel) ? 'block' : 'hidden';
             let hintContent = revealedHints.has(currentLevel) ? `💡 錦囊：${level.hint}` : '';
             html += `
-                <div id="persistent-hint-box" class="${hintStyle} mt-4 bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded-lg text-yellow-800 text-sm font-bold fade-in shadow-sm leading-relaxed">
+                <div id="persistent-hint-box" class="${hintStyle} mt-4 bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded-lg text-yellow-800 text-sm font-bold fade-in shadow-sm leading-relaxed scroll-mt-4">
                     ${hintContent}
                 </div>
             `;
@@ -430,8 +435,13 @@
         window.useHint = function() {
             if (completedLevels.has(currentLevel)) return; // 過關後不能點
             
+            const hintBox = document.getElementById('persistent-hint-box');
+
             if (revealedHints.has(currentLevel)) {
-                // 已經解鎖過了
+                // 如果已經解鎖過，再次點擊會自動捲動到提示框
+                if (hintBox) {
+                    hintBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
                 return;
             }
 
@@ -440,12 +450,16 @@
                 document.getElementById('hint-count-display').textContent = hintsLeft;
                 revealedHints.add(currentLevel);
                 
-                // 顯示永久提示框
-                const hintBox = document.getElementById('persistent-hint-box');
-                hintBox.textContent = `💡 錦囊：${levels[currentLevel].hint}`;
-                hintBox.classList.remove('hidden');
-                hintBox.classList.add('block');
-                
+                if (hintBox) {
+                    hintBox.textContent = `💡 錦囊：${levels[currentLevel].hint}`;
+                    hintBox.classList.remove('hidden');
+                    hintBox.classList.add('block');
+                    
+                    // 解鎖後自動捲動到提示框
+                    setTimeout(() => {
+                        hintBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                }
             } else {
                 // 錦囊耗盡提示
                 showInlineFeedback("錦囊已用完！若需提示，請找到關主並對他說一句稱讚的話！", false, 4000);
@@ -673,7 +687,7 @@
             
             ctx.font = 'bold 36px sans-serif';
             ctx.fillStyle = '#D32F2F';
-            ctx.fillText(`最終試煉得分：${score} 分`, canvas.width / 2, 900);
+            ctx.fillText(`最終得分：${score} 分`, canvas.width / 2, 900);
 
             // 繪製假印章
             ctx.save();
