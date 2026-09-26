@@ -113,9 +113,7 @@
                 
                 <div class="relative w-full rounded-xl mb-4 card-reveal text-center">
                     <p class="text-sm font-bold text-red-600 mb-2 animate-pulse">👇 請長按下方圖片儲存至手機 👇</p>
-                    <!-- 隱藏的 Canvas 用來畫圖 -->
                     <canvas id="achievement-canvas" width="800" height="1000" class="hidden"></canvas>
-                    <!-- 顯示出來供玩家長按下載的 img -->
                     <img id="achievement-img" class="w-full h-auto rounded-lg border-4 border-[#8B2500] shadow-xl">
                 </div>
 
@@ -165,7 +163,6 @@
         let teamPhotoImg = null; 
         let hintsLeft = 5; 
         
-        // 紀錄各關卡完成與提示狀態
         let completedLevels = new Set();
         let revealedHints = new Set();
 
@@ -209,11 +206,10 @@
                 hint: "拼出來的英文字母是四個字，代表晚上的『月亮』喔！"
             },
             {
-                type: 'link',
+                type: 'iframe_puzzle', // 更新為 iframe_puzzle 類型
                 title: "大成門的威儀",
                 desc: "大成門象徵通往大成殿的禮敬之門。孔廟屬聖廟，不畫一般廟宇的門神，改以沉穩深紅門扇與銅門釘裝飾，且不書對聯以示崇敬。",
-                linkUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b",
-                linkText: "🧩 點擊前往拼圖<br><span class='text-sm text-yellow-300 font-normal'>（將開啟新分頁，完成後請切換回原網頁作答）</span>",
+                iframeUrl: "https://www.jigsawplanet.com/?rc=play&pid=1d0cfff1328b&view=iframe",
                 question: "拼圖完成後，請觀察現場介紹或回想老夫子的教誨，大成門的另外一個名稱是什麼？",
                 answer: ["儀門"],
                 hint: "大成門又象徵著「禮儀」之門，答案是兩個字喔！"
@@ -272,7 +268,6 @@
             loadLevel();
         }
 
-        // 渲染上方跳關導航列
         function renderLevelNav() {
             const navContainer = document.getElementById('level-nav');
             let html = '';
@@ -297,8 +292,8 @@
             renderLevelNav();
             const level = levels[currentLevel];
             document.getElementById('level-indicator').textContent = `卷 ${currentLevel + 1} / 共 ${levels.length} 卷`;
+            const content = document.getElementById('level-content');
             
-            // 設定錦囊按鈕狀態
             const hintBtn = document.getElementById('hint-btn');
             if (completedLevels.has(currentLevel)) {
                 hintBtn.style.opacity = '0.5';
@@ -322,7 +317,6 @@
                 html += `<img src="${level.image}" alt="關卡提示" class="w-full rounded-lg mb-4 shadow-sm border border-[#E7DCC8]" onerror="this.style.display='none'">`;
             }
 
-            // 檢查是否已完成
             if (completedLevels.has(currentLevel)) {
                 html += `
                     <div class="bg-green-100 border-2 border-green-500 text-green-800 p-6 rounded-lg text-center font-bold text-lg mb-4">
@@ -330,7 +324,6 @@
                     </div>
                 `;
             } else {
-                // 根據類型產生答題區
                 if (level.type === 'coop') {
                     html += `
                         <div class="flex gap-2 mb-4">
@@ -379,20 +372,20 @@
                         </label>
                         ${getInputHTML(true)}
                     `;
+                } else if (level.type === 'iframe_puzzle') {
+                    html += `
+                        <div class="w-full mb-5 rounded-lg overflow-hidden border-4 border-[#8B2500] shadow-md bg-gray-100 relative">
+                            <iframe src="${level.iframeUrl}" class="w-full h-[50vh] min-h-[400px] md:h-[600px]" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                        <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
+                        ${getInputHTML()}
+                    `;
                 } else if (level.type.startsWith('ar_')) {
                     html += `
                         <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
                         <button onclick="openARCamera('${level.type}')" class="w-full bg-[#1B5E20] text-white font-bold py-4 px-4 rounded-lg shadow-md mb-4 flex items-center justify-center gap-2 active:scale-95 transition-transform text-lg">
                             <span class="text-2xl">📱</span> 開啟透視鏡
                         </button>
-                        ${getInputHTML()}
-                    `;
-                } else if (level.type === 'link') {
-                    html += `
-                        <a href="${level.linkUrl}" target="_blank" class="block w-full bg-[#1B5E20] hover:bg-[#144718] text-white text-center py-3 rounded-lg shadow-md font-bold mb-4 transition-transform active:scale-95 text-lg leading-snug">
-                            ${level.linkText}
-                        </a>
-                        <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
                         ${getInputHTML()}
                     `;
                 } else {
@@ -403,7 +396,6 @@
                 }
             }
 
-            // 固定放置不會消失的提示框 (只要解鎖過就顯示)
             let hintStyle = revealedHints.has(currentLevel) ? 'block' : 'hidden';
             let hintContent = revealedHints.has(currentLevel) ? `💡 錦囊：${level.hint}` : '';
             html += `
@@ -415,7 +407,6 @@
             document.getElementById('level-content').innerHTML = html;
         }
 
-        // isAudio 用來控制是否需要純文字輸入框
         function getInputHTML(isAudio = false) {
             let inputField = isAudio ? '' : `
                 <div class="mb-1 relative">
@@ -431,14 +422,12 @@
             `;
         }
 
-        // 錦囊系統
         window.useHint = function() {
-            if (completedLevels.has(currentLevel)) return; // 過關後不能點
+            if (completedLevels.has(currentLevel)) return; 
             
             const hintBox = document.getElementById('persistent-hint-box');
 
             if (revealedHints.has(currentLevel)) {
-                // 如果已經解鎖過，再次點擊會自動捲動到提示框
                 if (hintBox) {
                     hintBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
@@ -455,36 +444,12 @@
                     hintBox.classList.remove('hidden');
                     hintBox.classList.add('block');
                     
-                    // 解鎖後自動捲動到提示框
                     setTimeout(() => {
                         hintBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }, 100);
                 }
             } else {
-                // 錦囊耗盡提示
                 showInlineFeedback("錦囊已用完！若需提示，請找到關主並對他說一句稱讚的話！", false, 4000);
-            }
-        };
-
-        window.selectRole = function(role) {
-            const level = levels[currentLevel];
-            const infoBox = document.getElementById('role-info');
-            const inputArea = document.getElementById('input-area');
-            infoBox.innerHTML = level.roles[role];
-            infoBox.classList.remove('hidden');
-            if (role === 'west') inputArea.classList.remove('hidden');
-            else inputArea.classList.add('hidden');
-        };
-
-        window.handlePhotoUpload = function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('photo-preview').src = e.target.result;
-                    document.getElementById('photo-preview-box').classList.remove('hidden');
-                }
-                reader.readAsDataURL(file);
             }
         };
 
@@ -523,7 +488,7 @@
             fb.style.opacity = '1';
             
             if (msg.includes("錦囊已用完")) {
-                fb.style.color = '#EA580C'; // 橘色警告
+                fb.style.color = '#EA580C'; 
             } else if (isSuccess) {
                 fb.style.color = '#16A34A'; 
             } else {
@@ -579,7 +544,7 @@
 
             if (isCorrect) {
                 completedLevels.add(currentLevel);
-                renderLevelNav(); // 更新上方泡泡為綠色
+                renderLevelNav(); 
                 
                 showInlineFeedback("🌟 正確！老夫子：「做得好！」", true, 2000);
                 
@@ -587,7 +552,6 @@
                     if (completedLevels.size === levels.length) {
                         showEnding();
                     } else {
-                        // 自動尋找下一關未完成的關卡跳轉
                         let nextUncompleted = -1;
                         for (let i = 1; i <= levels.length; i++) {
                             let checkIdx = (currentLevel + i) % levels.length;
@@ -622,7 +586,6 @@
             drawAchievementCard(score, rank);
         }
 
-        // 使用 Canvas 繪製成就圖並輸出到 img 標籤供手機長按儲存
         function drawAchievementCard(score, rank) {
             const canvas = document.getElementById('achievement-canvas');
             const ctx = canvas.getContext('2d');
@@ -687,9 +650,8 @@
             
             ctx.font = 'bold 36px sans-serif';
             ctx.fillStyle = '#D32F2F';
-            ctx.fillText(`最終得分：${score} 分`, canvas.width / 2, 900);
+            ctx.fillText(`最終試煉得分：${score} 分`, canvas.width / 2, 900);
 
-            // 繪製假印章
             ctx.save();
             ctx.translate(650, 850);
             ctx.rotate(-0.15); 
@@ -702,7 +664,6 @@
             ctx.fillText('認證', 0, 35);
             ctx.restore();
 
-            // 將畫好的 Canvas 轉成圖片顯示，讓手機可以直接長按儲存
             setTimeout(() => {
                 const imgEl = document.getElementById('achievement-img');
                 imgEl.src = canvas.toDataURL('image/jpeg', 0.9);
