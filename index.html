@@ -10,14 +10,10 @@
         
         body { font-family: 'Noto Serif TC', serif; background-color: #F4EAD5; color: #3E2723; overflow-x: hidden; }
         
-        /* 裝飾動畫 */
         .decoration-img { mix-blend-mode: multiply; animation: float 6s ease-in-out infinite; }
         .decoration-img-delayed { mix-blend-mode: multiply; animation: float 6s ease-in-out infinite; animation-delay: 3s; }
         @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
 
-        /* 轉場與錯誤震動動畫 */
-        .scroll-reveal { opacity: 0; transform: scale(0.95); transition: all 0.8s ease-out; }
-        .scroll-reveal.active { opacity: 1; transform: scale(1); }
         .fade-in { animation: fadeIn 0.5s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
@@ -27,16 +23,38 @@
             75% { transform: translateX(5px); }
         }
         .animate-shake { animation: shake 0.3s ease-in-out; }
+
+        /* 結算卡片金光與彈出動畫 */
+        .card-reveal {
+            animation: popGlow 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popGlow {
+            0% { transform: scale(0.8); opacity: 0; box-shadow: 0 0 0 rgba(255, 213, 79, 0); }
+            50% { transform: scale(1.05); opacity: 1; box-shadow: 0 0 30px rgba(255, 213, 79, 0.8); }
+            100% { transform: scale(1); opacity: 1; box-shadow: 0 0 15px rgba(255, 213, 79, 0.5); }
+        }
+
+        /* 模擬印章蓋下的動畫特效 */
+        .stamp-reveal {
+            opacity: 0;
+            transform: scale(3) rotate(-20deg);
+            animation: stampPress 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            animation-delay: 1s; /* 等卡片出現後再蓋章 */
+        }
+        @keyframes stampPress {
+            0% { opacity: 0; transform: scale(3) rotate(-20deg); }
+            50% { opacity: 1; transform: scale(0.9) rotate(-5deg); }
+            100% { opacity: 1; transform: scale(1) rotate(-10deg); }
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 relative">
 
-    <!-- 背景裝飾 -->
     <div class="fixed left-0 top-1/4 -translate-y-1/2 opacity-15 md:opacity-100 md:left-10 pointer-events-none">
-        <img src="boy.jpg" alt="古典裝飾" class="w-40 md:w-56 lg:w-72 decoration-img" onerror="this.style.display='none'">
+        <img src="boy.jpg" alt="裝飾" class="w-40 md:w-56 lg:w-72 decoration-img" onerror="this.style.display='none'">
     </div>
     <div class="fixed right-0 top-2/3 -translate-y-1/2 opacity-15 md:opacity-100 md:right-10 pointer-events-none">
-        <img src="temple.jpg" alt="古典裝飾" class="w-40 md:w-56 lg:w-72 decoration-img-delayed" onerror="this.style.display='none'">
+        <img src="temple.jpg" alt="裝飾" class="w-40 md:w-56 lg:w-72 decoration-img-delayed" onerror="this.style.display='none'">
     </div>
 
     <!-- 主遊戲容器 -->
@@ -44,23 +62,32 @@
         <div class="h-3 w-full bg-[#8B2500]"></div>
         <div class="p-6 md:p-8">
             
-            <!-- 標題 -->
             <div class="text-center mb-6">
                 <div class="w-16 h-16 mx-auto mb-2 border-2 border-[#8B2500] rounded-full flex items-center justify-center text-3xl text-[#8B2500] font-black shadow-inner">孔</div>
                 <h1 class="text-2xl font-black text-[#8B2500] tracking-widest">旗山孔廟</h1>
                 <p class="text-xs font-bold text-gray-600 tracking-widest mt-1">新科弟子試煉</p>
             </div>
 
-            <!-- 開場引言區 (點擊後隱藏) -->
+            <!-- 開場引言區與小隊報到 -->
             <div id="intro-section" class="mb-2 text-gray-700 leading-relaxed bg-[#F4EAD5] p-5 rounded-lg border-2 border-[#D7CCC8] shadow-sm text-center fade-in">
-                <h3 class="text-xl font-bold text-[#8B2500] mb-3">【身分賦予】</h3>
-                <p class="text-base text-left mb-6">老夫子幻影浮現：「年輕人，孔廟的智慧藏在團隊、自然與幾何之中。今日的試煉融合了天地星辰與歷史印記，準備好迎接挑戰了嗎？」</p>
+                <h3 class="text-xl font-bold text-[#8B2500] mb-3">【新科弟子報到】</h3>
+                <p class="text-sm text-left mb-4 font-bold text-gray-600">老夫子：「年輕人，試煉前請先留下你們的小隊名號與合照，這將是你們最後結算成績的印記。」</p>
+                
+                <input type="text" id="team-name-input" placeholder="請輸入小隊名稱 (例: 聰明隊)" class="w-full px-4 py-3 rounded bg-white border border-gray-300 focus:border-[#8B2500] focus:ring-0 text-center text-base font-bold mb-3" autocomplete="off">
+                
+                <label class="block w-full bg-[#D7CCC8] hover:bg-[#BCAAA4] text-[#3E2723] text-center py-3 rounded cursor-pointer shadow-sm font-bold mb-4 transition-colors">
+                    📷 拍下小隊合照
+                    <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleTeamPhotoPreload(event)">
+                </label>
+                <!-- 預覽合照 -->
+                <img id="team-photo-preview-intro" class="hidden w-full h-32 object-cover rounded border-2 border-[#8B2500] mb-4">
+
                 <button onclick="startGame()" class="w-full bg-[#8B2500] text-white font-bold py-3 px-4 rounded-lg shadow-md text-lg active:bg-[#6A1B00] transition-colors tracking-widest">
                     接受試煉
                 </button>
             </div>
 
-            <!-- 解謎區塊 (預設隱藏，字體放大) -->
+            <!-- 解謎區塊 -->
             <div id="puzzle-section" class="hidden fade-in">
                 <div class="flex justify-between text-sm font-bold text-[#8B2500] mb-3 tracking-widest">
                     <span id="level-indicator">卷 1 / 共 11 卷</span>
@@ -68,37 +95,48 @@
                 </div>
                 
                 <div class="bg-white rounded-lg p-5 shadow-sm border border-[#E7DCC8] mb-4" id="level-content">
-                    <!-- JS 會將關卡內容注入這裡 -->
+                    <!-- 關卡內容注入區 -->
                 </div>
             </div>
 
-            <!-- 結局區塊 -->
-            <div id="ending-section" class="hidden scroll-reveal">
-                <div class="bg-white rounded-lg p-6 shadow-sm border-2 border-[#8B2500] relative text-center">
-                    <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#8B2500] text-white px-4 py-1 rounded text-sm tracking-widest font-bold">試煉完成</div>
-                    <h2 class="text-3xl font-black text-[#8B2500] mt-4 mb-2" id="final-rank">狀元及第</h2>
-                    <p class="text-gray-500 font-bold mb-4 text-lg" id="final-score">最終得分：100 分</p>
-                    <div class="text-base text-gray-700 leading-relaxed border-t border-dashed border-gray-300 pt-4 text-left">
-                        老夫子欣慰地微笑：「善哉！你們學會了分工合作、細心觀察，最後更看破了紅柱間的異國之謎 <span class="text-[#8B2500] font-bold">【MOON】</span>。你們已領悟大中至正的儒門大道，這份智慧將伴隨你們一生！」
+            <!-- 結局區塊 (成就卡) -->
+            <div id="ending-section" class="hidden">
+                <div class="text-center mb-4 fade-in">
+                    <h2 class="text-2xl font-black text-[#8B2500]">試煉完成</h2>
+                    <p class="text-sm text-gray-700 mt-2">老夫子已為你們頒發新科弟子專屬成就卡！</p>
+                </div>
+                
+                <!-- 成就卡畫布容器 -->
+                <div class="relative w-full rounded-xl overflow-hidden mb-6 card-reveal bg-white p-2 border-2 border-[#8B2500]">
+                    <!-- Canvas 用於繪製可下載的圖片 -->
+                    <canvas id="achievement-canvas" width="800" height="1000" class="w-full h-auto rounded-lg"></canvas>
+                    <!-- HTML 蓋章特效 (純視覺，實際圖片已畫在 Canvas 裡) -->
+                    <div id="stamp-overlay" class="absolute bottom-10 right-8 w-24 h-24 border-4 border-red-600 text-red-600 font-black text-xl flex items-center justify-center rounded-lg stamp-reveal mix-blend-multiply bg-white/10 p-1 text-center leading-tight">
+                        孔廟<br>認證
                     </div>
                 </div>
-                <button onclick="location.reload()" class="w-full mt-6 border-2 border-[#8B2500] text-[#8B2500] font-bold py-3 px-4 rounded-lg tracking-widest text-lg">再玩一次</button>
+
+                <div class="flex gap-2">
+                    <button onclick="downloadCard()" class="flex-1 bg-[#1B5E20] text-white font-bold py-3 px-4 rounded-lg tracking-widest text-base shadow-md active:scale-95 transition-transform">
+                        📥 保存成就卡
+                    </button>
+                    <button onclick="location.reload()" class="flex-1 border-2 border-[#8B2500] text-[#8B2500] font-bold py-3 px-4 rounded-lg tracking-widest text-base">
+                        再玩一次
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Web AR 相機視窗 -->
+    <!-- Web AR 相機視窗 (保留先前的 AR 功能) -->
     <div id="ar-modal" class="fixed inset-0 z-50 bg-black hidden flex flex-col">
         <div id="ar-hint" class="w-full bg-black/70 text-white text-center py-3 px-4 z-20 text-sm font-bold text-yellow-400"></div>
         <div class="relative w-full flex-1 overflow-hidden">
             <video id="ar-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
-            
             <!-- AR 紅柱密碼 (MOON) -->
             <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
-                <!-- 調整後的黃色框：寬度縮減為 88，向上提至 y=360，避免與紅線重疊 -->
                 <rect x="456" y="360" width="88" height="100" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
                 <text x="500" y="340" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
-                
                 <g stroke="#C62828" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
                     <path d="M 196 480 L 276 580 L 356 480" fill="none"/>
                     <line x1="356" y1="480" x2="644" y2="480" />
@@ -107,7 +145,6 @@
                     <line x1="644" y1="480" x2="804" y2="580" />
                 </g>
             </svg>
-
             <!-- AR 人體陣法 -->
             <svg id="svg-human" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet">
                 <g transform="translate(150, 300)" stroke="#00E676" stroke-width="8" stroke-dasharray="10 10" fill="none">
@@ -134,8 +171,6 @@
             <button onclick="toggleFallbackHint()" class="text-xs text-yellow-400 underline pl-2">鏡頭不支援？點此</button>
             <button onclick="closeARCamera()" class="bg-[#8B2500] text-white px-6 py-3 rounded-full font-bold shadow-lg mr-2">返回作答</button>
         </div>
-
-        <!-- 備用提示框 -->
         <div id="fallback-box" class="hidden absolute inset-4 bg-gray-900/95 text-white p-6 rounded-xl z-30 flex flex-col justify-center items-center text-center">
             <h3 class="text-lg font-bold text-yellow-400 mb-2">AR 輔助提示</h3>
             <p class="text-sm text-gray-300 mb-4 leading-relaxed" id="fallback-text"></p>
@@ -144,13 +179,20 @@
     </div>
 
     <script>
-        // 依據企劃檔案順序排列的 11 道關卡，加入 image 屬性
+        // 全域變數
+        let currentLevel = 0;
+        let wrongAttempts = 0;
+        let cameraStream = null;
+        let teamName = "無名";
+        let teamPhotoImg = null; // 儲存 Image 物件供 Canvas 使用
+
+        // 11 道關卡設定
         const levels = [
             {
                 type: 'standard',
                 title: "星象的指引",
                 desc: "孔廟的第一道門被稱為「櫺星門」。櫺星又稱文曲星，象徵孔子育才施教的崇高地位。日升月降之際，「櫺星」與星月相映。",
-                image: "stars.png", // ★ 請上傳星星圖片並命名為 stars.png
+                image: "stars.png",
                 question: "新科弟子們發現天上星宿有幾處較閃耀的光，觀察地上的星圖，請問這組編號是幾號？",
                 answer: ["01043"]
             },
@@ -165,7 +207,7 @@
                 type: 'standard',
                 title: "靈魂之窗口",
                 desc: "走到門前，需要最後的通關密語才能進入。老夫子給了一張提示卡：",
-                image: "hint_card.png", // ★ 請上傳提示卡圖片並命名為 hint_card.png
+                image: "hint_card.png",
                 question: "請問想要通過「櫺星門」的密碼是什麼？（請輸入3位數字）",
                 answer: ["324"]
             },
@@ -238,13 +280,29 @@
             }
         ];
 
-        let currentLevel = 0;
-        let wrongAttempts = 0;
-        let cameraStream = null;
+        // 處理首頁的合照預載
+        function handleTeamPhotoPreload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('team-photo-preview-intro').src = e.target.result;
+                    document.getElementById('team-photo-preview-intro').classList.remove('hidden');
+                    // 建立 Image 物件供畫布使用
+                    teamPhotoImg = new Image();
+                    teamPhotoImg.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
 
         function startGame() {
+            const nameInput = document.getElementById('team-name-input').value.trim();
+            if (nameInput) teamName = nameInput;
+            
             document.getElementById('intro-section').classList.add('hidden');
             document.getElementById('puzzle-section').classList.remove('hidden');
+            loadLevel();
         }
 
         function loadLevel() {
@@ -252,20 +310,18 @@
             document.getElementById('level-indicator').textContent = `卷 ${currentLevel + 1} / 共 ${levels.length} 卷`;
             const content = document.getElementById('level-content');
             
-            // 放大標題與內文字體
             let html = `<h2 class="text-2xl font-bold mb-3 text-[#5D4037] border-b-2 border-[#8B2500] pb-2 inline-block">${level.title}</h2>
                         <p class="text-gray-800 mb-4 text-base leading-relaxed">${level.desc}</p>`;
 
-            // 支援載入圖片功能
             if (level.image) {
-                html += `<img src="${level.image}" alt="關卡提示圖" class="w-full rounded-lg mb-4 shadow-sm border border-[#E7DCC8]" onerror="this.style.display='none'">`;
+                html += `<img src="${level.image}" alt="關卡提示" class="w-full rounded-lg mb-4 shadow-sm border border-[#E7DCC8]" onerror="this.style.display='none'">`;
             }
 
             if (level.type === 'coop') {
                 html += `
                     <div class="flex gap-2 mb-4">
-                        <button onclick="selectRole('east')" class="flex-1 border-2 border-[#8B2500] text-[#8B2500] font-bold py-2 rounded transition-colors active:bg-orange-100">我是東廡弟子</button>
-                        <button onclick="selectRole('west')" class="flex-1 bg-[#8B2500] text-white font-bold py-2 rounded transition-colors active:bg-[#6A1B00]">我是西廡弟子</button>
+                        <button onclick="selectRole('east')" class="flex-1 border-2 border-[#8B2500] text-[#8B2500] font-bold py-2 rounded active:bg-orange-100">我是東廡弟子</button>
+                        <button onclick="selectRole('west')" class="flex-1 bg-[#8B2500] text-white font-bold py-2 rounded active:bg-[#6A1B00]">我是西廡弟子</button>
                     </div>
                     <div id="role-info" class="hidden mb-4 p-3 bg-orange-50 border border-orange-200 rounded text-base font-bold text-[#8B2500]"></div>
                     <div id="input-area" class="hidden fade-in">
@@ -275,7 +331,7 @@
             } else if (level.type === 'photo') {
                 html += `
                     <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
-                    <label class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg cursor-pointer shadow-md font-bold mb-4 active:scale-95 transition-transform text-lg">
+                    <label class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg cursor-pointer shadow-md font-bold mb-4 text-lg">
                         📷 點此開啟相機拍照
                         <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoUpload(event)">
                     </label>
@@ -287,14 +343,14 @@
             } else if (level.type.startsWith('ar_')) {
                 html += `
                     <p class="font-bold text-[#8B2500] text-lg mb-4">${level.question}</p>
-                    <button onclick="openARCamera('${level.type}')" class="w-full bg-[#1B5E20] text-white font-bold py-4 px-4 rounded-lg shadow-md mb-4 flex items-center justify-center gap-2 active:scale-95 transition-transform text-lg">
+                    <button onclick="openARCamera('${level.type}')" class="w-full bg-[#1B5E20] text-white font-bold py-4 px-4 rounded-lg shadow-md mb-4 flex items-center justify-center gap-2 text-lg">
                         <span class="text-2xl">📱</span> 開啟透視鏡陣法
                     </button>
                     ${getInputHTML()}
                 `;
             } else if (level.type === 'link') {
                 html += `
-                    <a href="${level.linkUrl}" target="_blank" class="block w-full bg-[#1B5E20] hover:bg-[#144718] text-white text-center py-4 rounded-lg shadow-md font-bold mb-4 transition-transform active:scale-95 text-lg">
+                    <a href="${level.linkUrl}" target="_blank" class="block w-full bg-[#1B5E20] text-white text-center py-4 rounded-lg shadow-md font-bold mb-4 text-lg">
                         ${level.linkText}
                     </a>
                     <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
@@ -309,7 +365,6 @@
             content.innerHTML = html;
         }
 
-        // 行內回饋設計 (字體放大)
         function getInputHTML() {
             return `
                 <div class="mb-1 relative">
@@ -318,7 +373,7 @@
                 <div class="h-8 mb-2 flex items-center justify-center">
                     <p id="inline-feedback" class="text-base font-bold opacity-0 transition-opacity text-center w-full"></p>
                 </div>
-                <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] transition-colors tracking-widest">呈交答案</button>
+                <button onclick="checkAnswer()" class="w-full bg-[#8B2500] text-white font-bold py-4 px-4 rounded-lg shadow-md text-xl active:bg-[#6A1B00] tracking-widest">呈交答案</button>
             `;
         }
 
@@ -377,7 +432,6 @@
             const fb = document.getElementById('inline-feedback');
             fb.textContent = msg;
             fb.className = `text-base font-bold transition-opacity text-center w-full opacity-100 ${isSuccess ? 'text-green-600' : 'text-red-600'}`;
-            
             const inputEl = document.getElementById('answer-input');
             if (!isSuccess) {
                 inputEl.classList.add('animate-shake', 'border-red-500');
@@ -385,10 +439,7 @@
             } else {
                 inputEl.classList.add('border-green-500');
             }
-
-            setTimeout(() => {
-                fb.classList.replace('opacity-100', 'opacity-0');
-            }, 2500);
+            setTimeout(() => { fb.classList.replace('opacity-100', 'opacity-0'); }, 2500);
         }
 
         window.checkAnswer = function() {
@@ -414,38 +465,132 @@
             }
         };
 
+        // 結束並繪製 Canvas 成就卡
         function showEnding() {
             document.getElementById('puzzle-section').classList.add('hidden');
             document.getElementById('intro-section').classList.add('hidden');
             
-            // 改為錯一次扣 2 分
             let score = 100 - (wrongAttempts * 2);
-            if (score < 60) score = 60; // 佛心保底 60 分
+            if (score < 60) score = 60;
             
-            // 稱號全改為正面鼓勵
-            let rank = "";
-            if (wrongAttempts === 0) rank = "【狀元及第】完美無瑕！";
-            else if (wrongAttempts <= 3) rank = "【榜眼之才】機智過人！";
-            else rank = "【探花之秀】百折不撓！";
+            let rank = wrongAttempts === 0 ? "狀元及第" : wrongAttempts <= 3 ? "榜眼之才" : "探花之秀";
             
-            document.getElementById('final-rank').textContent = rank;
-            document.getElementById('final-score').textContent = `最終得分：${score} 分`;
-
-            const ending = document.getElementById('ending-section');
-            ending.classList.remove('hidden');
-            setTimeout(() => ending.classList.add('active'), 50);
+            document.getElementById('ending-section').classList.remove('hidden');
+            
+            // 開始繪製成就卡
+            drawAchievementCard(score, rank);
         }
 
-        // 全域按鍵監聽 Enter 送出答案
+        // 使用 Canvas 繪製成就圖
+        function drawAchievementCard(score, rank) {
+            const canvas = document.getElementById('achievement-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 繪製底色
+            ctx.fillStyle = '#F4EAD5';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 繪製古風邊框
+            ctx.strokeStyle = '#8B2500';
+            ctx.lineWidth = 15;
+            ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+            ctx.strokeStyle = '#D7CCC8';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
+
+            // 標題與燈籠
+            ctx.fillStyle = '#8B2500';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 50px sans-serif';
+            ctx.fillText('🏮 旗山孔廟 🏮', canvas.width / 2, 110);
+            ctx.font = 'bold 36px sans-serif';
+            ctx.fillStyle = '#5D4037';
+            ctx.fillText('新科弟子・結業紀念', canvas.width / 2, 170);
+
+            // 照片繪製區
+            const photoX = 100;
+            const photoY = 220;
+            const photoW = 600;
+            const photoH = 450;
+            
+            // 畫照片底框
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(photoX - 10, photoY - 10, photoW + 20, photoH + 20);
+            ctx.strokeStyle = '#8B2500';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(photoX - 10, photoY - 10, photoW + 20, photoH + 20);
+
+            // 畫上傳的合照 (如果有)
+            if (teamPhotoImg) {
+                // 計算等比例裁切 (Cover)
+                const imgRatio = teamPhotoImg.width / teamPhotoImg.height;
+                const boxRatio = photoW / photoH;
+                let srcX = 0, srcY = 0, srcW = teamPhotoImg.width, srcH = teamPhotoImg.height;
+                
+                if (imgRatio > boxRatio) {
+                    srcW = teamPhotoImg.height * boxRatio;
+                    srcX = (teamPhotoImg.width - srcW) / 2;
+                } else {
+                    srcH = teamPhotoImg.width / boxRatio;
+                    srcY = (teamPhotoImg.height - srcH) / 2;
+                }
+                ctx.drawImage(teamPhotoImg, srcX, srcY, srcW, srcH, photoX, photoY, photoW, photoH);
+            } else {
+                ctx.fillStyle = '#E7DCC8';
+                ctx.fillRect(photoX, photoY, photoW, photoH);
+                ctx.fillStyle = '#8B2500';
+                ctx.font = '30px sans-serif';
+                ctx.fillText('此處應有小隊英姿', canvas.width / 2, photoY + photoH / 2);
+            }
+
+            // 疊加狀元帽 Emoji (蓋在照片上方)
+            ctx.font = '120px sans-serif';
+            ctx.fillText('🎓', canvas.width / 2, photoY + 40);
+
+            // 小隊名稱與稱號
+            ctx.fillStyle = '#8B2500';
+            ctx.font = 'bold 55px sans-serif';
+            ctx.fillText(`【${rank}】`, canvas.width / 2, 770);
+            
+            ctx.font = 'bold 40px sans-serif';
+            ctx.fillStyle = '#3E2723';
+            ctx.fillText(`第 ${teamName} 隊`, canvas.width / 2, 840);
+            
+            // 繪製分數
+            ctx.font = 'bold 36px sans-serif';
+            ctx.fillStyle = '#D32F2F';
+            ctx.fillText(`最終試煉得分：${score} 分`, canvas.width / 2, 900);
+
+            // 繪製右下角的假印章 (寫在 Canvas 裡讓下載圖片包含印章)
+            ctx.save();
+            ctx.translate(650, 850);
+            ctx.rotate(-0.15); // 微傾斜
+            ctx.strokeStyle = '#D32F2F';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(-60, -60, 120, 120);
+            ctx.fillStyle = '#D32F2F';
+            ctx.font = 'bold 36px sans-serif';
+            ctx.fillText('孔廟', 0, -10);
+            ctx.fillText('認證', 0, 35);
+            ctx.restore();
+        }
+
+        // 下載 Canvas 成圖片
+        window.downloadCard = function() {
+            const canvas = document.getElementById('achievement-canvas');
+            const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+            const link = document.createElement('a');
+            link.download = `旗山孔廟_新科弟子_${teamName}隊.jpg`;
+            link.href = dataURL;
+            link.click();
+        };
+
         document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' && !document.getElementById('puzzle-section').classList.contains('hidden')) {
-                if (document.activeElement.id === 'answer-input') {
-                    checkAnswer();
-                }
+                if (document.activeElement.id === 'answer-input') checkAnswer();
             }
         });
 
-        loadLevel();
     </script>
 </body>
 </html>
