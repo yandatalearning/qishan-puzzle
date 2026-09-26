@@ -57,7 +57,7 @@
                 <p class="text-xs font-bold text-gray-600 tracking-widest mt-1">新科弟子試煉</p>
             </div>
 
-            <!-- 開場引言區與小隊報到 (包含難度選擇) -->
+            <!-- 開場引言區與小隊報到 -->
             <div id="intro-section" class="mb-2 text-gray-700 leading-relaxed bg-[#F4EAD5] p-5 rounded-lg border-2 border-[#D7CCC8] shadow-sm text-center fade-in">
                 <h3 class="text-xl font-bold text-[#8B2500] mb-3">【新科弟子報到】</h3>
                 <p class="text-sm text-left mb-4 font-bold text-gray-600">老夫子：「年輕人，試煉前請先留下你們的小隊名號與合照，這將是你們最後結算成績的印記。」</p>
@@ -86,7 +86,6 @@
             <!-- 解謎區塊 -->
             <div id="puzzle-section" class="hidden fade-in">
                 
-                <!-- 關卡導航列與地圖按鈕 -->
                 <div class="mb-3 flex flex-col gap-2">
                     <div class="flex justify-between items-center">
                         <button onclick="toggleMap()" class="bg-[#8B2500] hover:bg-[#6A1B00] text-white text-xs font-bold py-1.5 px-3 rounded shadow-sm active:scale-95 transition-transform flex items-center gap-1 tracking-widest">
@@ -114,7 +113,6 @@
                     <p class="text-sm text-gray-700 mt-1 font-bold">左右切換喜歡的樣式，並長按保存！</p>
                 </div>
                 
-                <!-- 卡片切換按鈕 -->
                 <div class="flex justify-between items-center mb-3">
                     <button onclick="changeCardStyle(-1)" class="w-10 h-10 bg-[#8B2500] text-white rounded-full font-bold shadow-md active:scale-95 flex items-center justify-center">◀</button>
                     <span id="card-title-indicator" class="font-bold text-[#8B2500] text-sm tracking-widest">1/4 古風御賜卡</span>
@@ -127,7 +125,6 @@
                     <img id="achievement-img" class="w-full h-auto rounded-lg border-4 border-[#8B2500] shadow-xl">
                 </div>
 
-                <!-- 結局頁面新增：童蒙版專屬「查看/保存尋寶全紀錄」按鈕 -->
                 <div id="ending-hunt-btn-area" class="hidden mb-3">
                     <button onclick="toggleHuntModal()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-base active:scale-95 transition-transform tracking-widest flex items-center justify-center gap-2">
                         📸 查看 / 長按保存尋寶全紀錄
@@ -166,10 +163,15 @@
                 <h3 class="font-bold text-[#8B2500] text-xl tracking-widest">📸 尋寶全紀錄</h3>
                 <button onclick="closeHuntModalAndContinue()" class="text-[#8B2500] hover:text-red-600 font-black text-3xl leading-none px-2">&times;</button>
             </div>
-            <div class="overflow-auto flex-1 rounded relative flex items-center justify-center pb-2">
+            <div class="overflow-auto flex-1 rounded relative flex flex-col items-center justify-center pb-2">
                 <p class="text-sm font-bold text-red-600 absolute top-2 w-full text-center animate-pulse z-10 bg-white/80 py-1">👇 請長按下方圖片儲存至手機 👇</p>
                 <canvas id="hunt-canvas" width="800" height="1000" class="hidden"></canvas>
                 <img id="hunt-img" class="w-full h-auto rounded-lg border-2 border-[#8B2500] shadow-sm mt-8">
+                
+                <!-- 新增：各別原圖下載按鈕區 -->
+                <div id="hunt-original-downloads" class="w-full mt-4 flex flex-wrap justify-center gap-2 hidden">
+                    <!-- 動態生成按鈕 -->
+                </div>
             </div>
             <div class="flex gap-2 mt-2">
                 <button onclick="drawHuntImage('grid')" class="flex-1 bg-yellow-600 text-white font-bold py-2 rounded shadow-md active:scale-95">原圖合輯</button>
@@ -220,13 +222,16 @@
         
         let completedLevels = new Set();
         let revealedHints = new Set();
-        
-        let huntPhotos = [null, null, null, null, null]; 
+        let huntPhotoUploaded = false; 
 
         let currentCardStyle = 0;
         const cardTitles = ["1/4 古風御賜卡", "2/4 Q版貼紙卡", "3/4 拍立得旅行卡", "4/4 孔門弟子卡"];
         const instrumentOptions = ["編鐘", "編磬", "笛", "蕭", "笙", "鳳簫", "拍板", "塤", "甄", "琴", "瑟", "鼗", "敔", "搏拊"];
+        let huntPhotos = [null, null, null, null, null];
 
+        // ==========================================
+        // 【題庫一】新科弟子版
+        // ==========================================
         const levels_teen = [
             {
                 type: 'standard',
@@ -248,7 +253,7 @@
             {
                 type: 'standard',
                 title: "靈魂之窗口",
-                desc: "走到「櫺星門」前，其造型猶如古代雕花的「窗櫺」(格子窗)，象徵著國家求得賢士的窗口。在古代，這道大門平時不輕易開啟，唯有皇帝謁廟或新科狀元及第時方能從正中通過。它不僅以窗櫺般的結構迎光納才，更是凡人通往聖賢智慧的靈魂之窗口。想要穿越這道象徵求知明理的大門，必須回答出最終的通關密語！(請參考提示卡)",
+                desc: "走到「櫺星門」前，其造型猶如古代雕花的「窗櫺」(格子窗)，象徵著國家求得賢士的窗口。在古代，這道大門平時不輕易開啟，唯有皇帝謁廟或新科狀元及第時方能從正中通過。它不僅以窗櫺般的結構迎光納才，更是凡人通往聖賢智慧的「「靈魂之窗口」」。想要穿越這道象徵求知明理的大門，必須回答出最終的通關密語！(請參考提示卡)",
                 image: "hint_card.png",
                 question: "請問想要通過「櫺星門」的密碼是什麼？（請輸入3位數字）",
                 answer: ["324"],
@@ -277,7 +282,7 @@
                 type: 'standard',
                 title: "歷史的重建",
                 desc: "高雄縣孔廟於民國七十四年興建完成，是國內規模最大的一座孔廟，後因施工缺失而封閉禁用。為了文化的傳承與延續，孔廟重建整修工程於九十年開工，並於當年十二月竣工。《高雄縣孔廟整修重建成工程落成紀念碑》記錄了這段歷史。孔廟歷史源遠流長，在清代雍正年間，也曾有過一場大規模的殿宇整修。",
-                question: "據傳清代時，雍正在位期間（1678—735）對尊孔政策極為重視，因此對孔廟相關建築進行了極為精細的全面翻修，是一次歷史上非常著名的大規模改建，請利用紙板並回答：雍正是在西元哪一年進行整修的呢？",
+                question: "據傳清代時，雍正在位期間（1678—1735）對尊孔政策極為重視，因此對孔廟相關建築進行了極為精細的全面翻修，是一次歷史上非常著名的大規模改建，請利用紙板並回答：雍正是在西元哪一年進行整修的呢？",
                 answer: ["1729", "1729年"],
                 hint: "紙板中的空格皆會對到數字喔！"
             },
@@ -312,6 +317,16 @@
                 question: "請問：洪唯宸坐在第幾個位置？（請輸入數字）",
                 answer: ["7", "七"],
                 password: "123", 
+                seatImage: "chair1.png", // 青少年座位圖
+                clues: [
+                    "汪紹暘要在第 1 個。",
+                    "劉子綺必須坐在第 2 個位置。",
+                    "劉子琦、劉可婕要坐在一起。",
+                    "林殿鈺必須坐在第 6 個位置。",
+                    "王宏宇、王宏智、林殿鈺一定要分開，兩兩不能坐在一起。",
+                    "莊芷菱必須排在莊于萱的上面，且中間至少要有 2 人。",
+                    "不能有 3 個男生坐在一起。"
+                ],
                 hint: "仔細排排看：汪1, 劉子綺2, 劉可婕3, 林6。王宏宇和王宏智不能在5、7，也不能相鄰。莊芷菱必須在莊于萱上面且中間至少有2人！"
             },
             {
@@ -321,7 +336,7 @@
                 question: "請找關主拿著色紙，完成並回答畫中隱藏的數字是多少？",
                 answer: ["0928"],
                 hint: "數字是孔子的生日喔！",
-                hintImage: "anser.png"
+                hintImage: "anser.png" 
             },
             {
                 type: 'plaque_fill',
@@ -340,6 +355,9 @@
             }
         ];
 
+        // ==========================================
+        // 【題庫二】童蒙探索版
+        // ==========================================
         const levels_child = [
             {
                 type: 'standard',
@@ -392,12 +410,21 @@
                 hint: "可以在大成門、東廡、西廡或大成殿周圍，仔細找找這些物品的蹤影喔！"
             },
             {
-                type: 'touhu_simple', 
+                type: 'logic_seat',
                 title: "君子之爭",
-                desc: "老夫子擺下了投壺挑戰：「君子無所爭，必也射乎！請找關主完成『投壺 9 進 4』挑戰，才能獲得通關密碼。」",
-                question: "請輸入關主給予的通關密碼：",
-                answer: ["123"], 
-                hint: "這關需要動動身體！趕快去找關主進行投壺挑戰吧！"
+                desc: "即將開學了，我帶你們去教室上課，想成為明達倫理的國家之良才，必須六藝精通，所以你們將進行投壺挑戰，挑戰成功能入座到自己的位置。「君子無所爭，必也射乎！請找關主完成『投壺 9 中 3』挑戰，才能獲得尋找座位的線索。」",
+                question: "請問：洪璿恩坐在第幾個位置？（請輸入數字）",
+                answer: ["5", "五"],
+                password: "123", 
+                seatImage: "chair2.png", // 童蒙座位圖
+                clues: [
+                    "林殿澧必須坐在第1個位置。",
+                    "劉子瑜、簡妘靜必須坐在一起。",
+                    "劉子瑜必須坐在第3個位置。",
+                    "李煜恩、李煜睿不能坐在一起。",
+                    "洪璿恩不能排在李煜睿的右邊。"
+                ],
+                hint: "動動腦筋排排看喔！"
             },
             {
                 type: 'standard',
@@ -409,6 +436,7 @@
                 hintImage: "anser.png"
             }
         ];
+
 
         function handleTeamPhotoPreload(event) {
             const file = event.target.files[0];
@@ -493,7 +521,7 @@
                 if (level.type === 'photo_hunt') {
                     html += `
                         <button onclick="toggleHuntModal()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-lg active:scale-95 transition-transform tracking-widest mt-2 flex items-center justify-center gap-2">
-                            📸 查看 / 長按保存尋寶全紀錄
+                            📸 查看 / 保存尋寶全紀錄
                         </button>
                     `;
                 }
@@ -511,30 +539,21 @@
 
                         <div id="logic-puzzle-area" class="hidden fade-in bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                             <p class="font-bold text-[#8B2500] text-base mb-2">📜 座位線索：</p>
-                            <ul class="list-decimal list-inside text-sm font-bold text-gray-800 mb-4 space-y-1">
-                                <li>汪紹暘要在第 1 個。</li>
-                                <li>劉子綺必須坐在第 2 個位置。</li>
-                                <li>劉子琦、劉可婕要坐在一起。</li>
-                                <li>林殿鈺必須坐在第 6 個位置。</li>
-                                <li>王宏宇、王宏智、林殿鈺一定要分開，兩兩不能坐在一起。</li>
-                                <li>莊芷菱必須排在莊于萱的上面，且中間至少要有 2 人。</li>
-                                <li>不能有 3 個男生坐在一起。</li>
-                            </ul>
+                            <ul class="list-decimal list-inside text-sm font-bold text-gray-800 mb-4 space-y-1">`;
+                    
+                    level.clues.forEach(clue => {
+                        html += `<li>${clue}</li>`;
+                    });
+                    
+                    html += `</ul>`;
+                    
+                    if (level.seatImage) {
+                        html += `<img src="${level.seatImage}" class="w-full rounded mb-4 shadow-sm" onerror="this.style.display='none'">`;
+                    }
+
+                    html += `
                             <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
                             ${getInputHTML()}
-                        </div>
-                    `;
-                } else if (level.type === 'touhu_simple') {
-                    html += `
-                        <div class="bg-orange-50 p-5 rounded-xl border border-orange-200 shadow-sm text-center mb-4">
-                            <p class="text-lg font-bold text-[#8B2500] mb-4">${level.question}</p>
-                            <input type="text" id="answer-input" placeholder="請輸入通關密碼" class="w-full px-3 py-3 rounded bg-white border border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-2xl font-black mb-3 text-[#3E2723]" autocomplete="off">
-                            <div class="h-8 mb-2 flex items-center justify-center">
-                                <p id="inline-feedback" class="text-base font-bold text-center w-full" style="opacity: 0; transition: opacity 0.3s ease;"></p>
-                            </div>
-                            <button onclick="checkAnswer()" class="w-full bg-[#1B5E20] text-white font-bold py-3 px-4 rounded-lg shadow-md text-xl active:scale-95 transition-transform tracking-widest">
-                                呈交密碼
-                            </button>
                         </div>
                     `;
                 } else if (level.type === 'photo_hunt') {
@@ -783,7 +802,6 @@
             document.getElementById('hunt-modal').classList.add('hidden');
             document.getElementById('hunt-modal').classList.remove('flex');
             
-            // 尋寶視窗關閉後，自動進入下一關或結局
             if (completedLevels.size === activeLevels.length) {
                 showEnding();
             } else {
@@ -802,11 +820,23 @@
             }
         };
 
+        // 下載單張原圖
+        window.downloadOriginalHuntPhoto = function(index) {
+            const img = huntPhotos[index];
+            if (!img) return;
+            const link = document.createElement('a');
+            link.download = `旗山孔廟尋寶_寶物${index + 1}_${teamName}.jpg`;
+            link.href = img.src;
+            link.click();
+        };
+
         window.drawHuntImage = function(style) {
             const canvas = document.getElementById('hunt-canvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+            
+            const dlContainer = document.getElementById('hunt-original-downloads');
+            
             function drawHuntThumb(img, px, py, pw, ph) {
                 if(!img) return;
                 const imgRatio = img.width / img.height;
@@ -826,6 +856,7 @@
             ctx.fillRect(0, 0, 800, 1000);
 
             if (style === 'grid') {
+                dlContainer.classList.add('hidden'); // 隱藏單圖下載按鈕
                 ctx.fillStyle = '#8B2500';
                 ctx.textAlign = 'center';
                 ctx.font = 'bold 50px sans-serif';
@@ -849,6 +880,19 @@
                 ctx.fillText('MISSION COMPLETE', 400, 880);
 
             } else if (style === 'frame') {
+                // 顯示單張原圖下載按鈕
+                dlContainer.innerHTML = '';
+                huntPhotos.forEach((img, idx) => {
+                    if(img) {
+                        const btn = document.createElement('button');
+                        btn.className = "bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 px-3 rounded shadow-sm";
+                        btn.innerHTML = `📥 圖 ${idx+1}`;
+                        btn.onclick = () => downloadOriginalHuntPhoto(idx);
+                        dlContainer.appendChild(btn);
+                    }
+                });
+                dlContainer.classList.remove('hidden');
+
                 ctx.fillStyle = '#3E2723';
                 ctx.fillRect(0, 0, 800, 1000);
                 ctx.strokeStyle = '#D4AF37'; ctx.lineWidth = 8; ctx.strokeRect(30, 30, 740, 940);
@@ -1038,7 +1082,6 @@
                 
                 showInlineFeedback("🌟 正確！老夫子：「做得好！」", true, 2000);
                 
-                // 尋寶題通關時，直接彈出尋寶全紀錄大圖供小隊長按保存
                 if (level.type === 'photo_hunt') {
                     setTimeout(() => {
                         toggleHuntModal();
@@ -1087,7 +1130,6 @@
             
             document.getElementById('ending-section').classList.remove('hidden');
             
-            // 童蒙版完成後，在結局卡片下方顯示尋寶紀錄按鈕
             if (currentMode === 'child') {
                 const endingHuntBtn = document.getElementById('ending-hunt-btn-area');
                 if (endingHuntBtn) endingHuntBtn.classList.remove('hidden');
