@@ -35,6 +35,14 @@
 
         .hunt-item-uploaded { border-color: #16A34A !important; }
         .hunt-btn-uploaded { background-color: #16A34A !important; }
+        
+        /* 強制允許圖片長按與點擊事件 */
+        .saveable-img {
+            -webkit-touch-callout: default !important;
+            -webkit-user-select: auto !important;
+            user-select: auto !important;
+            pointer-events: auto !important;
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 relative">
@@ -110,10 +118,9 @@
                 <div class="text-center mb-3 fade-in">
                     <h2 class="text-2xl font-black text-[#8B2500]">試煉完成</h2>
                     <p class="text-sm text-gray-700 mt-1 font-bold">老夫子已為你們頒發新科弟子專屬成就卡！</p>
-                    <p class="text-sm text-gray-700 mt-1 font-bold">左右切換喜歡的樣式，並長按保存！</p>
+                    <p class="text-sm text-gray-700 mt-1 font-bold">左右切換喜歡的樣式，可直接點擊下方按鈕保存！</p>
                 </div>
                 
-                <!-- 卡片切換按鈕 -->
                 <div class="flex justify-between items-center mb-3">
                     <button onclick="changeCardStyle(-1)" class="w-10 h-10 bg-[#8B2500] text-white rounded-full font-bold shadow-md active:scale-95 flex items-center justify-center">◀</button>
                     <span id="card-title-indicator" class="font-bold text-[#8B2500] text-sm tracking-widest">1/4 古風御賜卡</span>
@@ -121,14 +128,19 @@
                 </div>
 
                 <div class="relative w-full rounded-xl mb-4 card-reveal text-center">
-                    <p class="text-sm font-bold text-red-600 mb-2 animate-pulse">👇 請長按下方圖片儲存至手機 👇</p>
+                    <p class="text-sm font-bold text-red-600 mb-2 animate-pulse">👇 請長按圖片，或點擊下載按鈕 👇</p>
                     <canvas id="achievement-canvas" width="800" height="1000" class="hidden"></canvas>
-                    <img id="achievement-img" class="w-full h-auto rounded-lg border-4 border-[#8B2500] shadow-xl">
+                    <img id="achievement-img" class="w-full h-auto rounded-lg border-4 border-[#8B2500] shadow-xl saveable-img">
+                    
+                    <!-- 新增成就卡下載按鈕 -->
+                    <button onclick="downloadImageFromImg('achievement-img', '孔廟試煉成就卡.jpg')" class="mt-4 w-full bg-[#1B5E20] hover:bg-green-800 text-white font-bold py-3 px-4 rounded-lg shadow-md text-base active:scale-95 transition-transform tracking-widest flex items-center justify-center gap-2">
+                        📥 點此直接下載成就卡
+                    </button>
                 </div>
 
-                <div id="ending-hunt-btn-area" class="hidden mb-3">
+                <div id="ending-hunt-btn-area" class="hidden mb-3 border-t-2 border-[#D7CCC8] pt-4 mt-2">
                     <button onclick="toggleHuntModal()" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-lg shadow-md text-base active:scale-95 transition-transform tracking-widest flex items-center justify-center gap-2">
-                        📸 查看 / 長按保存尋寶全紀錄
+                        📸 開啟尋寶全紀錄與原圖下載
                     </button>
                 </div>
 
@@ -158,23 +170,29 @@
     </div>
 
     <!-- 尋寶紀錄下載視窗 -->
-    <div id="hunt-modal" class="fixed inset-0 z-50 bg-black/85 hidden flex-col items-center justify-center p-4 fade-in">
-        <div class="relative w-full max-w-md bg-[#FAF3E0] rounded-xl p-3 border-4 border-[#8B2500] flex flex-col max-h-[90vh]">
+    <div id="hunt-modal" class="fixed inset-0 z-50 bg-black/85 hidden flex-col items-center justify-center p-4 fade-in overflow-y-auto pt-10">
+        <div class="relative w-full max-w-md bg-[#FAF3E0] rounded-xl p-3 border-4 border-[#8B2500] flex flex-col h-auto my-auto">
             <div class="flex justify-between items-center mb-2 px-2">
                 <h3 class="font-bold text-[#8B2500] text-xl tracking-widest">📸 尋寶全紀錄</h3>
                 <button onclick="closeHuntModalAndContinue()" class="text-[#8B2500] hover:text-red-600 font-black text-3xl leading-none px-2">&times;</button>
             </div>
-            <div class="overflow-auto flex-1 rounded relative flex flex-col items-center pb-2">
-                <p class="text-sm font-bold text-red-600 w-full text-center animate-pulse z-10 bg-white/80 py-1 sticky top-0">👇 請長按下方圖片儲存至手機 👇</p>
+            <div class="flex-1 rounded relative flex flex-col items-center pb-2">
+                <p class="text-sm font-bold text-red-600 w-full text-center animate-pulse z-10 bg-white/80 py-1">👇 請長按圖片，或點擊按鈕下載 👇</p>
                 <canvas id="hunt-canvas" width="800" height="1000" class="hidden"></canvas>
-                <img id="hunt-img" class="w-full h-auto rounded-lg border-2 border-[#8B2500] shadow-sm mb-4 mt-2">
+                <img id="hunt-img" class="w-full h-auto rounded-lg border-2 border-[#8B2500] shadow-sm mb-2 mt-2 saveable-img">
+                
+                <!-- 新增全紀錄大圖下載按鈕 -->
+                <button onclick="downloadImageFromImg('hunt-img', '尋寶全紀錄大圖.jpg')" class="mb-4 w-full bg-[#1B5E20] hover:bg-green-800 text-white font-bold py-2 px-4 rounded shadow-md text-base active:scale-95 transition-transform flex items-center justify-center gap-2">
+                    📥 點此下載這張全紀錄
+                </button>
                 
                 <h4 class="font-bold text-[#8B2500] text-lg mt-2 mb-2 w-full border-t border-[#D7CCC8] pt-2 text-center">【各別原圖保存區】</h4>
                 <div id="hunt-original-images" class="w-full flex flex-col gap-3">
+                    <!-- JS 動態生成區塊 -->
                 </div>
             </div>
             
-            <button onclick="closeHuntModalAndContinue()" class="mt-3 w-full bg-[#1B5E20] text-white font-bold py-3 rounded-lg shadow-md active:scale-95 transition-transform tracking-widest text-lg">
+            <button onclick="closeHuntModalAndContinue()" class="mt-4 w-full bg-[#8B2500] text-white font-bold py-3 rounded-lg shadow-md active:scale-95 transition-transform tracking-widest text-lg border border-yellow-600">
                 確認完成・返回
             </button>
         </div>
@@ -187,7 +205,7 @@
             <video id="ar-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
             <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
                 <rect x="456" y="360" width="88" height="100" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
-                <text x="500" y="340" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央拱門</text>
+                <text x="500" y="340" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
                 <g stroke="#C1395E" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" opacity="0.85">
                     <path d="M 196 480 L 276 580 L 356 480" fill="none"/>
                     <line x1="356" y1="480" x2="644" y2="480" />
@@ -219,7 +237,6 @@
         
         let completedLevels = new Set();
         let revealedHints = new Set();
-        
         let huntPhotos = [null, null, null, null, null]; 
 
         let currentCardStyle = 0;
@@ -399,7 +416,7 @@
                 hint: "清脆石頭聲是「編磬」；搖動發出咚咚聲的是「鼗」；風聲般低沉是「塤」；多管吹奏是「笙」！"
             },
             {
-                type: 'photo_hunt',
+                type: 'photo_hunt', 
                 title: "孔廟尋寶記",
                 desc: "老夫子在孔廟裡藏了 5 個特別的寶物，請根據下方的照片，在孔廟內找出它們的真面目！",
                 images: ["bell.jpg", "duck.jpg", "fan.jpg", "painting.jpg", "calligraphy.jpg"],
@@ -434,6 +451,48 @@
             }
         ];
 
+        // 獨立下載圖片功能 (JS 動態產出 a 標籤)
+        window.downloadImageFromImg = function(imgId, filename) {
+            const img = document.getElementById(imgId);
+            if (!img || !img.src) {
+                alert("圖片尚未準備好，請稍後再試！");
+                return;
+            }
+            
+            // 偵測是否為 Line / Facebook 等 APP 內建瀏覽器
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            const isLine = (ua.indexOf("Line") > -1);
+            const isFB = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1);
+            
+            if (isLine || isFB) {
+                alert("提醒：您目前使用 APP 內建瀏覽器，如果點擊下載沒反應，請直接「長按圖片」選擇儲存喔！");
+            }
+
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = teamName + "_" + filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        window.downloadOriginalHuntPhoto = function(index) {
+            const img = huntPhotos[index];
+            if (!img) return;
+            const link = document.createElement('a');
+            link.download = `旗山孔廟尋寶_照片${index + 1}_${teamName}.jpg`;
+            link.href = img.src;
+            
+            const ua = navigator.userAgent || navigator.vendor || window.opera;
+            if (ua.indexOf("Line") > -1 || ua.indexOf("FBAN") > -1) {
+                alert("提醒：若 APP 內建瀏覽器無法下載，請直接對著上方的原始圖片長按儲存！");
+            }
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
         function handleTeamPhotoPreload(event) {
             const file = event.target.files[0];
             if (file) {
@@ -448,7 +507,6 @@
             }
         }
 
-        // 強制檢查有沒有填寫名稱與上傳照片
         function startGame(mode) {
             const nameInput = document.getElementById('team-name-input').value.trim();
             if (!nameInput) {
@@ -578,7 +636,7 @@
                         let btnClass = huntPhotos[idx] ? 'hunt-btn-uploaded' : 'bg-gray-700 hover:bg-gray-800';
                         let btnText = huntPhotos[idx] ? '✅ 重新上傳' : '📷 拍照';
                         
-                        let uploadedImgHtml = huntPhotos[idx] ? `<img src="${huntPhotos[idx].src}" class="w-full h-24 object-cover rounded-lg border-2 border-green-500 mb-2 shadow-sm">` : '';
+                        let uploadedImgHtml = huntPhotos[idx] ? `<img src="${huntPhotos[idx].src}" class="w-full h-24 object-cover rounded-lg border-2 border-green-500 mb-2 shadow-sm saveable-img">` : '';
                         
                         html += `
                             <div class="relative ${isFullWidth} flex flex-col items-center bg-white p-2 rounded-xl shadow-sm border-2 ${frameClass} transition-colors">
@@ -642,7 +700,7 @@
                             <audio controls class="w-full h-10 mb-3 rounded">
                                 <source src="${q.src}" type="audio/mpeg">
                             </audio>
-                            <select id="audio-ans-${idx}" class="w-full px-3 py-3 rounded-lg bg-white border-2 border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-lg font-bold text-[#3E2723] transition-colors">
+                            <select id="audio-ans-${idx}" class="w-full px-3 py-3 rounded-lg bg-white border-2 border-gray-300 focus:outline-none text-center text-lg font-bold text-[#3E2723] transition-colors">
                                 <option value="">-- 選擇樂器 --</option>`;
                         optionsList.forEach(opt => {
                             html += `<option value="${opt}">${opt}</option>`;
@@ -681,7 +739,7 @@
             
             let hintImageHtml = '';
             if (revealedHints.has(currentLevel) && level.hintImage) {
-                hintImageHtml = `<img src="${level.hintImage}" class="w-full mt-3 rounded-lg border-2 border-yellow-400 shadow-sm" onerror="this.style.display='none'">`;
+                hintImageHtml = `<img src="${level.hintImage}" class="w-full mt-3 rounded-lg border-2 border-yellow-400 shadow-sm saveable-img" onerror="this.style.display='none'">`;
             }
 
             html += `
@@ -779,7 +837,7 @@
                 if (hintBox) {
                     let hintHtml = `💡 錦囊：${level.hint}`;
                     if(level.hintImage) {
-                        hintHtml += `<img src="${level.hintImage}" class="w-full mt-3 rounded-lg border-2 border-yellow-400 shadow-sm" onerror="this.style.display='none'">`;
+                        hintHtml += `<img src="${level.hintImage}" class="w-full mt-3 rounded-lg border-2 border-yellow-400 shadow-sm saveable-img" onerror="this.style.display='none'">`;
                     }
                     hintBox.innerHTML = hintHtml;
                     hintBox.classList.remove('hidden', 'bg-orange-50', 'text-orange-800', 'border-orange-500');
@@ -833,7 +891,6 @@
             }
         };
 
-        // 修改尋寶全紀錄：只繪製原圖大合輯，下方提供 5 張原圖供長按
         window.drawHuntImage = function() {
             const canvas = document.getElementById('hunt-canvas');
             const ctx = canvas.getContext('2d');
@@ -892,7 +949,8 @@
                         div.className = "flex flex-col items-center border border-gray-300 rounded p-2 bg-white";
                         div.innerHTML = `
                             <span class="text-xs font-bold text-gray-500 mb-1">照片 ${idx + 1} (長按圖保存)</span>
-                            <img src="${img.src}" class="w-full h-auto max-h-48 object-contain rounded">
+                            <img src="${img.src}" class="w-full h-auto max-h-48 object-contain rounded saveable-img">
+                            <button onclick="downloadOriginalHuntPhoto(${idx})" class="mt-2 w-full bg-blue-100 text-blue-800 font-bold py-1.5 rounded text-sm active:scale-95">📥 下載圖 ${idx + 1}</button>
                         `;
                         originalImagesContainer.appendChild(div);
                     }
@@ -975,7 +1033,10 @@
                 let isAnyEmpty = false;
                 for (let i = 0; i < level.answers.length; i++) {
                     const selectEl = document.getElementById(`audio-ans-${i}`);
-                    if (!selectEl.value) isAnyEmpty = true;
+                    if (!selectEl.value) {
+                        isAnyEmpty = true;
+                        continue;
+                    }
                     if (selectEl.value !== level.answers[i]) {
                         allCorrect = false;
                         selectEl.classList.add('border-red-500', 'bg-red-50');
