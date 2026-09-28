@@ -48,19 +48,37 @@
         #touhu-target { position: absolute; top: 0; left: 40%; width: 20%; height: 100%; background: #22C55E; }
         #touhu-cursor { position: absolute; top: -5px; left: 0%; width: 10px; height: 40px; background: #DC2626; border-radius: 5px; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5); transform: translateX(-50%); transition: none; z-index: 10; }
 
-        /* 拖曳紙板專用樣式 */
-        #draggable-area { position: relative; width: 100%; aspect-ratio: 3/4; overflow: hidden; border: 2px solid #8B2500; border-radius: 0.5rem; touch-action: none; background-color: #e5e5e5; }
-        #monument-bg { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+        /* 拖曳紙板專用樣式 (修正手機版比例跑掉的問題) */
+        #draggable-area { 
+            position: relative; 
+            width: 100%; 
+            /* 讓高度由內部圖片撐開，確保比例正確 */
+            height: auto; 
+            overflow: hidden; 
+            border: 2px solid #8B2500; 
+            border-radius: 0.5rem; 
+            touch-action: none; 
+            background-color: #e5e5e5; 
+            display: flex; /* 讓內部元素可以自然撐開 */
+        }
+        #monument-bg { 
+            width: 100%; 
+            height: auto; /* 讓圖片保持原始比例 */
+            object-fit: contain; 
+            pointer-events: none; 
+            display: block; /* 避免底部出現奇怪的空白 */
+        }
         #draggable-card {
             position: absolute;
-            width: 85px;
-            height: 250px;
+            width: 85px; /* 維持你設定的紙板寬度 */
+            height: 250px; /* 維持你設定的紙板高度 */
             top: 10px;
             left: 10px;
             cursor: grab;
             filter: drop-shadow(4px 6px 8px rgba(0,0,0,0.6));
             touch-action: none;
             display: none; /* 預設隱藏 */
+            z-index: 20; /* 確保在圖片上方 */
         }
         #draggable-card:active { cursor: grabbing; filter: drop-shadow(2px 3px 4px rgba(0,0,0,0.8)); }
         .card-svg { width: 100%; height: 100%; pointer-events: none; }
@@ -367,6 +385,7 @@
                 desc: "即將開學了，我帶你們去教室上課，想成為明達倫理的國家之良才，必須六藝精通，所以你們將進行投壺挑戰，挑戰成功能入座到自己的位置。「君子無所爭，必也射乎！請完成『投壺 9 中 3』挑戰，才能獲得尋找座位的線索。」",
                 question: "請問：洪唯宸坐在第幾個位置？（請輸入數字）",
                 answer: ["7", "七"],
+                password: "123",
                 seatImage: "chair1.png",
                 clues: [
                     "汪紹暘要在第 1 個。",
@@ -465,6 +484,7 @@
                 desc: "即將開學了，我帶你們去教室上課，想成為明達倫理的國家之良才，必須六藝精通，所以你們將進行投壺挑戰，挑戰成功能入座到自己的位置。「君子無所爭，必也射乎！請完成『投壺 9 中 3』挑戰，才能獲得尋找座位的線索。」",
                 question: "請問：洪璿恩坐在第幾個位置？（請輸入數字）",
                 answer: ["5", "五"],
+                password: "123",
                 seatImage: "chair2.png",
                 clues: [
                     "林殿澧必須坐在第1個位置。",
@@ -617,6 +637,12 @@
                 html += `<img src="${level.image}" alt="關卡提示" class="w-full rounded-lg mb-4 shadow-sm border border-[#E7DCC8]" onerror="this.style.display='none'">`;
             }
 
+            // 修改：歷史的重建一進來就先顯示題目與作答框
+            if (level.type === 'draggable_card') {
+                html += `<p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>`;
+                html += getInputHTML(); // 先把作答區塊放上來
+            }
+
             if (completedLevels.has(currentLevel)) {
                 html += `
                     <div class="bg-green-100 border-2 border-green-500 text-green-800 p-6 rounded-lg text-center font-bold text-lg mb-4">
@@ -674,9 +700,9 @@
                         </div>
                     `;
                 } else if (level.type === 'draggable_card') {
-                    // 新增前置解鎖任務區塊
+                    // 更新後的拖曳紙板區塊 (題目與作答框已經移到上面)
                     html += `
-                        <div id="card-unlock-area" class="mb-4 bg-orange-50 p-4 rounded-xl border border-orange-200 shadow-sm text-center">
+                        <div id="card-unlock-area" class="mb-4 bg-orange-50 p-4 rounded-xl border border-orange-200 shadow-sm text-center mt-4">
                             <p class="text-sm font-bold text-[#8B2500] mb-3">📍 要開啟虛擬紙板，請先在現場尋找石碑！</p>
                             <p class="text-base font-bold text-gray-800 mb-3">請問：紀念碑是在民國 90 年 12 月「幾號」落成的？</p>
                             <input type="number" id="monument-date-input" placeholder="請輸入日期數字 (如: 1)" class="w-full px-3 py-3 rounded bg-white border border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-xl font-bold mb-3" autocomplete="off">
@@ -687,7 +713,7 @@
                         </div>
 
                         <!-- 原本的拖曳區塊，預設先隱藏 -->
-                        <div id="draggable-puzzle-area" class="hidden">
+                        <div id="draggable-puzzle-area" class="hidden mt-4">
                             <div class="mb-4 bg-orange-50 p-4 rounded-xl border border-orange-200 shadow-sm text-center">
                                 <p class="text-sm font-bold text-[#8B2500] mb-3">點擊下方按鈕拿出虛擬紙板，在石碑上拖曳找出隱藏的 4 個文字：</p>
 
@@ -727,9 +753,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
-                            ${getInputHTML()}
                         </div>
                     `;
                 } else if (level.type === 'photo_hunt') {
