@@ -16,7 +16,7 @@
 
         .fade-in { animation: fadeIn 0.4s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
@@ -35,14 +35,35 @@
 
         .hunt-item-uploaded { border-color: #16A34A !important; }
         .hunt-btn-uploaded { background-color: #16A34A !important; }
-        
-        /* 強制允許圖片長按與點擊事件 */
+
         .saveable-img {
             -webkit-touch-callout: default !important;
             -webkit-user-select: auto !important;
             user-select: auto !important;
             pointer-events: auto !important;
         }
+
+        /* 投壺遊戲專用樣式 */
+        #touhu-meter { position: relative; width: 100%; height: 30px; background: #E5E7EB; border-radius: 15px; overflow: hidden; border: 2px solid #9CA3AF; }
+        #touhu-target { position: absolute; top: 0; left: 40%; width: 20%; height: 100%; background: #22C55E; }
+        #touhu-cursor { position: absolute; top: -5px; left: 0%; width: 10px; height: 40px; background: #DC2626; border-radius: 5px; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5); transform: translateX(-50%); transition: none; z-index: 10; }
+
+        /* 拖曳紙板專用樣式 */
+        #draggable-area { position: relative; width: 100%; aspect-ratio: 3/4; overflow: hidden; border: 2px solid #8B2500; border-radius: 0.5rem; touch-action: none; background-color: #e5e5e5; }
+        #monument-bg { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+        #draggable-card {
+            position: absolute;
+            width: 85px;
+            height: 250px;
+            top: 10px;
+            left: 10px;
+            cursor: grab;
+            filter: drop-shadow(4px 6px 8px rgba(0,0,0,0.6));
+            touch-action: none;
+            display: none; /* 預設隱藏 */
+        }
+        #draggable-card:active { cursor: grabbing; filter: drop-shadow(2px 3px 4px rgba(0,0,0,0.8)); }
+        .card-svg { width: 100%; height: 100%; pointer-events: none; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 relative">
@@ -58,7 +79,7 @@
     <div id="game-container" class="relative z-10 w-full max-w-md bg-[#FAF3E0] rounded-xl shadow-2xl overflow-hidden border-2 border-[#8B2500]">
         <div class="h-3 w-full bg-[#8B2500]"></div>
         <div class="p-6 md:p-8">
-            
+
             <div class="text-center mb-6">
                 <div class="w-16 h-16 mx-auto mb-2 border-2 border-[#8B2500] rounded-full flex items-center justify-center text-3xl text-[#8B2500] font-black shadow-inner">孔</div>
                 <h1 class="text-2xl font-black text-[#8B2500] tracking-widest">旗山孔廟</h1>
@@ -69,9 +90,9 @@
             <div id="intro-section" class="mb-2 text-gray-700 leading-relaxed bg-[#F4EAD5] p-5 rounded-lg border-2 border-[#D7CCC8] shadow-sm text-center fade-in">
                 <h3 class="text-xl font-bold text-[#8B2500] mb-3">【新科弟子報到】</h3>
                 <p class="text-sm text-left mb-4 font-bold text-gray-600">老夫子：「年輕人，試煉前請先留下你們的小隊名號與合照，這將是你們最後結算成績的印記。」</p>
-                
+
                 <input type="text" id="team-name-input" placeholder="請輸入小隊名稱 (例: 聰明隊)" class="w-full px-4 py-3 rounded bg-white border border-gray-300 focus:outline-none focus:border-[#8B2500] focus:ring-0 text-center text-base font-bold mb-3" autocomplete="off">
-                
+
                 <label class="block w-full bg-[#D7CCC8] hover:bg-[#BCAAA4] text-[#3E2723] text-center py-3 rounded cursor-pointer shadow-sm font-bold mb-4 transition-colors">
                     📷 拍下小隊合照
                     <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleTeamPhotoPreload(event)">
@@ -93,7 +114,7 @@
 
             <!-- 解謎區塊 -->
             <div id="puzzle-section" class="hidden fade-in">
-                
+
                 <div class="mb-3 flex flex-col gap-2">
                     <div class="flex justify-between items-center">
                         <button onclick="toggleMap()" class="bg-[#8B2500] hover:bg-[#6A1B00] text-white text-xs font-bold py-1.5 px-3 rounded shadow-sm active:scale-95 transition-transform flex items-center gap-1 tracking-widest">
@@ -109,7 +130,7 @@
                         💡 錦囊 (<span id="hint-count-display">5</span>)
                     </button>
                 </div>
-                
+
                 <div class="bg-white rounded-lg p-5 shadow-sm border border-[#E7DCC8] mb-4" id="level-content"></div>
             </div>
 
@@ -120,7 +141,7 @@
                     <p class="text-sm text-gray-700 mt-1 font-bold">老夫子已為你們頒發新科弟子專屬成就卡！</p>
                     <p class="text-sm text-gray-700 mt-1 font-bold">左右切換喜歡的樣式，可直接點擊下方按鈕保存！</p>
                 </div>
-                
+
                 <div class="flex justify-between items-center mb-3">
                     <button onclick="changeCardStyle(-1)" class="w-10 h-10 bg-[#8B2500] text-white rounded-full font-bold shadow-md active:scale-95 flex items-center justify-center">◀</button>
                     <span id="card-title-indicator" class="font-bold text-[#8B2500] text-sm tracking-widest">1/4 古風御賜卡</span>
@@ -131,7 +152,7 @@
                     <p class="text-sm font-bold text-red-600 mb-2 animate-pulse">👇 請長按圖片，或點擊下載按鈕 👇</p>
                     <canvas id="achievement-canvas" width="800" height="1000" class="hidden"></canvas>
                     <img id="achievement-img" class="w-full h-auto rounded-lg border-4 border-[#8B2500] shadow-xl saveable-img">
-                    
+
                     <button onclick="downloadImageFromImg('achievement-img', '孔廟試煉成就卡.jpg')" class="mt-4 w-full bg-[#1B5E20] hover:bg-green-800 text-white font-bold py-3 px-4 rounded-lg shadow-md text-base active:scale-95 transition-transform tracking-widest flex items-center justify-center gap-2">
                         📥 點此直接下載成就卡
                     </button>
@@ -176,20 +197,20 @@
                 <button onclick="closeHuntModalAndContinue()" class="text-[#8B2500] hover:text-red-600 font-black text-3xl leading-none px-2">&times;</button>
             </div>
             <div class="flex-1 rounded relative flex flex-col items-center pb-2">
-                <p class="text-sm font-bold text-red-600 w-full text-center animate-pulse z-10 bg-white/80 py-1">👇 請長按圖片，或點擊按鈕下載 👇</p>
+                <p class="text-sm font-bold text-red-600 w-full text-center animate-pulse z-10 bg-white/80 py-1 sticky top-0">👇 請長按圖片，或點擊按鈕下載 👇</p>
                 <canvas id="hunt-canvas" width="800" height="1000" class="hidden"></canvas>
                 <img id="hunt-img" class="w-full h-auto rounded-lg border-2 border-[#8B2500] shadow-sm mb-2 mt-2 saveable-img">
-                
+
                 <button onclick="downloadImageFromImg('hunt-img', '尋寶全紀錄大圖.jpg')" class="mb-4 w-full bg-[#1B5E20] hover:bg-green-800 text-white font-bold py-2 px-4 rounded shadow-md text-base active:scale-95 transition-transform flex items-center justify-center gap-2">
                     📥 點此下載這張全紀錄
                 </button>
-                
+
                 <h4 class="font-bold text-[#8B2500] text-lg mt-2 mb-2 w-full border-t border-[#D7CCC8] pt-2 text-center">【各別原圖保存區】</h4>
                 <div id="hunt-original-images" class="w-full flex flex-col gap-3">
                     <!-- JS 動態生成區塊 -->
                 </div>
             </div>
-            
+
             <button onclick="closeHuntModalAndContinue()" class="mt-4 w-full bg-[#8B2500] text-white font-bold py-3 rounded-lg shadow-md active:scale-95 transition-transform tracking-widest text-lg border border-yellow-600">
                 確認完成・返回
             </button>
@@ -200,9 +221,7 @@
     <div id="ar-modal" class="fixed inset-0 z-50 bg-black hidden flex flex-col">
         <div id="ar-hint" class="w-full bg-black/70 text-white text-center py-3 px-4 z-20 text-sm font-bold text-yellow-400"></div>
         <div class="relative w-full flex-1 overflow-hidden">
-            <!-- 確保有 playinline，部分 iOS 需要這個才能內聯播放 -->
             <video id="ar-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
-            
             <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
                 <rect x="456" y="360" width="88" height="100" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
                 <text x="500" y="340" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
@@ -213,7 +232,6 @@
                     <line x1="500" y1="480" x2="500" y2="580" />
                     <line x1="644" y1="480" x2="804" y2="580" />
                 </g>
-                <!-- 新增提示文字 (黑邊框與黃字疊加，保證清楚) -->
                 <text x="500" y="640" fill="#000000" font-size="26" text-anchor="middle" font-weight="bold" stroke="#000000" stroke-width="5" stroke-linejoin="round">基準框對準後可全方位旋轉找到與此線相合的地方</text>
                 <text x="500" y="640" fill="#FFEB3B" font-size="26" text-anchor="middle" font-weight="bold">基準框對準後可全方位旋轉找到與此線相合的地方</text>
             </svg>
@@ -230,23 +248,39 @@
     </div>
 
     <script>
-        let currentMode = 'teen'; 
+        let currentMode = 'teen';
         let activeLevels = [];
         let currentLevel = 0;
         let cameraStream = null;
         let teamName = "無名隊";
-        let teamPhotoImg = null; 
-        let hintsLeft = 5; 
-        
+        let teamPhotoImg = null;
+        let hintsLeft = 5;
+
         let completedLevels = new Set();
         let revealedHints = new Set();
-        
-        let huntPhotos = [null, null, null, null, null]; 
+        let huntPhotos = [null, null, null, null, null];
 
         let currentCardStyle = 0;
         const cardTitles = ["1/4 古風御賜卡", "2/4 Q版貼紙卡", "3/4 拍立得旅行卡", "4/4 孔門弟子卡"];
         const instrumentOptions = ["編鐘", "編磬", "笛", "蕭", "笙", "鳳簫", "拍板", "塤", "甄", "琴", "瑟", "鼗", "敔", "搏拊"];
 
+        // 投壺遊戲全域變數
+        let touhuAnimFrame;
+        let touhuMeterX = 0;
+        let touhuMeterDir = 1;
+        let touhuArrows = 9;
+        let touhuHits = 0;
+        let touhuSpeed = 3;
+
+        // 拖曳紙板全域變數
+        let dragItem = null;
+        let activeX = false;
+        let currentX = 10, currentY = 10;
+        let initialX = 0, initialY = 0;
+
+        // ==========================================
+        // 【題庫一】新科弟子版
+        // ==========================================
         const levels_teen = [
             {
                 type: 'standard',
@@ -294,12 +328,14 @@
                 hint: "大成門又象徵著「禮儀」之門，答案是兩個字喔！"
             },
             {
-                type: 'standard',
+                type: 'draggable_card',
                 title: "歷史的重建",
                 desc: "高雄縣孔廟於民國七十四年興建完成，是國內規模最大的一座孔廟，後因施工缺失而封閉禁用。為了文化的傳承與延續，孔廟重建整修工程於九十年開工，並於當年十二月竣工。《高雄縣孔廟整修重建成工程落成紀念碑》記錄了這段歷史。孔廟歷史源遠流長，在清代雍正年間，也曾有過一場大規模的殿宇整修。",
-                question: "據傳清代時，雍正在位期間（1678—1735）對尊孔政策極為重視，因此對孔廟相關建築進行了極為精細的全面翻修，是一次歷史上非常著名的大規模改建，請利用紙板並回答：雍正是在西元哪一年進行整修的呢？",
+                bgImage: "monument.jpg",
+                question: "據傳清代時，雍正在位期間（1678—1735）對尊孔政策極為重視，因此對孔廟相關建築進行了極為精細的全面翻修，是一次歷史上非常著名的大規模改建，請利用下方可拖曳的「虛擬紙板」，在石碑上找出隱藏的年份。雍正是在西元哪一年進行整修的呢？",
                 answer: ["1729", "1729年"],
-                hint: "紙板中的空格皆會對到數字喔！"
+                password: "15",
+                hint: "拖曳紙板在石碑上滑動，注意看缺口裡露出來的文字喔！"
             },
             {
                 type: 'two_inputs',
@@ -328,11 +364,10 @@
             {
                 type: 'logic_seat',
                 title: "君子之爭",
-                desc: "即將開學了，我帶你們去教室上課，想成為明達倫理的國家之良才，必須六藝精通，所以你們將進行投壺挑戰，挑戰成功能入座到自己的位置。「君子無所爭，必也射乎！請找關主完成『投壺 9 中 3』挑戰，才能獲得尋找座位的線索。」",
+                desc: "即將開學了，我帶你們去教室上課，想成為明達倫理的國家之良才，必須六藝精通，所以你們將進行投壺挑戰，挑戰成功能入座到自己的位置。「君子無所爭，必也射乎！請完成『投壺 9 中 3』挑戰，才能獲得尋找座位的線索。」",
                 question: "請問：洪唯宸坐在第幾個位置？（請輸入數字）",
                 answer: ["7", "七"],
-                password: "123", 
-                seatImage: "chair1.png", 
+                seatImage: "chair1.png",
                 clues: [
                     "汪紹暘要在第 1 個。",
                     "劉子綺必須坐在第 2 個位置。",
@@ -351,7 +386,7 @@
                 question: "請找關主拿著色紙，完成並回答畫中隱藏的數字是多少？",
                 answer: ["0928"],
                 hint: "數字是孔子的生日喔！",
-                hintImage: "anser.png" 
+                hintImage: "anser.png"
             },
             {
                 type: 'plaque_fill',
@@ -370,6 +405,9 @@
             }
         ];
 
+        // ==========================================
+        // 【題庫二】童蒙探索版
+        // ==========================================
         const levels_child = [
             {
                 type: 'standard',
@@ -409,12 +447,12 @@
                     { id: '2', src: 'audio_3.mp3', label: '神秘聲音三' },
                     { id: '3', src: 'audio_4.mp3', label: '神秘聲音四' }
                 ],
-                options: ["鼗", "編磬", "塤", "笙", "琴"], 
+                options: ["鼗", "編磬", "塤", "笙", "琴"],
                 answers: ["鼗", "編磬", "塤", "笙"],
                 hint: "清脆石頭聲是「編磬」；搖動發出咚咚聲的是「鼗」；風聲般低沉是「塤」；多管吹奏是「笙」！"
             },
             {
-                type: 'photo_hunt', 
+                type: 'photo_hunt',
                 title: "孔廟尋寶記",
                 desc: "老夫子在孔廟裡藏了 5 個特別的寶物，請根據下方的照片，在孔廟內找出它們的真面目！",
                 images: ["bell.jpg", "duck.jpg", "fan.jpg", "painting.jpg", "calligraphy.jpg"],
@@ -424,11 +462,10 @@
             {
                 type: 'logic_seat',
                 title: "君子之爭",
-                desc: "即將開學了，我帶你們去教室上課，想成為明達倫理的國家之良才，必須六藝精通，所以你們將進行投壺挑戰，挑戰成功能入座到自己的位置。「君子無所爭，必也射乎！請找關主完成『投壺 9 中 3』挑戰，才能獲得尋找座位的線索。」",
+                desc: "即將開學了，我帶你們去教室上課，想成為明達倫理的國家之良才，必須六藝精通，所以你們將進行投壺挑戰，挑戰成功能入座到自己的位置。「君子無所爭，必也射乎！請完成『投壺 9 中 3』挑戰，才能獲得尋找座位的線索。」",
                 question: "請問：洪璿恩坐在第幾個位置？（請輸入數字）",
                 answer: ["5", "五"],
-                password: "123", 
-                seatImage: "chair2.png", 
+                seatImage: "chair2.png",
                 clues: [
                     "林殿澧必須坐在第1個位置。",
                     "簡妘靜必須坐在劉子瑜的左邊、且兩人必須坐在一起。",
@@ -449,19 +486,18 @@
             }
         ];
 
-        // 獨立下載圖片功能 (JS 動態產出 a 標籤)
+        // 獨立下載圖片功能
         window.downloadImageFromImg = function(imgId, filename) {
             const img = document.getElementById(imgId);
             if (!img || !img.src) {
                 alert("圖片尚未準備好，請稍後再試！");
                 return;
             }
-            
-            // 偵測是否為 Line / Facebook 等 APP 內建瀏覽器
+
             const ua = navigator.userAgent || navigator.vendor || window.opera;
             const isLine = (ua.indexOf("Line") > -1);
             const isFB = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1);
-            
+
             if (isLine || isFB) {
                 alert("提醒：您目前使用 APP 內建瀏覽器，如果點擊下載沒反應，請直接「長按圖片」選擇儲存喔！");
             }
@@ -480,12 +516,12 @@
             const link = document.createElement('a');
             link.download = `旗山孔廟尋寶_照片${index + 1}_${teamName}.jpg`;
             link.href = img.src;
-            
+
             const ua = navigator.userAgent || navigator.vendor || window.opera;
             if (ua.indexOf("Line") > -1 || ua.indexOf("FBAN") > -1) {
                 alert("提醒：若 APP 內建瀏覽器無法下載，請直接對著上方的原始圖片長按儲存！");
             }
-            
+
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -504,29 +540,30 @@
                 reader.readAsDataURL(file);
             }
         }
-
+        
         function startGame(mode) {
             const nameInput = document.getElementById('team-name-input').value.trim();
-            if (!nameInput) {
-                alert("進入試煉前，請先輸入小隊名稱！");
-                return;
-            }
-            if (!teamPhotoImg) {
-                alert("進入試煉前，請先拍下小隊合照！");
-                return;
-            }
-            
-            teamName = nameInput;
+            // 測試時隱藏防呆驗證
+            // if (!nameInput) {
+            //     alert("進入試煉前，請先輸入小隊名稱！");
+            //     return;
+            // }
+            // if (!teamPhotoImg) {
+            //     alert("進入試煉前，請先拍下小隊合照！");
+            //     return;
+            // }
+
+            teamName = nameInput || "測試小隊";
             currentMode = mode;
             activeLevels = (currentMode === 'child') ? levels_child : levels_teen;
-            
+
             const mapImg = document.getElementById('dynamic-map-img');
             if (currentMode === 'child') {
                 mapImg.src = "map.png";
             } else {
                 mapImg.src = "闖關地圖.png";
             }
-            
+
             document.getElementById('intro-section').classList.add('hidden');
             document.getElementById('puzzle-section').classList.remove('hidden');
             loadLevel();
@@ -538,10 +575,10 @@
             for (let i = 0; i < activeLevels.length; i++) {
                 let isCompleted = completedLevels.has(i);
                 let isCurrent = (i === currentLevel);
-                
-                let bgClass = isCurrent ? 'bg-[#8B2500] text-white border-2 border-yellow-400 scale-110' : 
+
+                let bgClass = isCurrent ? 'bg-[#8B2500] text-white border-2 border-yellow-400 scale-110' :
                               (isCompleted ? 'bg-green-600 text-white border-2 border-green-700' : 'bg-gray-200 text-gray-500 border-2 border-transparent');
-                
+
                 html += `<button onclick="goToLevel(${i})" class="shrink-0 w-10 h-10 rounded-full font-bold shadow-sm transition-all ${bgClass}">${i + 1}</button>`;
             }
             navContainer.innerHTML = html;
@@ -556,7 +593,7 @@
             renderLevelNav();
             const level = activeLevels[currentLevel];
             document.getElementById('level-indicator').textContent = `卷 ${currentLevel + 1} / 共 ${activeLevels.length} 卷`;
-            
+
             const hintBtn = document.getElementById('hint-btn');
             if (completedLevels.has(currentLevel)) {
                 hintBtn.style.opacity = '0.5';
@@ -596,25 +633,37 @@
             } else {
                 if (level.type === 'logic_seat') {
                     html += `
-                        <div id="touhu-password-area" class="mb-4 bg-orange-50 p-4 rounded-xl border border-orange-200 shadow-sm text-center">
-                            <p class="text-sm font-bold text-[#8B2500] mb-3">請找關主完成投壺任務，並向關主索取密碼！</p>
-                            <input type="text" id="touhu-password" placeholder="請輸入通關密碼" class="w-full px-3 py-3 rounded bg-white border border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-xl font-bold mb-3" autocomplete="off">
-                            <button onclick="checkTouhuPassword()" class="w-full bg-[#1B5E20] text-white font-bold py-3 px-4 rounded-lg shadow-md text-lg active:scale-95 transition-transform">
-                                解鎖座位線索
+                        <div id="touhu-game-area" class="mb-4 bg-orange-50 p-4 rounded-xl border border-orange-200 shadow-sm text-center">
+                            <p class="text-sm font-bold text-[#8B2500] mb-3">🎯 君子無所爭，必也射乎！請完成「9進3」投壺挑戰！</p>
+
+                            <div class="flex justify-between items-center px-4 mb-2 text-sm font-bold text-gray-700">
+                                <span>🏹 剩餘：<span id="touhu-arrows-display" class="text-[#8B2500] text-lg">9</span></span>
+                                <span>🎯 命中：<span id="touhu-hits-display" class="text-green-600 text-lg">0</span>/3</span>
+                            </div>
+
+                            <div id="touhu-meter">
+                                <div id="touhu-target"></div>
+                                <div id="touhu-cursor"></div>
+                            </div>
+
+                            <p id="touhu-feedback" class="text-lg font-black h-8 mt-2 transition-opacity opacity-0"></p>
+
+                            <button id="touhu-shoot-btn" onclick="shootTouhu()" class="w-full bg-[#1B5E20] hover:bg-green-800 text-white font-bold py-3 px-4 rounded-lg shadow-md text-lg active:scale-95 transition-transform mt-2">
+                                🏹 投擲！
                             </button>
-                            <p id="password-feedback" class="text-red-600 text-sm font-bold mt-2 opacity-0 transition-opacity"></p>
                         </div>
 
                         <div id="logic-puzzle-area" class="hidden fade-in bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                            <div class="bg-green-100 text-green-800 font-bold p-2 rounded text-center mb-3 border border-green-300">🎉 投壺挑戰成功！已解鎖座位線索</div>
                             <p class="font-bold text-[#8B2500] text-base mb-2">📜 座位線索：</p>
                             <ul class="list-decimal list-inside text-sm font-bold text-gray-800 mb-4 space-y-1">`;
-                    
+
                     level.clues.forEach(clue => {
                         html += `<li>${clue}</li>`;
                     });
-                    
+
                     html += `</ul>`;
-                    
+
                     if (level.seatImage) {
                         html += `<div class="flex justify-center mb-4"><img src="${level.seatImage}" class="max-w-[60%] md:max-w-[40%] h-auto rounded shadow-sm border border-gray-300" onerror="this.style.display='none'"></div>`;
                     }
@@ -624,18 +673,77 @@
                             ${getInputHTML()}
                         </div>
                     `;
+                } else if (level.type === 'draggable_card') {
+                    // 新增前置解鎖任務區塊
+                    html += `
+                        <div id="card-unlock-area" class="mb-4 bg-orange-50 p-4 rounded-xl border border-orange-200 shadow-sm text-center">
+                            <p class="text-sm font-bold text-[#8B2500] mb-3">📍 要開啟虛擬紙板，請先在現場尋找石碑！</p>
+                            <p class="text-base font-bold text-gray-800 mb-3">請問：紀念碑是在民國 90 年 12 月「幾號」落成的？</p>
+                            <input type="number" id="monument-date-input" placeholder="請輸入日期數字 (如: 1)" class="w-full px-3 py-3 rounded bg-white border border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-xl font-bold mb-3" autocomplete="off">
+                            <button onclick="checkMonumentDate()" class="w-full bg-[#1B5E20] hover:bg-green-800 text-white font-bold py-3 px-4 rounded-lg shadow-md text-lg active:scale-95 transition-transform">
+                                確認日期，解鎖紙板
+                            </button>
+                            <p id="monument-feedback" class="text-red-600 text-sm font-bold mt-2 opacity-0 transition-opacity"></p>
+                        </div>
+
+                        <!-- 原本的拖曳區塊，預設先隱藏 -->
+                        <div id="draggable-puzzle-area" class="hidden">
+                            <div class="mb-4 bg-orange-50 p-4 rounded-xl border border-orange-200 shadow-sm text-center">
+                                <p class="text-sm font-bold text-[#8B2500] mb-3">點擊下方按鈕拿出虛擬紙板，在石碑上拖曳找出隱藏的 4 個文字：</p>
+
+                                <button id="toggle-card-btn" onclick="toggleDraggableCard()" class="mb-3 bg-[#8B2500] text-white px-4 py-2 rounded shadow-md font-bold text-sm active:scale-95 transition-transform">
+                                    📜 拿出紙板
+                                </button>
+
+                                <div id="draggable-area">
+                                    <img id="monument-bg" src="${level.bgImage}" onerror="this.alt='找不到石碑底圖 monument.jpg，請確認已上傳'">
+
+                                    <div id="draggable-card">
+                                        <svg class="card-svg" viewBox="0 0 150 250" preserveAspectRatio="none">
+                                            <!-- 定義更小的挖空遮罩 -->
+                                            <defs>
+                                                <mask id="hole-mask">
+                                                    <rect width="100%" height="100%" fill="white" />
+                                                    <!-- 洞的長寬減半為 11x11，位置微調居中 -->
+                                                    <rect x="112" y="15" width="19" height="11" fill="black" rx="2" />
+                                                    <rect x="128" y="99" width="19" height="11" fill="black" rx="2" />
+                                                    <rect x="21" y="117" width="19" height="11" fill="black" rx="2" />
+                                                    <rect x="2" y="215" width="19" height="11" fill="black" rx="2" />
+                                                </mask>
+                                            </defs>
+
+                                            <!-- 帶有挖空遮罩的紙板本體 -->
+                                            <rect width="100%" height="100%" fill="#F4EAD5" mask="url(#hole-mask)" rx="6" stroke="#8B2500" stroke-width="4"/>
+
+                                            <!-- 缺口邊框裝飾 (對應新的小尺寸) -->
+                                            <rect x="112" y="15" width="19" height="11" fill="none" rx="2" stroke="#DC2626" stroke-width="1.5" />
+                                            <rect x="128" y="99" width="19" height="11" fill="none" rx="2" stroke="#DC2626" stroke-width="1.5" />
+                                            <rect x="22" y="117" width="19" height="11" fill="none" rx="2" stroke="#DC2626" stroke-width="1.5" />
+                                            <rect x="2" y="215" width="19" height="11" fill="none" rx="2" stroke="#DC2626" stroke-width="1.5" />
+
+                                            <!-- 移除文字，保留一點古董紙張的邊緣效果 -->
+                                            <rect x="5" y="5" width="140" height="240" fill="none" stroke="#D7CCC8" stroke-width="1" opacity="0.5"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="font-bold text-[#8B2500] text-lg mb-3">${level.question}</p>
+                            ${getInputHTML()}
+                        </div>
+                    `;
                 } else if (level.type === 'photo_hunt') {
                     html += `<p class="font-bold text-[#8B2500] text-lg mb-4 text-center border-b-2 border-[#8B2500] pb-2">${level.question}</p>`;
                     html += `<div class="grid grid-cols-2 gap-3 mb-6">`;
-                    
+
                     level.images.forEach((img, idx) => {
                         let isFullWidth = (idx === 4) ? 'col-span-2' : '';
                         let frameClass = huntPhotos[idx] ? 'hunt-item-uploaded' : 'border-gray-300';
                         let btnClass = huntPhotos[idx] ? 'hunt-btn-uploaded' : 'bg-gray-700 hover:bg-gray-800';
                         let btnText = huntPhotos[idx] ? '✅ 重新上傳' : '📷 拍照';
-                        
+
                         let uploadedImgHtml = huntPhotos[idx] ? `<img src="${huntPhotos[idx].src}" class="w-full h-24 object-cover rounded-lg border-2 border-green-500 mb-2 shadow-sm saveable-img">` : '';
-                        
+
                         html += `
                             <div class="relative ${isFullWidth} flex flex-col items-center bg-white p-2 rounded-xl shadow-sm border-2 ${frameClass} transition-colors">
                                 <div class="w-full h-20 bg-gray-50 rounded border border-gray-200 p-1 mb-2 flex items-center justify-center">
@@ -679,7 +787,7 @@
                         <div class="mb-4">
                             <p class="font-bold text-[#8B2500] text-lg mb-2">${level.question1}</p>
                             <input type="text" id="answer-input-1" placeholder="輸入第一位先賢名稱" class="w-full px-4 py-3 rounded bg-gray-50 border-2 border-gray-300 focus:outline-none focus:border-[#8B2500] focus:ring-0 text-center text-lg font-bold transition-all mb-4" autocomplete="off">
-                            
+
                             <p class="font-bold text-[#8B2500] text-lg mb-2">${level.question2}</p>
                             <input type="text" id="answer-input-2" placeholder="輸入第二位先賢名稱" class="w-full px-4 py-3 rounded bg-gray-50 border-2 border-gray-300 focus:outline-none focus:border-[#8B2500] focus:ring-0 text-center text-lg font-bold transition-all" autocomplete="off">
                         </div>
@@ -690,7 +798,7 @@
                     `;
                 } else if (level.type === 'audio_match') {
                     html += `<p class="font-bold text-[#8B2500] text-lg mb-3">請聆聽聲音，並在孔廟現場尋找對應的樂器：</p>`;
-                    const optionsList = level.options || instrumentOptions; 
+                    const optionsList = level.options || instrumentOptions;
                     level.questions.forEach((q, idx) => {
                         html += `
                         <div class="bg-orange-50 p-3 rounded-xl border border-orange-200 mb-3 shadow-sm">
@@ -734,7 +842,7 @@
 
             let hintStyle = revealedHints.has(currentLevel) ? 'block' : 'hidden';
             let hintContent = revealedHints.has(currentLevel) ? `💡 錦囊：${level.hint}` : '';
-            
+
             let hintImageHtml = '';
             if (revealedHints.has(currentLevel) && level.hintImage) {
                 hintImageHtml = `<img src="${level.hintImage}" class="w-full mt-3 rounded-lg border-2 border-yellow-400 shadow-sm saveable-img" onerror="this.style.display='none'">`;
@@ -748,27 +856,210 @@
             `;
 
             document.getElementById('level-content').innerHTML = html;
-            
+
             if(level.type === 'photo_hunt' && !completedLevels.has(currentLevel)){
                 checkHuntProgress();
             }
+
+            // 初始化拖曳紙板關卡
+            if(level.type === 'draggable_card' && !completedLevels.has(currentLevel)) {
+                // 解鎖前先不綁定拖曳事件，等玩家輸入密碼再綁定
+            }
+
+            if(level.type === 'logic_seat' && !completedLevels.has(currentLevel)){
+                startTouhuGame();
+            }
         }
 
-        window.checkTouhuPassword = function() {
-            const inputEl = document.getElementById('touhu-password');
-            const feedback = document.getElementById('password-feedback');
-            const password = activeLevels[currentLevel].password;
+        // ============================
+        // 拖曳紙板遊戲邏輯
+        // ============================
+        // 檢查紀念碑密碼
+        window.checkMonumentDate = function() {
+            const inputEl = document.getElementById('monument-date-input');
+            const feedback = document.getElementById('monument-feedback');
+            const level = activeLevels[currentLevel];
 
-            if (inputEl.value.trim() === password) {
-                document.getElementById('touhu-password-area').classList.add('hidden');
-                document.getElementById('logic-puzzle-area').classList.remove('hidden');
+            if (inputEl.value.trim() === level.password) {
+                document.getElementById('card-unlock-area').classList.add('hidden');
+                document.getElementById('draggable-puzzle-area').classList.remove('hidden');
+                initDraggableCard(); // 解鎖後才初始化拖曳功能
             } else {
-                feedback.textContent = "密碼錯誤！請確認是否已向關主詢問正確密碼。";
+                feedback.textContent = "日期不正確喔！請在現場仔細看看石碑上的紀錄。";
                 feedback.style.opacity = '1';
                 setTimeout(() => { feedback.style.opacity = '0'; }, 3000);
             }
         };
 
+        // 控制紙板顯示或隱藏
+        window.toggleDraggableCard = function() {
+            const card = document.getElementById("draggable-card");
+            const btn = document.getElementById("toggle-card-btn");
+            if (!card) return;
+
+            if (card.style.display === "none" || card.style.display === "") {
+                card.style.display = "block";
+                btn.innerHTML = "📥 收起紙板";
+            } else {
+                card.style.display = "none";
+                btn.innerHTML = "📜 拿出紙板";
+            }
+        }
+
+        function initDraggableCard() {
+            dragItem = document.getElementById("draggable-card");
+            const container = document.getElementById("draggable-area");
+            if(!dragItem || !container) return;
+
+            activeX = false;
+            currentX = 20; currentY = 20;
+            dragItem.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+
+            dragItem.addEventListener("touchstart", dragStart, {passive: false});
+            container.addEventListener("touchend", dragEnd, {passive: false});
+            container.addEventListener("touchmove", drag, {passive: false});
+
+            dragItem.addEventListener("mousedown", dragStart, false);
+            container.addEventListener("mouseup", dragEnd, false);
+            container.addEventListener("mousemove", drag, false);
+            container.addEventListener("mouseleave", dragEnd, false);
+        }
+
+        function dragStart(e) {
+            if (e.type === "touchstart") {
+                initialX = e.touches[0].clientX - currentX;
+                initialY = e.touches[0].clientY - currentY;
+            } else {
+                initialX = e.clientX - currentX;
+                initialY = e.clientY - currentY;
+            }
+            if (e.target.closest('#draggable-card')) {
+                activeX = true;
+            }
+        }
+
+        function dragEnd(e) {
+            activeX = false;
+        }
+
+        function drag(e) {
+            if (activeX) {
+                e.preventDefault();
+                const container = document.getElementById("draggable-area");
+                let clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+                let clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+
+                let tempX = clientX - initialX;
+                let tempY = clientY - initialY;
+
+                const maxX = container.clientWidth - dragItem.clientWidth;
+                const maxY = container.clientHeight - dragItem.clientHeight;
+
+                if(tempX < 0) tempX = 0;
+                if(tempX > maxX) tempX = maxX;
+                if(tempY < 0) tempY = 0;
+                if(tempY > maxY) tempY = maxY;
+
+                currentX = tempX;
+                currentY = tempY;
+
+                dragItem.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+            }
+        }
+
+        // ============================
+        // 投壺小遊戲邏輯
+        // ============================
+        function startTouhuGame() {
+            touhuArrows = 9;
+            touhuHits = 0;
+            touhuSpeed = 2 + Math.random() * 2;
+            updateTouhuDisplay();
+
+            const btn = document.getElementById('touhu-shoot-btn');
+            btn.onclick = shootTouhu;
+            btn.innerHTML = '🏹 投擲！';
+            btn.classList.replace('bg-orange-600', 'bg-[#1B5E20]');
+            btn.classList.replace('hover:bg-orange-700', 'hover:bg-green-800');
+
+            document.getElementById('touhu-feedback').style.opacity = '0';
+
+            if (touhuAnimFrame) cancelAnimationFrame(touhuAnimFrame);
+            animateTouhuCursor();
+        }
+
+        function animateTouhuCursor() {
+            touhuMeterX += touhuSpeed * touhuMeterDir;
+            if (touhuMeterX >= 100) {
+                touhuMeterX = 100;
+                touhuMeterDir = -1;
+                touhuSpeed = 2 + Math.random() * 2;
+            } else if (touhuMeterX <= 0) {
+                touhuMeterX = 0;
+                touhuMeterDir = 1;
+                touhuSpeed = 2 + Math.random() * 2;
+            }
+
+            const cursor = document.getElementById('touhu-cursor');
+            if(cursor) {
+                cursor.style.left = touhuMeterX + '%';
+                touhuAnimFrame = requestAnimationFrame(animateTouhuCursor);
+            }
+        }
+
+        function shootTouhu() {
+            if (touhuArrows <= 0) return;
+
+            touhuArrows--;
+            const cursorX = touhuMeterX;
+            const isHit = (cursorX >= 40 && cursorX <= 60);
+
+            const fb = document.getElementById('touhu-feedback');
+
+            if (isHit) {
+                touhuHits++;
+                fb.textContent = "🎯 命中！";
+                fb.className = "text-xl font-black h-8 mt-2 transition-opacity opacity-100 text-green-600";
+            } else {
+                fb.textContent = "❌ 沒中～";
+                fb.className = "text-xl font-black h-8 mt-2 transition-opacity opacity-100 text-red-600";
+            }
+
+            updateTouhuDisplay();
+
+            if (touhuHits >= 3) {
+                cancelAnimationFrame(touhuAnimFrame);
+                fb.textContent = "🎉 挑戰成功！";
+                setTimeout(() => {
+                    document.getElementById('touhu-game-area').classList.add('hidden');
+                    document.getElementById('logic-puzzle-area').classList.remove('hidden');
+                }, 1000);
+                return;
+            }
+
+            if (touhuArrows <= 0 && touhuHits < 3) {
+                cancelAnimationFrame(touhuAnimFrame);
+                fb.textContent = "💥 挑戰失敗！沒有箭了";
+                const btn = document.getElementById('touhu-shoot-btn');
+                btn.innerHTML = '🔄 重新拿 9 支箭';
+                btn.classList.replace('bg-[#1B5E20]', 'bg-orange-600');
+                btn.classList.replace('hover:bg-green-800', 'hover:bg-orange-700');
+                btn.onclick = startTouhuGame;
+            } else {
+                setTimeout(() => { fb.style.opacity = '0'; }, 1000);
+            }
+        }
+
+        function updateTouhuDisplay() {
+            const arrowEl = document.getElementById('touhu-arrows-display');
+            const hitsEl = document.getElementById('touhu-hits-display');
+            if(arrowEl) arrowEl.textContent = touhuArrows;
+            if(hitsEl) hitsEl.textContent = touhuHits;
+        }
+
+        // ============================
+        // 尋寶與其他邏輯
+        // ============================
         window.handleHuntPhotoGrid = function(event, idx) {
             const file = event.target.files[0];
             if (file) {
@@ -817,8 +1108,8 @@
         }
 
         window.useHint = function() {
-            if (completedLevels.has(currentLevel)) return; 
-            
+            if (completedLevels.has(currentLevel)) return;
+
             const hintBox = document.getElementById('persistent-hint-box');
             const level = activeLevels[currentLevel];
 
@@ -831,7 +1122,7 @@
                 hintsLeft--;
                 document.getElementById('hint-count-display').textContent = hintsLeft;
                 revealedHints.add(currentLevel);
-                
+
                 if (hintBox) {
                     let hintHtml = `💡 錦囊：${level.hint}`;
                     if(level.hintImage) {
@@ -870,7 +1161,7 @@
         window.closeHuntModalAndContinue = function() {
             document.getElementById('hunt-modal').classList.add('hidden');
             document.getElementById('hunt-modal').classList.remove('flex');
-            
+
             if (completedLevels.size === activeLevels.length) {
                 showEnding();
             } else {
@@ -893,9 +1184,9 @@
             const canvas = document.getElementById('hunt-canvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             const originalImagesContainer = document.getElementById('hunt-original-images');
-            originalImagesContainer.innerHTML = ''; 
+            originalImagesContainer.innerHTML = '';
 
             function drawHuntThumb(img, px, py, pw, ph) {
                 if(!img) return;
@@ -927,7 +1218,7 @@
             ctx.fillRect(40, 220, 220, 260); drawHuntThumb(huntPhotos[0], 50, 230, 200, 200);
             ctx.fillRect(290, 220, 220, 260); drawHuntThumb(huntPhotos[1], 300, 230, 200, 200);
             ctx.fillRect(540, 220, 220, 260); drawHuntThumb(huntPhotos[2], 550, 230, 200, 200);
-            
+
             ctx.fillRect(165, 520, 220, 260); drawHuntThumb(huntPhotos[3], 175, 530, 200, 200);
             ctx.fillRect(415, 520, 220, 260); drawHuntThumb(huntPhotos[4], 425, 530, 200, 200);
 
@@ -948,7 +1239,6 @@
                         div.innerHTML = `
                             <span class="text-xs font-bold text-gray-500 mb-1">照片 ${idx + 1} (長按圖保存)</span>
                             <img src="${img.src}" class="w-full h-auto max-h-48 object-contain rounded saveable-img">
-                            <button onclick="downloadOriginalHuntPhoto(${idx})" class="mt-2 w-full bg-blue-100 text-blue-800 font-bold py-1.5 rounded text-sm active:scale-95">📥 下載照片 ${idx + 1}</button>
                         `;
                         originalImagesContainer.appendChild(div);
                     }
@@ -962,7 +1252,7 @@
             document.getElementById('ar-modal').classList.remove('hidden');
             document.getElementById('ar-hint').textContent = "💡 提示：" + level.arHint;
             document.getElementById('fallback-text').innerHTML = level.fallback;
-            
+
             const svgEl = document.getElementById('svg-landscape');
             if (level.type === 'ar_landscape') {
                 svgEl.classList.remove('hidden');
@@ -999,15 +1289,15 @@
 
             fb.textContent = msg;
             fb.style.opacity = '1';
-            
+
             if (msg.includes("錦囊已用完")) {
-                fb.style.color = '#EA580C'; 
+                fb.style.color = '#EA580C';
             } else if (isSuccess) {
-                fb.style.color = '#16A34A'; 
+                fb.style.color = '#16A34A';
             } else {
-                fb.style.color = '#DC2626'; 
+                fb.style.color = '#DC2626';
             }
-            
+
             const inputEl = document.getElementById('answer-input');
             if (inputEl) {
                 if (!isSuccess && !msg.includes("錦囊已用完")) {
@@ -1118,17 +1408,17 @@
             } else {
                 const inputEl = document.getElementById('answer-input');
                 if (!inputEl) return;
-                const userAnswer = inputEl.value.trim().toLowerCase().replace(/\s+/g, ''); 
+                const userAnswer = inputEl.value.trim().toLowerCase().replace(/\s+/g, '');
                 if (!userAnswer) { showInlineFeedback("請輸入答案！", false); return; }
                 isCorrect = level.answer.some(ans => userAnswer === ans.toLowerCase());
             }
 
             if (isCorrect) {
                 completedLevels.add(currentLevel);
-                renderLevelNav(); 
-                
+                renderLevelNav();
+
                 showInlineFeedback("🌟 正確！老夫子：「做得好！」", true, 2000);
-                
+
                 if (level.type === 'photo_hunt') {
                     setTimeout(() => {
                         toggleHuntModal();
@@ -1164,7 +1454,7 @@
             if (currentCardStyle > 3) currentCardStyle = 0;
             if (currentCardStyle < 0) currentCardStyle = 3;
             document.getElementById('card-title-indicator').textContent = cardTitles[currentCardStyle];
-            
+
             let rank = "狀元及第";
             drawAchievementCard(rank, currentCardStyle);
         }
@@ -1172,11 +1462,11 @@
         function showEnding() {
             document.getElementById('puzzle-section').classList.add('hidden');
             document.getElementById('intro-section').classList.add('hidden');
-            
+
             let rank = "狀元及第";
-            
+
             document.getElementById('ending-section').classList.remove('hidden');
-            
+
             if (currentMode === 'child') {
                 const endingHuntBtn = document.getElementById('ending-hunt-btn-area');
                 if (endingHuntBtn) endingHuntBtn.classList.remove('hidden');
@@ -1200,7 +1490,7 @@
 
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(px - 10, py - 10, pw + 20, ph + 20);
-                
+
                 if(ctx.lineWidth !== 0){
                     ctx.strokeRect(px - 10, py - 10, pw + 20, ph + 20);
                 }
@@ -1263,7 +1553,7 @@
                 ctx.fillRect(0, 0, 800, 1000);
                 ctx.strokeStyle = '#FB923C'; ctx.lineWidth = 10; ctx.setLineDash([20, 15]);
                 ctx.strokeRect(30, 30, 740, 940);
-                ctx.setLineDash([]); 
+                ctx.setLineDash([]);
 
                 ctx.font = '60px sans-serif';
                 ctx.fillText('🏮', 100, 150); ctx.fillText('🧧', 700, 200);
@@ -1275,7 +1565,7 @@
                 ctx.fillText('🌟 孔廟冒險完成 🌟', 400, 140);
 
                 ctx.strokeStyle = '#FDBA74'; ctx.lineWidth = 6;
-                drawPhoto(120, 220, 560, 420, 2); 
+                drawPhoto(120, 220, 560, 420, 2);
 
                 ctx.fillStyle = '#EA580C';
                 ctx.beginPath();
@@ -1347,9 +1637,9 @@
                 ctx.restore();
 
             } else if (styleIndex === 3) {
-                ctx.fillStyle = '#1A237E'; 
+                ctx.fillStyle = '#1A237E';
                 ctx.fillRect(0, 0, 800, 1000);
-                
+
                 ctx.strokeStyle = '#D4AF37'; ctx.lineWidth = 10; ctx.strokeRect(30, 30, 740, 940);
                 ctx.strokeStyle = '#D4AF37'; ctx.lineWidth = 2; ctx.strokeRect(45, 45, 710, 910);
 
