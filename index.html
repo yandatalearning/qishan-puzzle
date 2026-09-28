@@ -132,7 +132,6 @@
                     <canvas id="achievement-canvas" width="800" height="1000" class="hidden"></canvas>
                     <img id="achievement-img" class="w-full h-auto rounded-lg border-4 border-[#8B2500] shadow-xl saveable-img">
                     
-                    <!-- 新增成就卡下載按鈕 -->
                     <button onclick="downloadImageFromImg('achievement-img', '孔廟試煉成就卡.jpg')" class="mt-4 w-full bg-[#1B5E20] hover:bg-green-800 text-white font-bold py-3 px-4 rounded-lg shadow-md text-base active:scale-95 transition-transform tracking-widest flex items-center justify-center gap-2">
                         📥 點此直接下載成就卡
                     </button>
@@ -181,7 +180,6 @@
                 <canvas id="hunt-canvas" width="800" height="1000" class="hidden"></canvas>
                 <img id="hunt-img" class="w-full h-auto rounded-lg border-2 border-[#8B2500] shadow-sm mb-2 mt-2 saveable-img">
                 
-                <!-- 新增全紀錄大圖下載按鈕 -->
                 <button onclick="downloadImageFromImg('hunt-img', '尋寶全紀錄大圖.jpg')" class="mb-4 w-full bg-[#1B5E20] hover:bg-green-800 text-white font-bold py-2 px-4 rounded shadow-md text-base active:scale-95 transition-transform flex items-center justify-center gap-2">
                     📥 點此下載這張全紀錄
                 </button>
@@ -202,7 +200,9 @@
     <div id="ar-modal" class="fixed inset-0 z-50 bg-black hidden flex flex-col">
         <div id="ar-hint" class="w-full bg-black/70 text-white text-center py-3 px-4 z-20 text-sm font-bold text-yellow-400"></div>
         <div class="relative w-full flex-1 overflow-hidden">
+            <!-- 確保有 playinline，部分 iOS 需要這個才能內聯播放 -->
             <video id="ar-video" class="w-full h-full object-cover" autoplay playsinline muted></video>
+            
             <svg id="svg-landscape" class="hidden absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice">
                 <rect x="456" y="360" width="88" height="100" fill="none" stroke="#FFEB3B" stroke-width="4" stroke-dasharray="10 10" opacity="0.9"/>
                 <text x="500" y="340" fill="#FFEB3B" font-size="20" text-anchor="middle" font-weight="bold">對準中央大門</text>
@@ -213,6 +213,9 @@
                     <line x1="500" y1="480" x2="500" y2="580" />
                     <line x1="644" y1="480" x2="804" y2="580" />
                 </g>
+                <!-- 新增提示文字 (黑邊框與黃字疊加，保證清楚) -->
+                <text x="500" y="640" fill="#000000" font-size="26" text-anchor="middle" font-weight="bold" stroke="#000000" stroke-width="5" stroke-linejoin="round">基準框對準後可全方位旋轉找到與此線相合的地方</text>
+                <text x="500" y="640" fill="#FFEB3B" font-size="26" text-anchor="middle" font-weight="bold">基準框對準後可全方位旋轉找到與此線相合的地方</text>
             </svg>
         </div>
         <div class="w-full bg-black/80 p-4 flex justify-between items-center z-20">
@@ -237,15 +240,13 @@
         
         let completedLevels = new Set();
         let revealedHints = new Set();
+        
         let huntPhotos = [null, null, null, null, null]; 
 
         let currentCardStyle = 0;
         const cardTitles = ["1/4 古風御賜卡", "2/4 Q版貼紙卡", "3/4 拍立得旅行卡", "4/4 孔門弟子卡"];
         const instrumentOptions = ["編鐘", "編磬", "笛", "蕭", "笙", "鳳簫", "拍板", "塤", "甄", "琴", "瑟", "鼗", "敔", "搏拊"];
 
-        // ==========================================
-        // 【題庫一】新科弟子版
-        // ==========================================
         const levels_teen = [
             {
                 type: 'standard',
@@ -369,9 +370,6 @@
             }
         ];
 
-        // ==========================================
-        // 【題庫二】童蒙探索版
-        // ==========================================
         const levels_child = [
             {
                 type: 'standard',
@@ -700,7 +698,7 @@
                             <audio controls class="w-full h-10 mb-3 rounded">
                                 <source src="${q.src}" type="audio/mpeg">
                             </audio>
-                            <select id="audio-ans-${idx}" class="w-full px-3 py-3 rounded-lg bg-white border-2 border-gray-300 focus:outline-none text-center text-lg font-bold text-[#3E2723] transition-colors">
+                            <select id="audio-ans-${idx}" class="w-full px-3 py-3 rounded-lg bg-white border-2 border-gray-300 focus:outline-none focus:border-[#8B2500] text-center text-lg font-bold text-[#3E2723] transition-colors">
                                 <option value="">-- 選擇樂器 --</option>`;
                         optionsList.forEach(opt => {
                             html += `<option value="${opt}">${opt}</option>`;
@@ -950,7 +948,7 @@
                         div.innerHTML = `
                             <span class="text-xs font-bold text-gray-500 mb-1">照片 ${idx + 1} (長按圖保存)</span>
                             <img src="${img.src}" class="w-full h-auto max-h-48 object-contain rounded saveable-img">
-                            <button onclick="downloadOriginalHuntPhoto(${idx})" class="mt-2 w-full bg-blue-100 text-blue-800 font-bold py-1.5 rounded text-sm active:scale-95">📥 下載圖 ${idx + 1}</button>
+                            <button onclick="downloadOriginalHuntPhoto(${idx})" class="mt-2 w-full bg-blue-100 text-blue-800 font-bold py-1.5 rounded text-sm active:scale-95">📥 下載照片 ${idx + 1}</button>
                         `;
                         originalImagesContainer.appendChild(div);
                     }
@@ -972,7 +970,13 @@
 
             try {
                 cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                document.getElementById('ar-video').srcObject = cameraStream;
+                const videoEl = document.getElementById('ar-video');
+                videoEl.srcObject = cameraStream;
+                videoEl.onloadedmetadata = function() {
+                    videoEl.play().catch(function(err) {
+                        console.error("影片播放失敗:", err);
+                    });
+                };
             } catch (err) {
                 showInlineFeedback("無法取得相機權限！請點擊備用提示查看線索。", false);
             }
